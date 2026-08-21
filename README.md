@@ -13,6 +13,26 @@ AI 기반 일본어 단어·한자 학습 웹 서비스.
 - **DB/ORM**: Prisma (스키마는 Phase 2에서 작성)
 - **Lint/Format**: ESLint(+ import 정렬) / Prettier
 
+## API 응답 규격
+
+모든 API는 아래 두 형태 중 하나로만 응답한다 (타입: [types/api.ts](types/api.ts)).
+
+```ts
+// 성공
+{ success: true, data: T }
+
+// 실패
+{ success: false, error: { code: ApiErrorCode, message: string } }
+```
+
+- **에러 코드**: `VALIDATION_ERROR`(400) · `UNAUTHORIZED`(401) · `NOT_FOUND`(404) · `EXTERNAL_API_ERROR`(502) · `AI_TIMEOUT`(504) · `INTERNAL_ERROR`(500). 코드-상태 매핑은 [lib/api/error.ts](lib/api/error.ts)에 고정되어 있다.
+- **Route Handler 작성법**: [lib/api/handler.ts](lib/api/handler.ts)의 `withApiHandler`로 감싸고, 성공 시 데이터를 그대로 `return`, 실패 시 `throw new ApiError(code, message)` (또는 zod 검증 실패 시 자연스럽게 발생하는 `ZodError`)를 던진다. 래퍼가 표준 응답으로 변환한다. 예시: [app/api/health/route.ts](app/api/health/route.ts).
+- **프론트엔드 호출**: [lib/api/client.ts](lib/api/client.ts)의 `apiFetch<T>(path, options)`를 TanStack Query의 `queryFn`/`mutationFn`으로 그대로 사용한다. 성공 시 `data`를 반환하고, 실패(서버 에러/네트워크 에러/타임아웃)는 모두 `ApiClientError`를 throw하므로 Query가 `error` 상태로 처리한다.
+
+## 날짜/시간 규칙
+
+복습일 계산 등 날짜가 관련된 모든 로직은 KST(UTC+9, 서머타임 없음) 기준으로 처리한다. [lib/datetime.ts](lib/datetime.ts)의 `startOfKstDay`, `addKstDays`, `formatKstISOString`을 사용하고, 서버에 `Date`를 직접 저장/비교하지 않는다.
+
 ## 폴더 구조
 
 ```
