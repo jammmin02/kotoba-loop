@@ -1,0 +1,8 @@
+.next
+node_modules
+public
+package-lock.json
+
+# pre-existing planning docs, not part of the generated codebase
+kotoba-loop-roadmap.md
+*.txt
