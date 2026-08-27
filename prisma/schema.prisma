@@ -1,0 +1,624 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+//
+// Table/column names follow the ERD defined in kotoba-loop-roadmap.md (section C.3)
+// literally and must not be renamed in later phases without updating that document.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum JlptLevel {
+  N5
+  N4
+  N3
+  N2
+  N1
+}
+
+enum LearningStatus {
+  NEW
+  LEARNING
+  REVIEW
+  WEAK
+  MASTERED
+}
+
+enum ImageType {
+  object
+  situation
+  ai_generated
+}
+
+enum ReviewTargetType {
+  vocab
+  kanji
+}
+
+enum AIAnalysisStatus {
+  pending
+  confirmed
+  edited
+}
+
+// 사진 단어장 업로드(PROMPT 28) 큐 상태에 OCR 연동(PROMPT 29)이 실제로 전이시키는 값을
+// 추가한다: processing(OCR 처리 중) / completed(추출 성공, PhotoOcrResult 존재) /
+// failed(텍스트 없음 또는 타임아웃 — 사용자가 재시도하면 다시 processing으로 돌아간다).
+enum PhotoUploadStatus {
+  pending
+  processing
+  completed
+  failed
+}
+
+// Weekly는 계획서 본문에 없고 지침 예시에만 등장해 이번 단계에서 제외한다(PROMPT 25) — 값을
+// 추가해도 마이그레이션 비용이 적으므로 실제로 필요해질 때 확장한다.
+enum QuestType {
+  daily
+}
+
+// ERD(C.3)는 category를 word|kanji|streak로 정의하지만, 이번 단계(PROMPT 27)는 word/kanji만
+// 시딩한다(단어 업적 실동작 + 한자 업적 조건만 정의). streak 업적은 계획서에 구체 조건이 없어
+// QuestType의 daily/weekly 처리와 같은 이유로 지금은 값 자체를 추가하지 않고, 실제로 필요해질
+// 때(예: PROMPT 26 스트릭 연동 이후) enum 값과 시딩을 함께 추가한다.
+enum AchievementCategory {
+  word
+  kanji
+}
+
+model User {
+  id                String     @id @default(uuid())
+  email             String     @unique
+  password_hash     String?
+  nickname          String
+  jlpt_level        JlptLevel?
+  target_jlpt       JlptLevel?
+  daily_word_target Int?
+  daily_study_time  Int?
+  purpose           String[]   @default([])
+  created_at        DateTime   @default(now())
+
+  vocabularyBooks      VocabularyBook[]
+  userVocabularies     UserVocabulary[]
+  reviewHistories      ReviewHistory[]
+  tags                 Tag[]
+  aiAnalyses           AIAnalysis[]
+  gameProfile          UserGameProfile?
+  sentences            UserSentence[]
+  questProgress        UserQuestProgress[]
+  achievements         UserAchievement[]
+  photoUploads         PhotoUpload[]
+  streakFreezeLogs     StreakFreezeLog[]
+  userKanji            UserKanji[]
+  examGoals            UserExamGoal[]
+  pets                 UserPet[]
+  battleRoomsHosted    BattleRoom[]
+  battleParticipations BattleParticipant[]
+  battleAnswers        BattleAnswer[]
+  following            Friend[]            @relation("FriendFollower")
+  followedBy           Friend[]            @relation("FriendFollowee")
+}
+
+// 친구(팔로우) 기능(PROMPT 58) — 인스타그램형 상호 승인이 아니라 "관심 단어장 구독"에 가까운
+// 승인 없는 단방향 팔로우다(2026-08-27 사용자 확정, 로드맵에 구체 스펙이 없어 추가 결정).
+// 자기 자신 팔로우 금지는 UserExamGoal.is_active와 같은 이유로 DB 제약이 아니라 API
+// 계층(app/api/friends)에서 검증한다.
+model Friend {
+  follower_id String
+  followee_id String
+  created_at  DateTime @default(now())
+
+  follower User @relation("FriendFollower", fields: [follower_id], references: [id], onDelete: Cascade)
+  followee User @relation("FriendFollowee", fields: [followee_id], references: [id], onDelete: Cascade)
+
+  @@id([follower_id, followee_id])
+}
+
+// AI 자동 학습 계획(PROMPT 43)의 시험 목표 — 사용자가 시험을 동시에 여러 개 준비할 수 있다는
+// 점을 반영해 User 컬럼이 아니라 1:N 테이블로 둔다(2026-08-25 사용자 확정, C.3 참고).
+// is_active는 여러 목표 중 "현재 추천 계산에 쓸 목표" 단 하나만 true여야 한다는 불변식을
+// API 계층(app/api/users/me/exam-goals)이 트랜잭션으로 강제한다 — Postgres 부분 유니크
+// 인덱스까지는 필요 없다고 판단해 스키마에는 두지 않는다.
+model UserExamGoal {
+  id          String    @id @default(uuid())
+  user_id     String
+  target_jlpt JlptLevel
+  exam_date   DateTime
+  is_active   Boolean   @default(false)
+  created_at  DateTime  @default(now())
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id, is_active])
+  @@index([user_id, exam_date])
+}
+
+model VocabularyBook {
+  id           String   @id @default(uuid())
+  user_id      String
+  name         String
+  description  String?
+  is_public    Boolean  @default(false)
+  // 커뮤니티 탐색(PROMPT 58)의 "인기순" 정렬 지표 — 좋아요/랭킹 테이블은 범위 밖이라, 다른
+  // 사용자가 이 책을 가져오기(복제)한 횟수를 유일한 인기 신호로 쓴다. 가져오기 성공 시에만
+  // (app/api/vocabulary-books/community/[id]/import) 원자적으로 증가시킨다.
+  import_count Int      @default(0)
+  created_at   DateTime @default(now())
+
+  user        User                 @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  items       VocabularyBookItem[]
+  battleRooms BattleRoom[]
+}
+
+model Vocabulary {
+  id             String     @id @default(uuid())
+  word           String
+  reading        String
+  part_of_speech String
+  jlpt_level     JlptLevel?
+  difficulty     Int?
+  created_at     DateTime   @default(now())
+
+  meanings         VocabularyMeaning[]
+  examples         ExampleSentence[]
+  images           Image[]
+  bookItems        VocabularyBookItem[]
+  userVocabularies UserVocabulary[]
+  tags             VocabularyTag[]
+  sentences        UserSentence[]
+  kanji            VocabularyKanji[]
+  battleRounds     BattleRound[]
+}
+
+model VocabularyMeaning {
+  id            String @id @default(uuid())
+  vocabulary_id String
+  meaning       String
+
+  vocabulary Vocabulary @relation(fields: [vocabulary_id], references: [id], onDelete: Cascade)
+}
+
+model ExampleSentence {
+  id            String  @id @default(uuid())
+  vocabulary_id String
+  japanese      String
+  korean        String
+  source        String?
+
+  vocabulary Vocabulary @relation(fields: [vocabulary_id], references: [id], onDelete: Cascade)
+}
+
+model Image {
+  id            String    @id @default(uuid())
+  vocabulary_id String
+  image_url     String
+  image_type    ImageType
+
+  vocabulary Vocabulary @relation(fields: [vocabulary_id], references: [id], onDelete: Cascade)
+}
+
+model VocabularyBookItem {
+  vocabulary_book_id String
+  vocabulary_id      String
+
+  book       VocabularyBook @relation(fields: [vocabulary_book_id], references: [id], onDelete: Cascade)
+  vocabulary Vocabulary     @relation(fields: [vocabulary_id], references: [id], onDelete: Cascade)
+
+  @@id([vocabulary_book_id, vocabulary_id])
+}
+
+model UserVocabulary {
+  user_id          String
+  vocabulary_id    String
+  learning_status  LearningStatus @default(NEW)
+  is_favorite      Boolean        @default(false)
+  last_reviewed_at DateTime?
+  next_review_at   DateTime?
+  interval_stage   Int            @default(0)
+  correct_count    Int            @default(0)
+  wrong_count      Int            @default(0)
+  // 리포트(PROMPT 44)의 "기간 내 신규 단어 수" 집계용 — 단어 등록(app/api/vocabularies) 시점.
+  created_at       DateTime       @default(now())
+
+  user       User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  vocabulary Vocabulary @relation(fields: [vocabulary_id], references: [id], onDelete: Cascade)
+
+  @@id([user_id, vocabulary_id])
+}
+
+model ReviewHistory {
+  id            String           @id @default(uuid())
+  user_id       String
+  target_type   ReviewTargetType
+  target_id     String
+  quiz_type     String
+  result        Boolean
+  response_time Int
+  reviewed_at   DateTime         @default(now())
+  // 퀴즈 제출(POST /api/quiz/submit)의 클라이언트 재시도가 서버에 이미 도착해 처리된 요청을
+  // 다시 처리해 EXP/SRS를 이중으로 반영하지 않도록 막는 idempotency key(PROMPT 37 통합 회귀에서
+  // 발견 — 클라이언트 타임아웃 후 자동 재시도가 원 요청과 동일한 답을 다시 보낼 수 있다).
+  // 플래시카드 리뷰(PROMPT 18)는 재시도 로직이 없어 이 값을 보내지 않으므로 nullable이다.
+  request_id    String?          @unique
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  // 오답노트(PROMPT 21)의 단어별 집계(target_id로 groupBy)와 기간 필터(reviewed_at)를 뒷받침한다.
+  @@index([user_id, target_type, target_id])
+  @@index([user_id, target_type, result, reviewed_at])
+  // 통계(PROMPT 22)의 오늘/이번 주/이번 달 학습량 count가 target_type/result 구분 없이
+  // reviewed_at 구간만으로 조회하므로, 위 두 인덱스와 별도로 이 조합이 필요하다.
+  @@index([user_id, reviewed_at])
+  // AI 취약점 분석(PROMPT 38)의 문제 유형별 정답률 집계(quiz_type groupBy, result 필터)를
+  // 뒷받침한다 — 위 인덱스들은 모두 target_type이 선두라 quiz_type만으로 groupBy할 때는 쓰이지 않는다.
+  @@index([user_id, quiz_type, result])
+}
+
+model Tag {
+  id      String @id @default(uuid())
+  user_id String
+  name    String
+
+  user           User            @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  vocabularyTags VocabularyTag[]
+
+  @@unique([user_id, name])
+}
+
+model VocabularyTag {
+  vocabulary_id String
+  tag_id        String
+
+  vocabulary Vocabulary @relation(fields: [vocabulary_id], references: [id], onDelete: Cascade)
+  tag        Tag        @relation(fields: [tag_id], references: [id], onDelete: Cascade)
+
+  @@id([vocabulary_id, tag_id])
+}
+
+model AIAnalysis {
+  id            String           @id @default(uuid())
+  user_id       String
+  analysis_type String
+  input_ref     String
+  result_json   Json
+  status        AIAnalysisStatus @default(pending)
+  created_at    DateTime         @default(now())
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, analysis_type, input_ref])
+}
+
+// 사진 단어장 업로드(PROMPT 28) — 계획서 24장 흐름의 1단계(업로드+검증)만 담당한다. OCR
+// 처리(PROMPT 29)가 이 테이블을 "대기열"로 조회해 텍스트를 추출하고, AI 단어 분리(PROMPT 30)
+// 결과는 기존 AIAnalysis(status=pending)에 쌓인다 — 이 테이블 자체는 사진 원본 메타데이터만
+// 보관하고 OCR/분석 결과는 담지 않는다.
+//
+// Object Storage(R2)는 기본적으로 비공개 버킷이라 Image 테이블처럼 영구 공개 URL을 저장하지
+// 않고, 다운로드 시점에 lib/storage/client.ts가 짧은 만료의 presigned GET URL을 즉석에서
+// 발급하는 방식을 쓴다. 그래서 `image_url` 대신 조회에 필요한 `storage_key`를 저장한다.
+// width/height는 PNG/WEBP/JPEG는 서버가 실제 바이트를 검사해 채우고, 서버에서 판독하지
+// 못한 경우(예: HEIC, 헤더가 비정상적으로 큰 JPEG)에는 클라이언트가 보고한 값을 그대로
+// 신뢰해 채운다 — 최소 해상도는 보안이 아니라 OCR 품질을 위한 안내성 체크이기 때문이다.
+model PhotoUpload {
+  id          String            @id @default(uuid())
+  user_id     String
+  storage_key String            @unique
+  mime_type   String
+  file_size   Int
+  width       Int?
+  height      Int?
+  status      PhotoUploadStatus @default(pending)
+  created_at  DateTime          @default(now())
+
+  user      User            @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  ocrResult PhotoOcrResult?
+
+  @@index([user_id, status])
+}
+
+// OCR(PROMPT 29) 원본 추출 결과 — PhotoUpload은 여전히 사진 원본 메타데이터만 보관한다는
+// 원칙을 지키기 위해 별도 테이블로 둔다. status=completed로 전이할 때만 이 행이 생성되고,
+// 텍스트 없음/타임아웃 실패 시에는 행을 만들지 않는다(PhotoUpload.status=failed만 남고,
+// 재시도 시 다시 이 행을 새로 만든다 — @unique라 재시도 성공 시 upsert로 덮어쓴다).
+// raw_text는 Tesseract.js 특유의 오탈자를 교정하지 않은 원문 그대로이며, 다음 단계(PROMPT 30,
+// AI Orchestration 모듈)가 이 값을 입력으로 받아 오류 교정 + 단어 분리를 수행한다.
+model PhotoOcrResult {
+  id              String   @id @default(uuid())
+  photo_upload_id String   @unique
+  raw_text        String
+  char_count      Int
+  processing_ms   Int
+  created_at      DateTime @default(now())
+
+  photoUpload PhotoUpload @relation(fields: [photo_upload_id], references: [id], onDelete: Cascade)
+}
+
+// 게임화(PROMPT 24) — EXP/레벨. last_studied_date는 "오늘의 학습 완료 +10 EXP" 중복 지급
+// 방지 마커 겸, current_streak/longest_streak 갱신의 기준일이다(PROMPT 26,
+// lib/game/grant.ts의 maybeGrantDailyCompletionBonus에서 함께 갱신).
+// streak_freeze_count/streak_freeze_notice_pending은 스트릭 프리즈(PROMPT 27.5, 계획서에
+// 없던 항목이라 이 문서가 economy를 확정) — 레벨업마다 +1(최대 STREAK_FREEZE_MAX_COUNT),
+// 하루만 건너뛴 날의 완료 보너스 지급 시 자동으로 1개 소비된다. notice_pending은 그 자동
+// 소비를 사용자에게 1회 안내하기 위한 플래그로, GET /api/game/profile 조회 시 읽힌 뒤 그
+// 요청 안에서 바로 false로 초기화된다.
+model UserGameProfile {
+  user_id                      String    @id
+  level                        Int       @default(1)
+  exp                          Int       @default(0)
+  current_streak               Int       @default(0)
+  longest_streak               Int       @default(0)
+  last_studied_date            DateTime?
+  streak_freeze_count          Int       @default(0)
+  streak_freeze_notice_pending Boolean   @default(false)
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+// 스트릭 프리즈 소비 이력(PROMPT 27.5) — 학습 캘린더에서 "건너뛰었지만 보호된 날"을 ❄️로
+// 구분 표시하려면 별도 기록이 필요하다(ReviewHistory 집계만으로는 애초에 학습하지 않은
+// 날을 알 수 없다). protected_date는 실제로 건너뛴 날(자동 보호가 발동한 날의 KST 전날)의
+// 날짜 키다.
+model StreakFreezeLog {
+  id             String   @id @default(uuid())
+  user_id        String
+  protected_date DateTime
+  created_at     DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, protected_date])
+}
+
+// "문장 만들기" EXP 액션(+3)을 위한 최소 기능 — 단어당 사용자가 저장한 문장 1개.
+model UserSentence {
+  user_id       String
+  vocabulary_id String
+  sentence      String
+  created_at    DateTime @default(now())
+
+  user       User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  vocabulary Vocabulary @relation(fields: [vocabulary_id], references: [id], onDelete: Cascade)
+
+  @@id([user_id, vocabulary_id])
+}
+
+// Daily Quest(PROMPT 25) — 4개 고정 카탈로그 행을 마이그레이션이 시딩하고(lib/quest/constants.ts
+// DAILY_QUEST_CODES와 code로 매칭), 사용자별 진행도는 UserQuestProgress가 별도로 추적한다.
+// NEW_WORD_STUDY의 target_count는 시딩 기본값일 뿐 실제 표시/판정 시에는 항상 그 시점의
+// User.daily_word_target으로 재계산한다(하루 목표량 변경 시 즉시 반영하기 위함).
+model Quest {
+  id           String    @id @default(uuid())
+  type         QuestType @default(daily)
+  code         String    @unique
+  title        String
+  target_count Int
+  exp_reward   Int
+
+  progress UserQuestProgress[]
+}
+
+// date_or_week_key는 Daily Quest만 있는 지금은 항상 KST 기준 "YYYY-MM-DD" 문자열이다(Weekly
+// 도입 시 주 키 포맷을 추가). 자정이 지나 키가 바뀌면 그 키의 행이 아직 없으므로, 조회/증가
+// 시점의 lazy upsert 자체가 "매일 자정 초기화"를 대신한다 — 별도 배치가 없다.
+model UserQuestProgress {
+  user_id          String
+  quest_id         String
+  date_or_week_key String
+  current_count    Int     @default(0)
+  is_completed     Boolean @default(false)
+
+  user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  quest Quest @relation(fields: [quest_id], references: [id], onDelete: Cascade)
+
+  @@id([user_id, quest_id, date_or_week_key])
+}
+
+// 업적(PROMPT 27) — 단어 업적(첫 단어 등록, 10/100/500/1,000단어 학습)은 이번 단계에서 실제로
+// 잠금 해제되고, 한자 업적(100/500/1,000/2,136자)은 조건만 시딩해둔 채 Phase 9에서 UserKanji가
+// 생기면 실제 판정 로직을 연결한다(lib/achievement/constants.ts ACHIEVEMENT_SEEDS와 이 테이블의
+// 시딩 값이 반드시 일치해야 한다 — Quest와 같은 패턴).
+model Achievement {
+  id              String              @id @default(uuid())
+  code            String              @unique
+  category        AchievementCategory
+  title           String
+  condition_value Int
+
+  userAchievements UserAchievement[]
+}
+
+model UserAchievement {
+  user_id        String
+  achievement_id String
+  unlocked_at    DateTime @default(now())
+
+  user        User        @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  achievement Achievement @relation(fields: [achievement_id], references: [id], onDelete: Cascade)
+
+  @@id([user_id, achievement_id])
+}
+
+// 常用漢字(PROMPT 33) — 2,136자를 이 단계에서 전량 한 번에 시딩하고 완결한다(prisma/seed-kanji.ts).
+// 이후 어떤 화면·API도 이 테이블에 개별 추가/수정/삭제를 하지 않는다 — 데이터 오류는 시드
+// 스크립트를 고쳐 재배포하는 방식으로만 수정한다. school_grade(常用漢字 학년: 1~6은 초등,
+// 8은 중학교 이상에서 배우는 나머지 常用漢字)와 jlpt_level_ref(비공식 구JLPT 급수 환산)는
+// 계획서 32장 지침대로 서로 다른 분류 체계라 별도 컬럼으로 관리하며, 실제로는 값이 다르거나
+// 한쪽만 있는 한자가 많다(예: 상당수 상용한자는 공식 JLPT 대응표가 없어 null).
+model Kanji {
+  id             String     @id @default(uuid())
+  character      String     @unique
+  onyomi         String[]   @default([])
+  kunyomi        String[]   @default([])
+  korean_reading String
+  meaning        String
+  stroke_count   Int
+  radical        String
+  school_grade   Int?
+  jlpt_level_ref JlptLevel?
+
+  vocabularies VocabularyKanji[]
+  userKanji    UserKanji[]
+}
+
+// PROMPT 14에서 텍스트로만 보여주던 "관련 한자"를 실제 연결로 대체한다(prisma/backfill-vocabulary-kanji.ts) —
+// Vocabulary.word를 한 글자씩 스캔해 Kanji.character와 일치하는 것만 연결하므로, AI가 그때
+// 제안했던 문자열을 다시 신뢰하지 않고 항상 word 원문 기준으로 재계산한다.
+model VocabularyKanji {
+  vocabulary_id String
+  kanji_id      String
+
+  vocabulary Vocabulary @relation(fields: [vocabulary_id], references: [id], onDelete: Cascade)
+  kanji      Kanji      @relation(fields: [kanji_id], references: [id], onDelete: Cascade)
+
+  @@id([vocabulary_id, kanji_id])
+}
+
+enum PetSpecies {
+  cat
+  dinosaur
+  rabbit
+}
+
+enum PetStage {
+  egg
+  baby
+  child
+  teen
+  adult
+}
+
+// 다마고치형 펫(계획서 외 신규 기능 — 2026-08-25 확정, 원래 카메라 사물 단어장/여행 사진
+// 단어장 자리를 대체). 활성 펫은 사용자당 최대 1개여야 하지만, UserExamGoal의 is_active와
+// 같은 이유로 DB 제약이 아니라 app/api/pet의 트랜잭션이 강제한다. level_at_start는 재선택 시
+// 이미 계정 레벨이 높아 즉시 성체로 시작해버리는 문제를 막기 위한 스냅샷 — 성장 단계는 항상
+// "선택 이후 레벨 상승분"(현재 UserGameProfile.level - level_at_start, lib/pet/engine.ts)으로
+// 계산하고 계정 절대 레벨을 그대로 쓰지 않는다.
+model UserPet {
+  id             String     @id @default(uuid())
+  user_id        String
+  species        PetSpecies
+  stage          PetStage   @default(egg)
+  level_at_start Int
+  is_active      Boolean    @default(true)
+  is_graduated   Boolean    @default(false)
+  started_at     DateTime   @default(now())
+  graduated_at   DateTime?
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id, is_active])
+}
+
+model UserKanji {
+  user_id          String
+  kanji_id         String
+  learning_status  LearningStatus @default(NEW)
+  last_reviewed_at DateTime?
+  next_review_at   DateTime?
+  // UserVocabulary와 동일한 SRS 간격 단계(PROMPT 16 lib/srs/engine.ts의 REVIEW_INTERVALS_DAYS
+  // 인덱스). PROMPT 35에서 SRS 갱신 로직을 vocab/kanji 공통으로 재사용하려면 한자 쪽에도
+  // 이 값을 저장해야 한다 — 없으면 매 리뷰마다 간격이 항상 0단계로 초기화된다.
+  interval_stage   Int            @default(0)
+  correct_count    Int            @default(0)
+  wrong_count      Int            @default(0)
+  // 리포트(PROMPT 44)의 "기간 내 신규 한자 수" 집계용 — 이 테이블 자체가 첫 리뷰 시점에만
+  // 생성되므로(위 학년 주석 참고) created_at은 곧 "이 한자를 처음 학습한 시점"과 같다.
+  created_at       DateTime       @default(now())
+
+  user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  kanji Kanji @relation(fields: [kanji_id], references: [id], onDelete: Cascade)
+
+  @@id([user_id, kanji_id])
+}
+
+enum BattleRoomStatus {
+  waiting
+  playing
+  finished
+}
+
+// 실시간 대결 퀴즈(계획서 외 신규 기능 — 2026-08-25 확정, PROMPT 54, 원래 음성 학습 TTS 자리를
+// 대체). room_code는 혼동되는 문자(0/O/1/I)를 뺀 6자리 영숫자이며, 생성 시 @unique 위반을
+// insert 재시도로 흡수한다(사전 존재 조회 없이 낙관적으로 시도). questions는 방 시작 시 한 번
+// 생성한 문제 세트 스냅샷(정답 포함)이다 — 라운드마다 다시 생성하면 난수가 다시 섞여 보기
+// 순서/정답이 바뀌므로, 시작 시점 결과를 방 전체 라운드 동안 그대로 재사용해야 한다. API
+// 응답 직렬화(lib/battle/serialize.ts)를 거치지 않고 이 필드를 클라이언트로 내보내면 안 된다.
+model BattleRoom {
+  id                 String           @id @default(uuid())
+  room_code          String           @unique
+  host_user_id       String
+  vocabulary_book_id String
+  status             BattleRoomStatus @default(waiting)
+  round_count        Int              @default(10)
+  questions          Json?
+  created_at         DateTime         @default(now())
+
+  host           User                @relation(fields: [host_user_id], references: [id], onDelete: Cascade)
+  vocabularyBook VocabularyBook      @relation(fields: [vocabulary_book_id], references: [id], onDelete: Cascade)
+  participants   BattleParticipant[]
+  rounds         BattleRound[]
+
+  @@index([host_user_id])
+}
+
+model BattleParticipant {
+  id        String   @id @default(uuid())
+  room_id   String
+  user_id   String
+  score     Int      @default(0)
+  joined_at DateTime @default(now())
+
+  room      BattleRoom     @relation(fields: [room_id], references: [id], onDelete: Cascade)
+  user      User           @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  wonRounds BattleRound[]  @relation("BattleRoundWinner")
+  answers   BattleAnswer[]
+
+  @@unique([room_id, user_id])
+  @@index([room_id])
+}
+
+// winner_participant_id는 "해당 라운드에서 가장 먼저 정답을 제출한 사람"을 원자적으로 확정하는
+// 락 컬럼이다 — `UPDATE ... WHERE winner_participant_id IS NULL AND ended_at IS NULL` 한 문장으로
+// 동시 제출 경쟁을 해결한다(SELECT ... FOR UPDATE 불필요, Postgres read-committed 하의 UPDATE는
+// WHERE절을 잠금 획득 후 재평가하므로 안전하게 직렬화된다). ended_at도 같은 패턴의 락 컬럼으로,
+// `advanceRoundIfEnded`가 "누가 라운드 종료/다음 라운드 생성을 책임질지"를 결정하는 데 쓴다.
+model BattleRound {
+  id                    String    @id @default(uuid())
+  room_id               String
+  round_number          Int
+  vocabulary_id         String
+  started_at            DateTime  @default(now())
+  ended_at              DateTime?
+  winner_participant_id String?
+
+  room              BattleRoom         @relation(fields: [room_id], references: [id], onDelete: Cascade)
+  vocabulary        Vocabulary         @relation(fields: [vocabulary_id], references: [id], onDelete: Cascade)
+  winnerParticipant BattleParticipant? @relation("BattleRoundWinner", fields: [winner_participant_id], references: [id])
+  answers           BattleAnswer[]
+
+  @@unique([room_id, round_number])
+  @@index([room_id])
+}
+
+model BattleAnswer {
+  id               String   @id @default(uuid())
+  round_id         String
+  user_id          String
+  participant_id   String
+  response_time_ms Int
+  is_correct       Boolean
+  answered_at      DateTime @default(now())
+
+  round       BattleRound       @relation(fields: [round_id], references: [id], onDelete: Cascade)
+  user        User              @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  participant BattleParticipant @relation(fields: [participant_id], references: [id], onDelete: Cascade)
+
+  @@unique([round_id, user_id])
+  @@index([round_id])
+}
