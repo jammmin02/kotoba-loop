@@ -68,8 +68,7 @@ public/              # 정적 파일
 | `DATABASE_URL`                                                                      | Prisma DB 연결 문자열 (Phase 2에서 사용 시작)             |
 | `AUTH_SECRET`                                                                       | 인증 토큰/세션 서명·암호화 키                             |
 | `LLM_API_KEY`                                                                       | 단어/한자 설명, 퀴즈 생성 등에 사용하는 LLM API 키        |
-| `OCR_API_KEY`                                                                       | 손글씨/이미지 기반 한자 인식 OCR API 키                   |
-| `STORAGE_ENDPOINT` / `STORAGE_ACCESS_KEY` / `STORAGE_SECRET_KEY` / `STORAGE_BUCKET` | 사용자 업로드·생성 자산을 저장하는 오브젝트 스토리지 설정 |
+| `STORAGE_REGION` / `STORAGE_ACCESS_KEY` / `STORAGE_SECRET_KEY` / `STORAGE_BUCKET` | 사용자 업로드·생성 자산을 저장하는 AWS S3 설정(ACCESS/SECRET KEY는 로컬 개발용 — 프로덕션에선 비워두고 컴퓨트 역할에 S3 권한 부여) |
 
 ## 커밋 전 체크리스트
 
