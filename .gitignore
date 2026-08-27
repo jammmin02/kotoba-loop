@@ -40,3 +40,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/lib/generated/prisma
+
+# internal docs (not published to GitHub)
+/CLAUDE.md
+/AGENTS.md
+/kotoba-loop-roadmap.md
+
+# local tooling config
+/.claude/
