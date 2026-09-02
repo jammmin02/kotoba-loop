@@ -53,6 +53,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     async signIn({ user, account }) {
       if (account?.provider !== "google") return true;
+      // TEMP DEBUG (remove after diagnosing @g.yju.ac.kr sign-in issue)
+      console.log("[signIn debug] raw user.email:", JSON.stringify(user.email));
       if (!user.email) return false;
       const email = user.email.trim().toLowerCase();
 
@@ -63,6 +65,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         return true;
       }
 
+      console.log(
+        "[signIn debug] normalized email:",
+        JSON.stringify(email),
+        "isRegistrationAllowed:",
+        isRegistrationAllowed(email),
+      );
       if (!isRegistrationAllowed(email)) return false;
 
       const created = await db.user.create({
