@@ -332,3 +332,18 @@ export const PixelGlobe: PixelIconComponent = (props) => (
     {...props}
   />
 );
+
+/** 음성 입력 버튼(components/ui/voice-input-button.tsx) 아이콘 — 캡슐형 마이크 + 스탠드. */
+export const PixelMic: PixelIconComponent = (props) => (
+  <PixelGlyph
+    blocks={[
+      [6, 1, 4, 7],
+      [4, 7, 2, 3],
+      [10, 7, 2, 3],
+      [5, 10, 6, 2],
+      [7, 12, 2, 2],
+      [4, 14, 8, 1],
+    ]}
+    {...props}
+  />
+);

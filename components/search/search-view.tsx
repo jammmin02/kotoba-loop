@@ -6,6 +6,7 @@ import { useState } from "react";
 
 import { PixelSearch } from "@/components/icons/pixel-icons";
 import { Button } from "@/components/ui/button";
+import { VoiceInputButton } from "@/components/ui/voice-input-button";
 import { WordListItem } from "@/components/vocabulary/word-list-item";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
 import { useRecentSearchesStore } from "@/lib/stores/recent-searches-store";
@@ -61,8 +62,13 @@ export function SearchView({ initialQuery }: SearchViewProps) {
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    const trimmed = inputValue.trim();
+    submitQuery(inputValue);
+  }
+
+  function submitQuery(next: string) {
+    const trimmed = next.trim();
     if (!trimmed) return;
+    setInputValue(trimmed);
     addRecentSearch(trimmed);
     goToQuery(trimmed);
   }
@@ -74,7 +80,7 @@ export function SearchView({ initialQuery }: SearchViewProps) {
       <h1 className="text-xl font-bold text-foreground">검색</h1>
 
       <form onSubmit={handleSubmit} role="search" className="flex gap-2">
-        <div className="flex h-11 flex-1 items-center gap-2 border-2 border-pixel-ink bg-background px-3 shadow-bevel-sunken focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary">
+        <div className="flex h-11 min-w-0 flex-1 items-center gap-2 border-2 border-pixel-ink bg-background px-3 shadow-bevel-sunken focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary">
           <PixelSearch className="size-4 shrink-0 text-foreground/50" aria-hidden="true" />
           <input
             type="search"
@@ -85,7 +91,10 @@ export function SearchView({ initialQuery }: SearchViewProps) {
             className="h-full w-full min-w-0 bg-transparent text-sm text-foreground placeholder:text-foreground/40 focus:outline-none"
           />
         </div>
-        <Button type="submit">검색</Button>
+        <VoiceInputButton onResult={submitQuery} />
+        <Button type="submit" className="shrink-0">
+          검색
+        </Button>
       </form>
 
       {!trimmedQuery && recentQueries.length > 0 && (

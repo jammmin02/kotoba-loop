@@ -13,6 +13,7 @@ import { ChipButton } from "@/components/ui/chip-button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { toast } from "@/components/ui/toast";
+import { VoiceInputButton } from "@/components/ui/voice-input-button";
 import type { AnalyzeWordResult, WordAnalysisResult } from "@/lib/ai/word-analysis";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
@@ -565,12 +566,17 @@ export function VocabularyForm({
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6" noValidate>
       <Card className="flex flex-col gap-4">
-        <Input
-          label="단어"
-          value={word}
-          onChange={(e) => handleWordChange(e.target.value)}
-          required
-        />
+        <div className="flex items-end gap-2">
+          <div className="min-w-0 flex-1">
+            <Input
+              label="단어"
+              value={word}
+              onChange={(e) => handleWordChange(e.target.value)}
+              required
+            />
+          </div>
+          <VoiceInputButton onResult={handleWordChange} />
+        </div>
 
         <div className="flex flex-col gap-1.5">
           <Button
