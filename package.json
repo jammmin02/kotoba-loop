@@ -18,6 +18,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:seed:kanji": "tsx prisma/seed-kanji.ts",
     "db:backfill:vocabulary-kanji": "tsx prisma/backfill-vocabulary-kanji.ts",
+    "db:backfill:imported-book-user-vocabulary": "tsx prisma/backfill-imported-book-user-vocabulary.ts",
     "db:validate:kanji": "tsx prisma/validate-kanji-seed.ts",
     "db:studio": "prisma studio",
     "icons:generate": "node scripts/generate-pwa-icons.mjs"

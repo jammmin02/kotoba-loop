@@ -52,6 +52,17 @@ export const POST = withApiHandler(
             vocabulary_id: item.vocabulary_id,
           })),
         });
+
+        // 단어 상세 페이지(/words/[id])는 UserVocabulary 존재 여부로 접근을 판단하므로,
+        // 가져온 단어들도 내 단어로 등록해야 클릭 시 404가 나지 않는다.
+        await tx.userVocabulary.createMany({
+          data: source.items.map((item) => ({
+            user_id: session.user.id,
+            vocabulary_id: item.vocabulary_id,
+            learning_status: "NEW",
+          })),
+          skipDuplicates: true,
+        });
       }
 
       await tx.vocabularyBook.update({
