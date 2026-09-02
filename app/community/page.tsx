@@ -3,10 +3,10 @@ import { redirect } from "next/navigation";
 import { CommunityView } from "@/components/social/community-view";
 import { auth } from "@/lib/auth";
 
-export default async function CommunityPage(props: PageProps<"/my/community">) {
+export default async function CommunityPage(props: PageProps<"/community">) {
   const session = await auth();
   if (!session?.user) {
-    redirect("/login?callbackUrl=/my/community");
+    redirect("/login?callbackUrl=/community");
   }
 
   const searchParams = await props.searchParams;

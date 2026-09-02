@@ -100,7 +100,7 @@ export function MyPageView() {
         <MenuCard icon={PixelStar} label="업적" href="/achievements" />
         <MenuCard icon={PixelEgg} label="내 펫" href="/my/pet" />
         <MenuCard icon={PixelUsers} label="친구" href="/my/friends" />
-        <MenuCard icon={PixelGlobe} label="커뮤니티 단어장" href="/my/community" />
+        <MenuCard icon={PixelGlobe} label="커뮤니티 단어장" href="/community" />
       </div>
 
       <OnboardingSettingsForm profile={profile} />

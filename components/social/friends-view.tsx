@@ -143,7 +143,7 @@ export function FriendsView() {
                 className="flex items-center justify-between gap-2 border-2 border-pixel-ink bg-surface p-3"
               >
                 <Link
-                  href={`/my/community?userId=${friend.userId}&nickname=${encodeURIComponent(friend.nickname)}`}
+                  href={`/community?userId=${friend.userId}&nickname=${encodeURIComponent(friend.nickname)}`}
                   className="min-w-0"
                 >
                   <p className="truncate text-sm font-bold text-foreground hover:underline">

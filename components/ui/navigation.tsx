@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   PixelBarChart,
   PixelBookOpen,
+  PixelGlobe,
   PixelHome,
   PixelPenTool,
   PixelSparkles,
@@ -29,6 +30,7 @@ const desktopNavItems: NavItem[] = [
   { href: "/vocabulary", label: "단어장", icon: PixelBookOpen },
   { href: "/kanji", label: "한자", icon: PixelPenTool },
   { href: "/ai", label: "AI학습", icon: PixelSparkles },
+  { href: "/community", label: "커뮤니티", icon: PixelGlobe },
   { href: "/stats", label: "통계", icon: PixelBarChart },
   { href: "/my", label: "MY", icon: PixelUser },
 ];

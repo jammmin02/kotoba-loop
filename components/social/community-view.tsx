@@ -4,11 +4,13 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import { PixelGlobe } from "@/components/icons/pixel-icons";
+import { PixelDownload, PixelGlobe } from "@/components/icons/pixel-icons";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, cardVariants } from "@/components/ui/card";
 import { ChipButton } from "@/components/ui/chip-button";
+import { BookEmblem, BookSlotTitleBar, StatChip, slotColorForIndex } from "@/components/vocabulary/book-slot";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
+import { cn } from "@/lib/utils";
 import type { PaginatedResponse } from "@/types/api";
 import type { CommunityBookSummary } from "@/types/community";
 
@@ -52,7 +54,7 @@ export function CommunityView({ initialSort, initialUserId, initialNickname }: C
       if (nickname) params.set("nickname", nickname);
     }
     if (nextPage > 1) params.set("page", String(nextPage));
-    router.push(`/my/community?${params}`);
+    router.push(`/community?${params}`);
   }
 
   return (
@@ -104,23 +106,34 @@ export function CommunityView({ initialSort, initialUserId, initialNickname }: C
           <p className="text-xs text-foreground/50">총 {data.total}개</p>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {data.items.map((book) => (
-              <Link key={book.id} href={`/my/community/${book.id}`}>
-                <Card className="flex h-full flex-col gap-2">
-                  <p className="truncate text-base font-bold text-foreground">{book.name}</p>
-                  <p className="text-xs text-foreground/50">{book.ownerNickname}</p>
-                  {book.description && (
-                    <p className="line-clamp-2 text-sm font-content text-foreground/60">
-                      {book.description}
-                    </p>
-                  )}
-                  <div className="mt-auto flex items-center justify-between gap-2 pt-2 text-xs text-foreground/50">
-                    <span>
-                      단어 {book.wordCount}개 · 가져감 {book.importCount}회
-                    </span>
-                    <span>{formatDate(book.createdAt)}</span>
+            {data.items.map((book, index) => (
+              <Link key={book.id} href={`/community/${book.id}`} className="flex h-full">
+                <div className={cn(cardVariants(), "flex w-full flex-col")}>
+                  <BookSlotTitleBar color={slotColorForIndex(index)}>
+                    <StatChip
+                      icon={<PixelDownload className="size-3 shrink-0" aria-hidden="true" />}
+                      label={`가져감 ${book.importCount}회`}
+                    />
+                  </BookSlotTitleBar>
+                  <div className="flex flex-1 flex-col gap-3 p-4">
+                    <div className="flex items-start gap-3">
+                      <BookEmblem color={slotColorForIndex(index)} />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-base font-bold text-foreground">{book.name}</p>
+                        <p className="text-xs text-foreground/50">{book.ownerNickname}</p>
+                      </div>
+                    </div>
+                    {book.description && (
+                      <p className="line-clamp-2 text-sm font-content text-foreground/60">
+                        {book.description}
+                      </p>
+                    )}
+                    <div className="mt-auto flex items-center justify-between gap-2 text-xs text-foreground/50">
+                      <span>단어 {book.wordCount}개</span>
+                      <span>{formatDate(book.createdAt)}</span>
+                    </div>
                   </div>
-                </Card>
+                </div>
               </Link>
             ))}
           </div>
