@@ -66,15 +66,13 @@ export default async function KanjiDetailPage(props: PageProps<"/kanji/[characte
 
   const ownedVocabularyIds = new Set(relatedVocabularies.map((word) => word.id));
 
-  const representativeWords: KanjiRepresentativeWord[] = representativeVocabularies.map(
-    (word) => ({
-      id: word.id,
-      word: word.word,
-      reading: word.reading,
-      meanings: word.meanings.map((m) => m.meaning),
-      jlptLevel: word.jlpt_level,
-    }),
-  );
+  const representativeWords: KanjiRepresentativeWord[] = representativeVocabularies.map((word) => ({
+    id: word.id,
+    word: word.word,
+    reading: word.reading,
+    meanings: word.meanings.map((m) => m.meaning),
+    jlptLevel: word.jlpt_level,
+  }));
 
   const words: VocabularySummary[] = relatedVocabularies.map((word) => ({
     id: word.id,

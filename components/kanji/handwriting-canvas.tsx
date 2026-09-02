@@ -151,13 +151,28 @@ export function HandwritingCanvas({ onRecognize, recognizing }: HandwritingCanva
       </div>
 
       <div className="flex justify-center gap-2">
-        <Button type="button" variant="secondary" onClick={handleUndo} disabled={!hasInk || recognizing}>
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={handleUndo}
+          disabled={!hasInk || recognizing}
+        >
           되돌리기
         </Button>
-        <Button type="button" variant="secondary" onClick={handleClear} disabled={!hasInk || recognizing}>
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={handleClear}
+          disabled={!hasInk || recognizing}
+        >
           지우기
         </Button>
-        <Button type="button" onClick={handleRecognizeClick} disabled={!hasInk} loading={recognizing}>
+        <Button
+          type="button"
+          onClick={handleRecognizeClick}
+          disabled={!hasInk}
+          loading={recognizing}
+        >
           인식하기
         </Button>
       </div>

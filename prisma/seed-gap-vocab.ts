@@ -53,14 +53,18 @@ async function main() {
         jlpt_level: entry.jlpt_level ?? undefined,
         meanings: { create: [{ meaning: entry.meaning_ko }] },
         examples: {
-          create: [{ japanese: entry.example_ja, korean: entry.example_ko, source: "seed-gap-vocab" }],
+          create: [
+            { japanese: entry.example_ja, korean: entry.example_ko, source: "seed-gap-vocab" },
+          ],
         },
       },
     });
     created += 1;
   }
 
-  console.log(`Seed complete: created ${created} vocabulary entries, skipped ${skipped} already-existing.`);
+  console.log(
+    `Seed complete: created ${created} vocabulary entries, skipped ${skipped} already-existing.`,
+  );
 }
 
 main()

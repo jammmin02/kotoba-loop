@@ -96,8 +96,7 @@ export function OnboardingSettingsForm({ profile }: { profile: UserProfileRespon
       await apiFetch("/api/users/me/onboarding", { method: "PATCH", body: payload });
       toast.success("학습 설정이 저장되었습니다.");
     } catch (err) {
-      const message =
-        err instanceof ApiClientError ? err.message : "저장 중 오류가 발생했습니다.";
+      const message = err instanceof ApiClientError ? err.message : "저장 중 오류가 발생했습니다.";
       toast.error(message);
     } finally {
       setSubmitting(false);

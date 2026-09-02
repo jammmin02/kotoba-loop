@@ -63,10 +63,17 @@ export const POST = withApiHandler(
 
       return {
         alreadyOwned: !!existing,
-        unlockedAchievements: existing ? [] : await checkWordRegisterAchievements(tx, session.user.id),
+        unlockedAchievements: existing
+          ? []
+          : await checkWordRegisterAchievements(tx, session.user.id),
       };
     });
 
-    return { vocabularyId: id, addedBookIds: vocabularyBookIds, alreadyOwned, unlockedAchievements };
+    return {
+      vocabularyId: id,
+      addedBookIds: vocabularyBookIds,
+      alreadyOwned,
+      unlockedAchievements,
+    };
   },
 );

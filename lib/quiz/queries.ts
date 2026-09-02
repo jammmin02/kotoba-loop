@@ -1,7 +1,12 @@
 import "server-only";
 
 import { db } from "@/lib/db";
-import type { QuizKanji, QuizKanjiPoolEntry, QuizPoolEntry, QuizVocabulary } from "@/lib/quiz/types";
+import type {
+  QuizKanji,
+  QuizKanjiPoolEntry,
+  QuizPoolEntry,
+  QuizVocabulary,
+} from "@/lib/quiz/types";
 
 /**
  * 퀴즈 대상 단어를 뜻/예문과 함께 조회한다. 존재하지 않는 id는 결과에서 조용히 빠진다 —

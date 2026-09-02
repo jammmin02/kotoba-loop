@@ -13,7 +13,6 @@ import { db } from "@/lib/db";
 import { Prisma } from "@/lib/generated/prisma/client";
 import type { BattleRoom } from "@/lib/generated/prisma/client";
 
-
 /**
  * 라운드가 끝났어야 하는지 확인하고, 끝났다면 정답 공개 + 다음 라운드 시작(또는 방 종료)까지
  * 책임진다. 답변 제출/타임아웃 API뿐 아니라 방 상태 조회(GET)에서도 호출한다 — 서버리스 환경엔
@@ -22,7 +21,10 @@ import type { BattleRoom } from "@/lib/generated/prisma/client";
  * 끝난 라운드/이미 만들어진 다음 라운드/이미 종료된 방에 대해 다시 불러도 아무 일도 하지 않는다).
  */
 export async function advanceRoundIfEnded(roundId: string): Promise<void> {
-  const round = await db.battleRound.findUnique({ where: { id: roundId }, include: { room: true } });
+  const round = await db.battleRound.findUnique({
+    where: { id: roundId },
+    include: { room: true },
+  });
   if (!round) return;
 
   if (!round.ended_at) {

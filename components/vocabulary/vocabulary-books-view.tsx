@@ -40,8 +40,7 @@ export function VocabularyBooksView() {
             </Button>
           </Link>
           <Button type="button" onClick={() => setCreateOpen(true)}>
-            <PixelPlus className="size-4" aria-hidden="true" />
-            새 단어장
+            <PixelPlus className="size-4" aria-hidden="true" />새 단어장
           </Button>
         </div>
       </div>

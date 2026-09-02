@@ -35,7 +35,12 @@ export const wordAnalysisSchema = z.object({
   meanings: z.array(z.string().min(1).max(MEANING_MAX)).min(1).max(MAX_MEANINGS),
   relatedKanji: z.array(z.string().min(1).max(4)).max(MAX_RELATED),
   examples: z
-    .array(z.object({ japanese: z.string().min(1).max(EXAMPLE_MAX), korean: z.string().min(1).max(EXAMPLE_MAX) }))
+    .array(
+      z.object({
+        japanese: z.string().min(1).max(EXAMPLE_MAX),
+        korean: z.string().min(1).max(EXAMPLE_MAX),
+      }),
+    )
     .min(1)
     .max(MAX_EXAMPLES),
   synonyms: z.array(z.string().min(1).max(VOCABULARY_WORD_MAX)).max(MAX_RELATED),

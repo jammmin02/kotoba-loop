@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { computeStageForLevels, getStageProgress, levelsUntilNextThreshold } from "@/lib/pet/engine";
+import {
+  computeStageForLevels,
+  getStageProgress,
+  levelsUntilNextThreshold,
+} from "@/lib/pet/engine";
 
 test("선택 직후(0레벨 상승)에는 egg다", () => {
   assert.deepEqual(computeStageForLevels(0), { stage: "egg", isGraduated: false });

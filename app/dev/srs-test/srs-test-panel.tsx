@@ -70,7 +70,8 @@ export function SrsTestPanel({ words }: SrsTestPanelProps) {
       setResult(data);
       toast.success(`${GRADE_LABELS[grade]} 처리 완료`);
     } catch (err) {
-      const message = err instanceof ApiClientError ? `${err.code}: ${err.message}` : "요청에 실패했습니다.";
+      const message =
+        err instanceof ApiClientError ? `${err.code}: ${err.message}` : "요청에 실패했습니다.";
       setError(message);
       toast.error(message);
     } finally {
@@ -143,7 +144,9 @@ export function SrsTestPanel({ words }: SrsTestPanelProps) {
         ))}
       </div>
 
-      {error && <div className="border-2 border-error bg-error/10 p-3 text-sm text-error">{error}</div>}
+      {error && (
+        <div className="border-2 border-error bg-error/10 p-3 text-sm text-error">{error}</div>
+      )}
 
       {result && (
         <pre className="overflow-x-auto border-2 border-pixel-ink bg-background p-3 text-xs text-foreground">

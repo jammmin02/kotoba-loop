@@ -37,8 +37,8 @@ export function DeleteVocabularyBookModal({ book, open, onClose }: DeleteVocabul
         </p>
         {book.wordCount > 0 && (
           <p className="text-xs text-foreground/60">
-            이 단어장에 담긴 단어 {book.wordCount}개는 삭제되지 않아요. 단어장 소속만 해제되고,
-            단어 자체와 학습 기록은 그대로 남습니다.
+            이 단어장에 담긴 단어 {book.wordCount}개는 삭제되지 않아요. 단어장 소속만 해제되고, 단어
+            자체와 학습 기록은 그대로 남습니다.
           </p>
         )}
         <div className="flex justify-end gap-2">

@@ -21,9 +21,8 @@ export function WaitingRoomView({ room, currentUserId, onStart, starting }: Wait
       <Card variant="elevated" title="대기실" className="flex flex-col gap-2">
         <p className="text-sm font-bold text-foreground">{room.bookName}</p>
         <p className="text-xs text-foreground/60">
-          방 코드{" "}
-          <span className="font-mono text-sm font-bold text-primary">{room.roomCode}</span>를 친구에게
-          공유해서 초대하세요.
+          방 코드 <span className="font-mono text-sm font-bold text-primary">{room.roomCode}</span>
+          를 친구에게 공유해서 초대하세요.
         </p>
       </Card>
 

@@ -32,7 +32,9 @@ const SYSTEM_PROMPT = `당신은 일본어 학습 앱 kotoba-loop의 단어 사�
 - 질문이 해당 단어와 무관하면, 정중히 거절하고 단어 관련 질문을 유도하세요.`;
 
 function buildUserPrompt(word: string, history: WordChatMessage[], question: string): string {
-  const historyText = history.map((m) => `${m.role === "user" ? "Q" : "A"}: ${m.content}`).join("\n");
+  const historyText = history
+    .map((m) => `${m.role === "user" ? "Q" : "A"}: ${m.content}`)
+    .join("\n");
 
   return [`단어: ${word}`, historyText && `이전 대화:\n${historyText}`, `새 질문: ${question}`]
     .filter(Boolean)

@@ -65,7 +65,10 @@ export function QuestLinkCard({
           </div>
           <p className="mt-0.5 text-sm font-content text-foreground/60">{description}</p>
         </div>
-        <PixelChevronDown className="size-4 shrink-0 -rotate-90 text-foreground/40" aria-hidden="true" />
+        <PixelChevronDown
+          className="size-4 shrink-0 -rotate-90 text-foreground/40"
+          aria-hidden="true"
+        />
       </Card>
     </Link>
   );

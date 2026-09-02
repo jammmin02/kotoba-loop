@@ -189,10 +189,13 @@ function collectWrongKanjiMeanings(
   pool: QuizKanjiPoolEntry[],
   random: () => number,
 ): string[] {
-  const bucket = pool.filter((entry) => entry.id !== target.id && entry.schoolGrade === target.schoolGrade);
-  const candidates = bucket.length >= MULTIPLE_CHOICE_WRONG_COUNT
-    ? bucket
-    : pool.filter((entry) => entry.id !== target.id);
+  const bucket = pool.filter(
+    (entry) => entry.id !== target.id && entry.schoolGrade === target.schoolGrade,
+  );
+  const candidates =
+    bucket.length >= MULTIPLE_CHOICE_WRONG_COUNT
+      ? bucket
+      : pool.filter((entry) => entry.id !== target.id);
 
   const seen = new Set([normalizeAnswer(target.meaning)]);
   const wrongMeanings: string[] = [];
@@ -285,10 +288,13 @@ function generateKanjiSelect(
     return null;
   }
 
-  const bucket = pool.filter((entry) => entry.id !== target.id && entry.schoolGrade === target.schoolGrade);
-  const candidates = bucket.length >= MULTIPLE_CHOICE_WRONG_COUNT
-    ? bucket
-    : pool.filter((entry) => entry.id !== target.id);
+  const bucket = pool.filter(
+    (entry) => entry.id !== target.id && entry.schoolGrade === target.schoolGrade,
+  );
+  const candidates =
+    bucket.length >= MULTIPLE_CHOICE_WRONG_COUNT
+      ? bucket
+      : pool.filter((entry) => entry.id !== target.id);
   const distractors = shuffle(candidates, random).slice(0, MULTIPLE_CHOICE_WRONG_COUNT);
   if (distractors.length < MULTIPLE_CHOICE_WRONG_COUNT) return null;
 

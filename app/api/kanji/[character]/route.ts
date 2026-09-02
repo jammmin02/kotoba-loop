@@ -7,10 +7,7 @@ import type { KanjiDetail } from "@/types/kanji";
 import type { NextRequest } from "next/server";
 
 export const GET = withApiHandler(
-  async (
-    _req: NextRequest,
-    ctx: RouteContext<"/api/kanji/[character]">,
-  ): Promise<KanjiDetail> => {
+  async (_req: NextRequest, ctx: RouteContext<"/api/kanji/[character]">): Promise<KanjiDetail> => {
     const session = await auth();
     if (!session?.user) {
       throw new ApiError("UNAUTHORIZED", "로그인이 필요합니다.");

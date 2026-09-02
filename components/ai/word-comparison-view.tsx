@@ -80,7 +80,9 @@ export function WordComparisonView() {
           선택한 단어 ({selected.length}/{COMPARE_WORDS_MAX})
         </p>
         {selected.length === 0 ? (
-          <p className="text-sm text-foreground/50">아래에서 단어를 선택하거나 직접 입력해주세요.</p>
+          <p className="text-sm text-foreground/50">
+            아래에서 단어를 선택하거나 직접 입력해주세요.
+          </p>
         ) : (
           <div className="flex flex-wrap gap-1.5">
             {selected.map((word) => (

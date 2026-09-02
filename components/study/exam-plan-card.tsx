@@ -30,7 +30,13 @@ export function ExamPlanCard() {
 
   // 활성 목표가 없거나 조회에 실패해도 오늘의 학습 화면 전체를 막지 않고 카드만 조용히
   // 숨긴다 — 이 카드는 부가 추천일 뿐, 기존 하루 목표 기반 학습 흐름의 필수 전제가 아니다.
-  if (isLoading || isError || !data || data.status === "no_active_goal" || decision === "dismissed") {
+  if (
+    isLoading ||
+    isError ||
+    !data ||
+    data.status === "no_active_goal" ||
+    decision === "dismissed"
+  ) {
     return null;
   }
 
@@ -51,7 +57,12 @@ export function ExamPlanCard() {
   }
 
   return (
-    <Card variant="elevated" title="AI 추천 학습량" titleColor="accent" className="flex w-full max-w-md flex-col gap-3">
+    <Card
+      variant="elevated"
+      title="AI 추천 학습량"
+      titleColor="accent"
+      className="flex w-full max-w-md flex-col gap-3"
+    >
       <p className="text-xs font-bold text-foreground/60">
         목표 JLPT {activeGoal.targetJlpt} · 시험까지 {daysRemaining}일
       </p>

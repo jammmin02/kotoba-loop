@@ -40,12 +40,7 @@ export function SearchView({ initialQuery }: SearchViewProps) {
   const recentQueries = useRecentSearchesStore((s) => s.queries);
   const removeRecentSearch = useRecentSearchesStore((s) => s.remove);
 
-  const {
-    data,
-    isLoading,
-    isError,
-    error,
-  } = useQuery({
+  const { data, isLoading, isError, error } = useQuery({
     queryKey: ["search", trimmedQuery, page],
     queryFn: () =>
       apiFetch<SearchResponse>(`/api/search?q=${encodeURIComponent(trimmedQuery)}&page=${page}`),

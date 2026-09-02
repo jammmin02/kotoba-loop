@@ -38,12 +38,8 @@ function capAndRedistribute(rawWeights: readonly number[], min: number, max: num
 
   while (unfixed.size > 0) {
     const sumRaw = [...unfixed].reduce((sum, i) => sum + rawWeights[i], 0);
-    const overCapped = [...unfixed].find(
-      (i) => remainingMass * (rawWeights[i] / sumRaw) > max,
-    );
-    const underCapped = [...unfixed].find(
-      (i) => remainingMass * (rawWeights[i] / sumRaw) < min,
-    );
+    const overCapped = [...unfixed].find((i) => remainingMass * (rawWeights[i] / sumRaw) > max);
+    const underCapped = [...unfixed].find((i) => remainingMass * (rawWeights[i] / sumRaw) < min);
     const fixIndex = overCapped ?? underCapped;
 
     if (fixIndex === undefined) {
@@ -130,7 +126,9 @@ function distributeByWeight(
   const order = shuffle(
     types.map((_, index) => index),
     random,
-  ).sort((a, b) => rawCounts[b] - Math.floor(rawCounts[b]) - (rawCounts[a] - Math.floor(rawCounts[a])));
+  ).sort(
+    (a, b) => rawCounts[b] - Math.floor(rawCounts[b]) - (rawCounts[a] - Math.floor(rawCounts[a])),
+  );
 
   for (let i = 0; i < remaining; i++) {
     floorCounts[order[i]] += 1;

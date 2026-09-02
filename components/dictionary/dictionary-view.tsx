@@ -94,7 +94,11 @@ export function DictionaryView() {
     if (!trimmed || !activeWord || chatMutation.isPending) return;
 
     const historyBefore = chatMessages;
-    const userMessage: ChatMessage = { key: `m-${nextKeyRef.current++}`, role: "user", content: trimmed };
+    const userMessage: ChatMessage = {
+      key: `m-${nextKeyRef.current++}`,
+      role: "user",
+      content: trimmed,
+    };
     setChatMessages((prev) => [...prev, userMessage]);
     setChatInput("");
 
@@ -158,7 +162,9 @@ export function DictionaryView() {
       </form>
 
       {lookupMutation.isPending && (
-        <p className="text-sm text-foreground/50">AI가 분석하고 있어요. 최대 45초 정도 걸릴 수 있어요.</p>
+        <p className="text-sm text-foreground/50">
+          AI가 분석하고 있어요. 최대 45초 정도 걸릴 수 있어요.
+        </p>
       )}
 
       {!activeWord && !lookupMutation.isPending && (
@@ -255,7 +261,13 @@ export function DictionaryView() {
             </div>
           )}
 
-          <Button type="button" variant="primary" size="sm" className="w-fit" onClick={() => setAddOpen(true)}>
+          <Button
+            type="button"
+            variant="primary"
+            size="sm"
+            className="w-fit"
+            onClick={() => setAddOpen(true)}
+          >
             <PixelBookOpen className="size-3.5" aria-hidden="true" />
             단어장에 추가하기
           </Button>
@@ -309,7 +321,11 @@ export function DictionaryView() {
         </Card>
       )}
 
-      <Modal open={addOpen} onClose={() => setAddOpen(false)} title={`"${activeWord ?? ""}" 단어장에 추가`}>
+      <Modal
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        title={`"${activeWord ?? ""}" 단어장에 추가`}
+      >
         {analysis && (
           <VocabularyForm
             key={analysis.id}

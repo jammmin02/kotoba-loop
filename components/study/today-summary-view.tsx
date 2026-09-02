@@ -4,7 +4,12 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 
 import { ProgressRing } from "@/components/game/progress-ring";
-import { PixelBookOpen, PixelCheck, PixelPlus, PixelSparkles } from "@/components/icons/pixel-icons";
+import {
+  PixelBookOpen,
+  PixelCheck,
+  PixelPlus,
+  PixelSparkles,
+} from "@/components/icons/pixel-icons";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
@@ -24,7 +29,9 @@ export function TodaySummaryView() {
     // override 값이 바뀌면(적용 직후) 반드시 새 쿼리로 취급해 다시 불러온다.
     queryKey: ["study", "today-summary", override],
     queryFn: () =>
-      apiFetch<TodaySummaryResponse>(`/api/study/today-summary${buildTodayOverrideQueryString(override)}`),
+      apiFetch<TodaySummaryResponse>(
+        `/api/study/today-summary${buildTodayOverrideQueryString(override)}`,
+      ),
   });
 
   if (isLoading) {
@@ -89,9 +96,7 @@ export function TodaySummaryView() {
                 const rowContent = (
                   <>
                     <span className="text-sm font-bold text-foreground">{category.label}</span>
-                    <span className="text-sm font-bold text-foreground/70">
-                      {category.count}개
-                    </span>
+                    <span className="text-sm font-bold text-foreground/70">{category.count}개</span>
                   </>
                 );
                 // "오답 복습" 단계는 오늘의 퀴즈에 섞여 들어가는 것과 별개로, 단어별 오답

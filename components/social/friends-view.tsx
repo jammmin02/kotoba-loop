@@ -30,7 +30,8 @@ export function FriendsView() {
   });
 
   const followMutation = useMutation({
-    mutationFn: (followeeId: string) => apiFetch("/api/friends", { method: "POST", body: { followeeId } }),
+    mutationFn: (followeeId: string) =>
+      apiFetch("/api/friends", { method: "POST", body: { followeeId } }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users-search"] });
       queryClient.invalidateQueries({ queryKey: ["friends"] });
@@ -122,7 +123,9 @@ export function FriendsView() {
 
         {friends.isError && (
           <p className="text-sm text-error">
-            {friends.error instanceof ApiClientError ? friends.error.message : "목록을 불러오지 못했습니다."}
+            {friends.error instanceof ApiClientError
+              ? friends.error.message
+              : "목록을 불러오지 못했습니다."}
           </p>
         )}
 
@@ -149,13 +152,17 @@ export function FriendsView() {
                   <p className="truncate text-sm font-bold text-foreground hover:underline">
                     {friend.nickname}
                   </p>
-                  <p className="truncate text-xs text-foreground/50">공개 단어장 {friend.publicBookCount}개</p>
+                  <p className="truncate text-xs text-foreground/50">
+                    공개 단어장 {friend.publicBookCount}개
+                  </p>
                 </Link>
                 <Button
                   type="button"
                   size="sm"
                   variant="outline"
-                  loading={unfollowMutation.isPending && unfollowMutation.variables === friend.userId}
+                  loading={
+                    unfollowMutation.isPending && unfollowMutation.variables === friend.userId
+                  }
                   onClick={() => unfollowMutation.mutate(friend.userId)}
                 >
                   언팔로우

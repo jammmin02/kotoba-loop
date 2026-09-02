@@ -67,7 +67,8 @@ export function buildTodayOverrideQueryString(override: {
   kanjiTarget?: number;
 }): string {
   const params = new URLSearchParams();
-  if (override.newWordTarget !== undefined) params.set("newWordTarget", String(override.newWordTarget));
+  if (override.newWordTarget !== undefined)
+    params.set("newWordTarget", String(override.newWordTarget));
   if (override.kanjiTarget !== undefined) params.set("kanjiTarget", String(override.kanjiTarget));
   const query = params.toString();
   return query ? `?${query}` : "";

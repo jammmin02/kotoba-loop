@@ -6,7 +6,10 @@ import { db } from "@/lib/db";
 import type { NextRequest } from "next/server";
 
 export const DELETE = withApiHandler(
-  async (_req: NextRequest, ctx: RouteContext<"/api/friends/[userId]">): Promise<{ userId: string }> => {
+  async (
+    _req: NextRequest,
+    ctx: RouteContext<"/api/friends/[userId]">,
+  ): Promise<{ userId: string }> => {
     const session = await auth();
     if (!session?.user) {
       throw new ApiError("UNAUTHORIZED", "로그인이 필요합니다.");

@@ -35,7 +35,9 @@ export function QuestFab({ className }: { className?: string }) {
         type="button"
         onClick={() => setOpen(true)}
         aria-label={
-          allCompleted ? "오늘의 미션 보기 (모두 완료)" : `오늘의 미션 보기 (${remaining}개 진행 중)`
+          allCompleted
+            ? "오늘의 미션 보기 (모두 완료)"
+            : `오늘의 미션 보기 (${remaining}개 진행 중)`
         }
         className={cn(
           "fixed bottom-20 right-4 z-40 flex size-14 items-center justify-center rounded-none border-2 border-pixel-ink bg-accent text-accent-foreground shadow-glow transition-[transform,box-shadow] duration-100 hover:brightness-110 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary lg:bottom-6",

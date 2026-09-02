@@ -60,7 +60,9 @@ export function VocabularyBookCard({ book, index, onEdit, onDelete }: Vocabulary
 
         <div className="flex items-center justify-between gap-2 text-xs text-foreground/50">
           <span>
-            {isMaster ? "전부 마스터했어요 🎉" : `완료 ${book.masteredCount}개 · ${remaining}개 남음`}
+            {isMaster
+              ? "전부 마스터했어요 🎉"
+              : `완료 ${book.masteredCount}개 · ${remaining}개 남음`}
           </span>
           <span>{formatDate(book.createdAt)}</span>
         </div>
@@ -68,7 +70,10 @@ export function VocabularyBookCard({ book, index, onEdit, onDelete }: Vocabulary
         <div className="mt-auto flex items-center gap-2 border-t-2 border-pixel-ink pt-3">
           <Link
             href={`/vocabulary/${book.id}`}
-            className={cn(buttonVariants({ variant: isMaster ? "quest" : "primary", size: "sm" }), "flex-1")}
+            className={cn(
+              buttonVariants({ variant: isMaster ? "quest" : "primary", size: "sm" }),
+              "flex-1",
+            )}
           >
             {isMaster ? "★ 복습하기" : "▶ 이어하기"}
           </Link>

@@ -61,9 +61,7 @@ export function StreakCalendarView({ showHeading = true }: StreakCalendarViewPro
 
   return (
     <div className="flex w-full max-w-2xl flex-col gap-6">
-      {showHeading && (
-        <h1 className="text-lg font-extrabold text-foreground">스트릭 · 캘린더</h1>
-      )}
+      {showHeading && <h1 className="text-lg font-extrabold text-foreground">스트릭 · 캘린더</h1>}
 
       <Card variant="elevated" title="STREAK.EXE" className="flex flex-col items-center gap-3">
         {isProfileLoading ? (

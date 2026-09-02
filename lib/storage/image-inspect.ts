@@ -34,7 +34,11 @@ export function sniffImageFormat(bytes: Uint8Array): ImageFormat | null {
   ) {
     return "png";
   }
-  if (bytes.length >= 12 && readAscii(bytes, 0, 4) === "RIFF" && readAscii(bytes, 8, 4) === "WEBP") {
+  if (
+    bytes.length >= 12 &&
+    readAscii(bytes, 0, 4) === "RIFF" &&
+    readAscii(bytes, 8, 4) === "WEBP"
+  ) {
     return "webp";
   }
   if (bytes.length >= 12 && readAscii(bytes, 4, 4) === "ftyp") {
@@ -55,7 +59,9 @@ function readUint16BE(bytes: Uint8Array, offset: number): number {
 }
 
 function readUint32BE(bytes: Uint8Array, offset: number): number {
-  return (bytes[offset] << 24) | (bytes[offset + 1] << 16) | (bytes[offset + 2] << 8) | bytes[offset + 3];
+  return (
+    (bytes[offset] << 24) | (bytes[offset + 1] << 16) | (bytes[offset + 2] << 8) | bytes[offset + 3]
+  );
 }
 
 /** PNG stores width/height as the first 8 bytes of the mandatory IHDR chunk right after the signature. */

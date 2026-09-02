@@ -43,7 +43,12 @@ export async function withAnalysisCache<T>({
 
   const existing = await db.aIAnalysis.findUnique({ where });
   if (existing) {
-    return { id: existing.id, status: existing.status, data: existing.result_json as T, cached: true };
+    return {
+      id: existing.id,
+      status: existing.status,
+      data: existing.result_json as T,
+      cached: true,
+    };
   }
 
   const key = `${userId}:${analysisType}:${inputRef}`;
@@ -72,7 +77,12 @@ export async function withAnalysisCache<T>({
       if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
         const winner = await db.aIAnalysis.findUnique({ where });
         if (winner) {
-          return { id: winner.id, status: winner.status, data: winner.result_json as T, cached: true };
+          return {
+            id: winner.id,
+            status: winner.status,
+            data: winner.result_json as T,
+            cached: true,
+          };
         }
       }
       throw err;

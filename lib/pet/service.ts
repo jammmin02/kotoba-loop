@@ -90,19 +90,14 @@ export async function syncPetGrowth(
     where: { id: pet.id },
     data: {
       stage: newStage,
-      ...(isGraduated
-        ? { is_graduated: true, is_active: false, graduated_at: new Date() }
-        : {}),
+      ...(isGraduated ? { is_graduated: true, is_active: false, graduated_at: new Date() } : {}),
     },
   });
 
   return { petId: pet.id, species: pet.species, newStage, justGraduated: isGraduated };
 }
 
-export async function listPetHistory(
-  client: typeof db,
-  userId: string,
-): Promise<PetHistoryRow[]> {
+export async function listPetHistory(client: typeof db, userId: string): Promise<PetHistoryRow[]> {
   return client.userPet.findMany({
     where: { user_id: userId },
     orderBy: { started_at: "desc" },

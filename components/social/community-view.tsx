@@ -8,7 +8,12 @@ import { PixelDownload, PixelGlobe } from "@/components/icons/pixel-icons";
 import { Button } from "@/components/ui/button";
 import { Card, cardVariants } from "@/components/ui/card";
 import { ChipButton } from "@/components/ui/chip-button";
-import { BookEmblem, BookSlotTitleBar, StatChip, slotColorForIndex } from "@/components/vocabulary/book-slot";
+import {
+  BookEmblem,
+  BookSlotTitleBar,
+  StatChip,
+  slotColorForIndex,
+} from "@/components/vocabulary/book-slot";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
 import type { PaginatedResponse } from "@/types/api";
@@ -42,7 +47,9 @@ export function CommunityView({ initialSort, initialUserId, initialNickname }: C
       params.set("sort", sort);
       if (userId) params.set("userId", userId);
       params.set("page", String(page));
-      return apiFetch<PaginatedResponse<CommunityBookSummary>>(`/api/vocabulary-books/community?${params}`);
+      return apiFetch<PaginatedResponse<CommunityBookSummary>>(
+        `/api/vocabulary-books/community?${params}`,
+      );
     },
   });
 
@@ -95,9 +102,7 @@ export function CommunityView({ initialSort, initialUserId, initialNickname }: C
       {data && data.items.length === 0 && (
         <Card variant="elevated" className="flex flex-col items-center gap-3 py-12 text-center">
           <PixelGlobe className="size-12 text-foreground/30" aria-hidden="true" />
-          <p className="text-sm font-content text-foreground/60">
-            아직 공개된 단어장이 없어요.
-          </p>
+          <p className="text-sm font-content text-foreground/60">아직 공개된 단어장이 없어요.</p>
         </Card>
       )}
 

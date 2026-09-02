@@ -24,7 +24,12 @@ export const kanjiListQuerySchema = z
       .optional(),
     jlpt: z.enum(JLPT_LEVEL_OPTIONS).optional(),
     page: z.coerce.number().int().min(1).default(1),
-    pageSize: z.coerce.number().int().min(1).max(KANJI_PAGE_SIZE_MAX).default(KANJI_PAGE_SIZE_DEFAULT),
+    pageSize: z.coerce
+      .number()
+      .int()
+      .min(1)
+      .max(KANJI_PAGE_SIZE_MAX)
+      .default(KANJI_PAGE_SIZE_DEFAULT),
   })
   .refine((v) => !(v.grade !== undefined && v.jlpt !== undefined), {
     message: "학년과 JLPT 분류는 동시에 지정할 수 없습니다.",

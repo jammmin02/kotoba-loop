@@ -113,7 +113,11 @@ export async function getTodayKanjiQueue(
   for (const row of userKanjiRows) {
     if (row.learning_status === "WEAK") {
       weakKanjiIds.push(row.kanji_id);
-    } else if (row.learning_status !== "NEW" && row.next_review_at && row.next_review_at < startOfTomorrow) {
+    } else if (
+      row.learning_status !== "NEW" &&
+      row.next_review_at &&
+      row.next_review_at < startOfTomorrow
+    ) {
       reviewKanjiIds.push(row.kanji_id);
     }
   }

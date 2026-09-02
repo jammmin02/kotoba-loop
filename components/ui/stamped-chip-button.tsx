@@ -4,10 +4,18 @@ import { cn } from "@/lib/utils";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
 /** 항목마다 색 필드가 없는 목록(단어장, 게임 모드 등)에 순환 배정하는 점 색상. */
-const DOT_COLORS = ["bg-titlebar-pink", "bg-titlebar-mint", "bg-accent", "bg-primary", "bg-secondary"];
+const DOT_COLORS = [
+  "bg-titlebar-pink",
+  "bg-titlebar-mint",
+  "bg-accent",
+  "bg-primary",
+  "bg-secondary",
+];
 
-export interface StampedChipButtonProps
-  extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children"> {
+export interface StampedChipButtonProps extends Omit<
+  ButtonHTMLAttributes<HTMLButtonElement>,
+  "children"
+> {
   selected: boolean;
   /** 목록 내 위치 — `DOT_COLORS`를 순환 배정하는 데 쓴다. */
   colorIndex: number;

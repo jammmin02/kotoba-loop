@@ -1,4 +1,3 @@
-
 import { achievementToast } from "@/components/game/achievement-toast";
 import { expToast } from "@/components/game/exp-toast";
 import { levelUpGlow } from "@/components/game/level-up-store";

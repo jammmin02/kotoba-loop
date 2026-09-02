@@ -74,7 +74,9 @@ export function KanjiStrokeOrderCard({ character }: KanjiStrokeOrderCardProps) {
         outlineColor: "#9ca3af",
         delayBetweenStrokes: 300,
         charDataLoader: (char, onLoad, onError) => {
-          fetch(`https://cdn.jsdelivr.net/npm/hanzi-writer-data-jp@0/${encodeURIComponent(char)}.json`)
+          fetch(
+            `https://cdn.jsdelivr.net/npm/hanzi-writer-data-jp@0/${encodeURIComponent(char)}.json`,
+          )
             .then((res) => {
               if (!res.ok) throw new Error("stroke data not found");
               return res.json();

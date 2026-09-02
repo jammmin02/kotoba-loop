@@ -18,8 +18,7 @@ import { NATURAL_SEARCH_QUERY_MAX } from "@/lib/validations/ai";
 
 import type { FormEvent } from "react";
 
-const QUERY_PLACEHOLDER =
-  "일부러라는 뜻인데 상대방이 나를 위해 수고했다는 느낌의 일본어가 뭐였지?";
+const QUERY_PLACEHOLDER = "일부러라는 뜻인데 상대방이 나를 위해 수고했다는 느낌의 일본어가 뭐였지?";
 
 interface SearchEntry {
   key: string;
@@ -114,19 +113,25 @@ export function NaturalSearchView() {
             <p className="text-sm font-content text-foreground/70">Q. {entry.query}</p>
 
             {!entry.data && entry.key === pendingKey && (
-              <p className="text-sm text-foreground/50">AI가 찾고 있어요. 최대 45초 정도 걸릴 수 있어요.</p>
+              <p className="text-sm text-foreground/50">
+                AI가 찾고 있어요. 최대 45초 정도 걸릴 수 있어요.
+              </p>
             )}
 
             {entry.data && entry.data.result.found && (
               <>
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex flex-col gap-0.5">
-                    <p className="text-sm font-bold text-primary">{entry.data.result.explanation}</p>
+                    <p className="text-sm font-bold text-primary">
+                      {entry.data.result.explanation}
+                    </p>
                     <p className="font-jp text-2xl text-foreground">{entry.data.result.word}</p>
                     <p className="text-sm text-foreground/60">{entry.data.result.reading}</p>
                   </div>
                   <div className="flex flex-wrap justify-end gap-1.5">
-                    {entry.data.result.jlptLevel && <JlptBadge level={entry.data.result.jlptLevel} />}
+                    {entry.data.result.jlptLevel && (
+                      <JlptBadge level={entry.data.result.jlptLevel} />
+                    )}
                     <span className="border-2 border-pixel-ink bg-surface px-2 py-0.5 text-xs font-bold">
                       {entry.data.result.partOfSpeech}
                     </span>
@@ -175,7 +180,9 @@ export function NaturalSearchView() {
 
             {entry.data && !entry.data.result.found && (
               <div className="flex flex-col gap-1 border-2 border-dashed border-pixel-ink/40 bg-background p-3">
-                <p className="text-sm font-bold text-foreground/70">{entry.data.result.explanation}</p>
+                <p className="text-sm font-bold text-foreground/70">
+                  {entry.data.result.explanation}
+                </p>
                 <p className="text-xs text-foreground/50">{entry.data.result.meanings[0]}</p>
                 <p className="text-xs text-foreground/40">다른 표현으로 다시 질문해보세요.</p>
               </div>

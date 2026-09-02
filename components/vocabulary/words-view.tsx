@@ -108,10 +108,7 @@ export function WordsView({ initialBookId }: WordsViewProps) {
           className="min-w-40"
         />
         {tagId && (
-          <TagStudyButton
-            tagId={tagId}
-            tagName={tags?.find((t) => t.id === tagId)?.name ?? ""}
-          />
+          <TagStudyButton tagId={tagId} tagName={tags?.find((t) => t.id === tagId)?.name ?? ""} />
         )}
         <button
           type="button"

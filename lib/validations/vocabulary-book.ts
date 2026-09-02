@@ -12,7 +12,10 @@ export const createVocabularyBookSchema = z.object({
   description: z
     .string()
     .trim()
-    .max(VOCABULARY_BOOK_DESCRIPTION_MAX, `설명은 ${VOCABULARY_BOOK_DESCRIPTION_MAX}자 이하여야 합니다.`)
+    .max(
+      VOCABULARY_BOOK_DESCRIPTION_MAX,
+      `설명은 ${VOCABULARY_BOOK_DESCRIPTION_MAX}자 이하여야 합니다.`,
+    )
     .optional(),
   isPublic: z.boolean().optional(),
 });

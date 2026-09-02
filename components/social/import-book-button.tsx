@@ -28,8 +28,7 @@ export function ImportBookButton({ bookId }: { bookId: string }) {
 
   return (
     <Button type="button" onClick={() => mutation.mutate()} loading={mutation.isPending}>
-      <PixelPlus className="size-4" aria-hidden="true" />
-      내 단어장에 가져오기
+      <PixelPlus className="size-4" aria-hidden="true" />내 단어장에 가져오기
     </Button>
   );
 }

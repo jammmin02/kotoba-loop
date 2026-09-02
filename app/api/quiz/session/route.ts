@@ -2,7 +2,12 @@ import { ApiError } from "@/lib/api/error";
 import { withApiHandler } from "@/lib/api/handler";
 import { auth } from "@/lib/auth";
 import { computeQuizTypeWeights, pickBoostedType } from "@/lib/quiz/distribution";
-import { fetchKanjiPool, fetchQuizKanji, fetchQuizPool, fetchQuizVocabularies } from "@/lib/quiz/queries";
+import {
+  fetchKanjiPool,
+  fetchQuizKanji,
+  fetchQuizPool,
+  fetchQuizVocabularies,
+} from "@/lib/quiz/queries";
 import { generateKanjiQuizSession, generateQuizSession } from "@/lib/quiz/session";
 import { KANJI_QUIZ_TYPES, VOCAB_QUIZ_TYPES } from "@/lib/quiz/types";
 import type { QuizType } from "@/lib/quiz/types";

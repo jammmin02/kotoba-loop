@@ -445,7 +445,12 @@ function flashcardWrongHistory(): NonNullable<WordSeed["reviewHistory"]> {
   ];
 }
 
-async function seedBook(userId: string, bookName: string, bookDescription: string, words: WordSeed[]) {
+async function seedBook(
+  userId: string,
+  bookName: string,
+  bookDescription: string,
+  words: WordSeed[],
+) {
   const book = await db.vocabularyBook.create({
     data: { user_id: userId, name: bookName, description: bookDescription, is_public: false },
   });
@@ -532,7 +537,12 @@ async function main() {
     },
   });
 
-  await seedBook(user.id, "JLPT N5 필수단어", "새 단어 학습 확인용 — 전부 미학습(NEW) 상태.", BOOK_1_NEW_WORDS);
+  await seedBook(
+    user.id,
+    "JLPT N5 필수단어",
+    "새 단어 학습 확인용 — 전부 미학습(NEW) 상태.",
+    BOOK_1_NEW_WORDS,
+  );
   await seedBook(
     user.id,
     "일상 회화 표현",

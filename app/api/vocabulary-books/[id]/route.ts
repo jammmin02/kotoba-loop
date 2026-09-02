@@ -22,7 +22,10 @@ async function requireOwnedBook(id: string, userId: string) {
 }
 
 export const PATCH = withApiHandler(
-  async (req: NextRequest, ctx: RouteContext<"/api/vocabulary-books/[id]">): Promise<VocabularyBookSummary> => {
+  async (
+    req: NextRequest,
+    ctx: RouteContext<"/api/vocabulary-books/[id]">,
+  ): Promise<VocabularyBookSummary> => {
     const session = await auth();
     if (!session?.user) {
       throw new ApiError("UNAUTHORIZED", "로그인이 필요합니다.");
@@ -65,7 +68,10 @@ export const PATCH = withApiHandler(
 );
 
 export const DELETE = withApiHandler(
-  async (_req: NextRequest, ctx: RouteContext<"/api/vocabulary-books/[id]">): Promise<{ id: string }> => {
+  async (
+    _req: NextRequest,
+    ctx: RouteContext<"/api/vocabulary-books/[id]">,
+  ): Promise<{ id: string }> => {
     const session = await auth();
     if (!session?.user) {
       throw new ApiError("UNAUTHORIZED", "로그인이 필요합니다.");

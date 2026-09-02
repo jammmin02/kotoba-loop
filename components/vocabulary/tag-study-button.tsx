@@ -36,7 +36,10 @@ export function TagStudyButton({ tagId, tagName }: TagStudyButtonProps) {
       <span
         aria-disabled="true"
         title={title}
-        className={cn(buttonVariants({ variant: "quest", size: "md" }), "pointer-events-none opacity-50")}
+        className={cn(
+          buttonVariants({ variant: "quest", size: "md" }),
+          "pointer-events-none opacity-50",
+        )}
       >
         <PixelSparkles className="size-4" aria-hidden="true" />이 태그로 학습하기
       </span>

@@ -127,7 +127,9 @@ export function CustomStudyView() {
   return (
     <div className="flex w-full max-w-md flex-col gap-6">
       <Card variant="elevated" title="STEP 1" className="flex flex-col gap-3">
-        <p className="text-sm font-bold text-foreground">학습할 단어장을 골라주세요 (복수 선택 가능)</p>
+        <p className="text-sm font-bold text-foreground">
+          학습할 단어장을 골라주세요 (복수 선택 가능)
+        </p>
         {booksQuery.isLoading && <p className="text-sm text-foreground/60">불러오는 중...</p>}
         {booksQuery.isError && (
           <p className="text-sm text-error">단어장 목록을 불러오지 못했습니다.</p>
@@ -170,7 +172,9 @@ export function CustomStudyView() {
 
         {gameMode === "quiz" && (
           <div className="flex flex-col gap-2 border-t-2 border-pixel-ink pt-3">
-            <p className="text-sm font-bold text-foreground">퀴즈 유형을 골라주세요 (복수 선택 가능)</p>
+            <p className="text-sm font-bold text-foreground">
+              퀴즈 유형을 골라주세요 (복수 선택 가능)
+            </p>
             <div className="flex flex-wrap gap-3 pt-1">
               {VOCAB_QUIZ_TYPES.map((quizType, index) => (
                 <StampedChipButton

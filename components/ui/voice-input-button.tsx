@@ -18,7 +18,8 @@ export interface VoiceInputButtonProps {
 }
 
 const ERROR_MESSAGES: Record<string, string> = {
-  "not-allowed": "마이크 권한이 필요해요. 브라우저 설정에서 마이크 권한을 허용한 뒤 다시 시도해주세요.",
+  "not-allowed":
+    "마이크 권한이 필요해요. 브라우저 설정에서 마이크 권한을 허용한 뒤 다시 시도해주세요.",
   "no-speech": "음성이 감지되지 않았어요. 다시 말해주세요.",
   unsupported: "이 브라우저에서는 음성 입력을 지원하지 않아요.",
   other: "음성 인식 중 오류가 발생했어요.",
@@ -33,7 +34,8 @@ const ERROR_MESSAGES: Record<string, string> = {
 export function VoiceInputButton({ onResult, lang = "ja-JP", className }: VoiceInputButtonProps) {
   const isMobile = useMediaQuery("(max-width: 767px)");
   const [open, setOpen] = useState(false);
-  const { status, transcript, errorReason, isSupported, start, stop, reset } = useSpeechRecognition(lang);
+  const { status, transcript, errorReason, isSupported, start, stop, reset } =
+    useSpeechRecognition(lang);
 
   if (!isMobile) return null;
 
@@ -97,13 +99,20 @@ export function VoiceInputButton({ onResult, lang = "ja-JP", className }: VoiceI
           {status === "result" && (
             <>
               <div className="w-full border-2 border-pixel-ink bg-background p-3">
-                <p className="font-jp text-lg text-foreground">{transcript || "(인식된 내용 없음)"}</p>
+                <p className="font-jp text-lg text-foreground">
+                  {transcript || "(인식된 내용 없음)"}
+                </p>
               </div>
               <div className="flex w-full gap-2">
                 <Button type="button" variant="outline" onClick={start} className="flex-1">
                   다시 말하기
                 </Button>
-                <Button type="button" onClick={handleUseResult} disabled={!transcript} className="flex-1">
+                <Button
+                  type="button"
+                  onClick={handleUseResult}
+                  disabled={!transcript}
+                  className="flex-1"
+                >
                   이 단어 사용하기
                 </Button>
               </div>
@@ -113,9 +122,7 @@ export function VoiceInputButton({ onResult, lang = "ja-JP", className }: VoiceI
           {status === "error" && (
             <>
               <PixelMic className="size-10 text-error" aria-hidden="true" />
-              <p className="text-sm text-foreground/70">
-                {ERROR_MESSAGES[errorReason ?? "other"]}
-              </p>
+              <p className="text-sm text-foreground/70">{ERROR_MESSAGES[errorReason ?? "other"]}</p>
               <Button type="button" onClick={start} className="w-full">
                 다시 시도
               </Button>

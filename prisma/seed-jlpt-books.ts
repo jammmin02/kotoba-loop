@@ -3,11 +3,11 @@ import { config } from "dotenv";
 
 import { PrismaClient } from "../lib/generated/prisma/client";
 
-import n5Words from "./data/jlpt-books/n5.json";
-import n4Words from "./data/jlpt-books/n4.json";
-import n3Words from "./data/jlpt-books/n3.json";
-import n2Words from "./data/jlpt-books/n2.json";
 import n1Words from "./data/jlpt-books/n1.json";
+import n2Words from "./data/jlpt-books/n2.json";
+import n3Words from "./data/jlpt-books/n3.json";
+import n4Words from "./data/jlpt-books/n4.json";
+import n5Words from "./data/jlpt-books/n5.json";
 
 // 커뮤니티 탐색(PROMPT 58)에 노출할 공식 JLPT 필수단어장 — prisma/seed-admin-account.ts로 만든
 // 관리자 계정(admin@kotoba-loop.app) 소유로, is_public: true인 5개 단어장(N5~N1)을 만든다.
@@ -78,7 +78,9 @@ async function seedBook(adminId: string, book: (typeof BOOKS)[number]) {
     });
   }
 
-  const existing = await db.vocabulary.findMany({ select: { id: true, word: true, reading: true } });
+  const existing = await db.vocabulary.findMany({
+    select: { id: true, word: true, reading: true },
+  });
   const existingIdByKey = new Map(existing.map((v) => [`${v.word}${v.reading}`, v.id]));
 
   const existingItems = await db.vocabularyBookItem.findMany({
@@ -107,7 +109,9 @@ async function seedBook(adminId: string, book: (typeof BOOKS)[number]) {
           jlpt_level: entry.jlpt_level,
           meanings: { create: [{ meaning: entry.meaning_ko }] },
           examples: {
-            create: [{ japanese: entry.example_ja, korean: entry.example_ko, source: "seed-jlpt-books" }],
+            create: [
+              { japanese: entry.example_ja, korean: entry.example_ko, source: "seed-jlpt-books" },
+            ],
           },
         },
       });
@@ -135,7 +139,9 @@ async function seedBook(adminId: string, book: (typeof BOOKS)[number]) {
 async function main() {
   const admin = await db.user.findUnique({ where: { email: ADMIN_EMAIL } });
   if (!admin) {
-    throw new Error(`관리자 계정(${ADMIN_EMAIL})이 없습니다. 먼저 prisma/seed-admin-account.ts를 실행하세요.`);
+    throw new Error(
+      `관리자 계정(${ADMIN_EMAIL})이 없습니다. 먼저 prisma/seed-admin-account.ts를 실행하세요.`,
+    );
   }
 
   for (const book of BOOKS) {

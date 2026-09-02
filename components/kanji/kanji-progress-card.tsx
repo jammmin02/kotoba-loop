@@ -28,7 +28,12 @@ export function KanjiProgressCard() {
   }
 
   return (
-    <Card variant="elevated" title="漢字LEVEL.EXE" titleColor="mint" className="flex items-center gap-6">
+    <Card
+      variant="elevated"
+      title="漢字LEVEL.EXE"
+      titleColor="mint"
+      className="flex items-center gap-6"
+    >
       <ProgressRing value={data.mastered} max={Math.max(data.total, 1)} label="한자 학습률" />
       <div className="flex flex-col gap-1">
         <span className="text-xs font-bold text-foreground/60">마스터한 한자</span>

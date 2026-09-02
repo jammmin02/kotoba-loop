@@ -3,7 +3,8 @@ import "server-only";
 import { ApiError } from "@/lib/api/error";
 import type { HandwritingRecognizeInput } from "@/lib/validations/handwriting";
 
-const ENDPOINT = "https://www.google.com/inputtools/request?ime=handwriting&app=mobilesearch&cs=1&oe=UTF-8";
+const ENDPOINT =
+  "https://www.google.com/inputtools/request?ime=handwriting&app=mobilesearch&cs=1&oe=UTF-8";
 const TIMEOUT_MS = 8_000;
 const MAX_CANDIDATES = 10;
 
@@ -63,7 +64,10 @@ export async function recognizeHandwriting(
   }
 
   const candidates =
-    Array.isArray(json) && json[0] === "SUCCESS" && Array.isArray(json[1]) && Array.isArray(json[1][0])
+    Array.isArray(json) &&
+    json[0] === "SUCCESS" &&
+    Array.isArray(json[1]) &&
+    Array.isArray(json[1][0])
       ? json[1][0][1]
       : undefined;
   if (!Array.isArray(candidates)) return [];

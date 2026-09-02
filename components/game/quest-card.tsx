@@ -26,7 +26,10 @@ export function QuestCard({
   const completed = clampedCurrent >= safeTarget;
 
   return (
-    <Card variant={completed ? "quest" : "default"} className={cn("flex flex-col gap-3", className)}>
+    <Card
+      variant={completed ? "quest" : "default"}
+      className={cn("flex flex-col gap-3", className)}
+    >
       <div className="flex items-center justify-between gap-2">
         <p className={cn("text-sm font-bold", completed && "text-accent")}>{title}</p>
         {completed ? (

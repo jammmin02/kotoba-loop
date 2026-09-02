@@ -45,7 +45,8 @@ const PRICING_PER_MILLION_TOKENS: Record<string, { input: number; output: number
 };
 
 function estimateCostUsd(model: string, inputTokens: number, outputTokens: number): number {
-  const pricing = PRICING_PER_MILLION_TOKENS[model] ?? PRICING_PER_MILLION_TOKENS["claude-sonnet-5"];
+  const pricing =
+    PRICING_PER_MILLION_TOKENS[model] ?? PRICING_PER_MILLION_TOKENS["claude-sonnet-5"];
   return (inputTokens * pricing.input + outputTokens * pricing.output) / 1_000_000;
 }
 
@@ -122,7 +123,10 @@ export async function runStructuredAnalysis<Schema extends z.ZodType>({
     );
   } catch (err) {
     if (err instanceof SchemaValidationFailure) {
-      throw new ApiError("AI_SCHEMA_INVALID", "AI 분석 결과가 올바른 형식이 아닙니다. 직접 입력해주세요.");
+      throw new ApiError(
+        "AI_SCHEMA_INVALID",
+        "AI 분석 결과가 올바른 형식이 아닙니다. 직접 입력해주세요.",
+      );
     }
     if (err instanceof APIConnectionTimeoutError) {
       throw new ApiError("AI_TIMEOUT", "AI 분석이 시간 초과되었습니다. 직접 입력해주세요.");

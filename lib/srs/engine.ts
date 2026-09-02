@@ -61,7 +61,10 @@ export function applyReview(state: SrsState, grade: ReviewGrade, now: Date): Srs
   let learningStatus: LearningStatus;
   if (isCorrect && wasAtMaxStage) {
     learningStatus = "MASTERED";
-  } else if (totalReviews >= MIN_TOTAL_REVIEWS_FOR_WEAK_CHECK && wrongRate >= WEAK_WRONG_RATE_THRESHOLD) {
+  } else if (
+    totalReviews >= MIN_TOTAL_REVIEWS_FOR_WEAK_CHECK &&
+    wrongRate >= WEAK_WRONG_RATE_THRESHOLD
+  ) {
     learningStatus = "WEAK";
   } else {
     learningStatus = intervalStage <= LEARNING_MAX_STAGE ? "LEARNING" : "REVIEW";

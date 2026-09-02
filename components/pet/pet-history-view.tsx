@@ -64,7 +64,9 @@ export function PetHistoryView() {
                     <p className="text-sm font-extrabold text-foreground">
                       {speciesLabel(pet.species)}
                     </p>
-                    {pet.isActive && <span className="text-xs font-bold text-primary">현재 펫</span>}
+                    {pet.isActive && (
+                      <span className="text-xs font-bold text-primary">현재 펫</span>
+                    )}
                     {pet.isGraduated && <span className="text-xs font-bold text-accent">졸업</span>}
                   </div>
                   <p className="text-xs text-foreground/60">

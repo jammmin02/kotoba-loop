@@ -13,7 +13,10 @@ import type { NextRequest } from "next/server";
  * 복구하므로, Pusher 재연결 시 이 GET을 다시 호출하는 것만으로 놓친 진행이 따라잡힌다.
  */
 export const GET = withApiHandler(
-  async (_req: NextRequest, ctx: RouteContext<"/api/battle-rooms/[roomCode]">): Promise<BattleRoomState> => {
+  async (
+    _req: NextRequest,
+    ctx: RouteContext<"/api/battle-rooms/[roomCode]">,
+  ): Promise<BattleRoomState> => {
     const session = await auth();
     if (!session?.user) {
       throw new ApiError("UNAUTHORIZED", "로그인이 필요합니다.");

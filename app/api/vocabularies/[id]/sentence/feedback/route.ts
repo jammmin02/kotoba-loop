@@ -46,7 +46,12 @@ export const POST = withApiHandler(
       throw new ApiError("NOT_FOUND", "저장된 문장을 찾을 수 없습니다.");
     }
 
-    const { cached, result } = await correctSentence(id, vocabulary.word, userSentence.sentence, userId);
+    const { cached, result } = await correctSentence(
+      id,
+      vocabulary.word,
+      userSentence.sentence,
+      userId,
+    );
     return { cached, result };
   },
 );

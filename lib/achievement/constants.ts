@@ -38,7 +38,12 @@ export const WORD_REGISTER_ACHIEVEMENT_SEEDS: AchievementSeed[] = [
 /** "N단어 학습" 임계값 — 계획서 문구가 "학습"이므로 `learning_status`가 NEW를 벗어난
  * 단어 수를 조건으로 삼는다(이 문서가 확정, kotoba-loop-roadmap.md PROMPT 27 참고). */
 export const WORD_STUDY_ACHIEVEMENT_SEEDS: AchievementSeed[] = [
-  { code: ACHIEVEMENT_CODES.WORD_STUDY_10, category: "word", title: "단어 10개 학습", conditionValue: 10 },
+  {
+    code: ACHIEVEMENT_CODES.WORD_STUDY_10,
+    category: "word",
+    title: "단어 10개 학습",
+    conditionValue: 10,
+  },
   {
     code: ACHIEVEMENT_CODES.WORD_STUDY_100,
     category: "word",
@@ -62,8 +67,18 @@ export const WORD_STUDY_ACHIEVEMENT_SEEDS: AchievementSeed[] = [
 /** 한자 업적 — `checkKanjiStudyAchievements`(lib/achievement/service.ts)가 한자 퀴즈 제출 시마다
  * 실제 `UserKanji` 학습 수를 기준으로 체크한다(PROMPT 36). */
 export const KANJI_ACHIEVEMENT_SEEDS: AchievementSeed[] = [
-  { code: ACHIEVEMENT_CODES.KANJI_100, category: "kanji", title: "한자 초보(100자)", conditionValue: 100 },
-  { code: ACHIEVEMENT_CODES.KANJI_500, category: "kanji", title: "한자 중급(500자)", conditionValue: 500 },
+  {
+    code: ACHIEVEMENT_CODES.KANJI_100,
+    category: "kanji",
+    title: "한자 초보(100자)",
+    conditionValue: 100,
+  },
+  {
+    code: ACHIEVEMENT_CODES.KANJI_500,
+    category: "kanji",
+    title: "한자 중급(500자)",
+    conditionValue: 500,
+  },
   {
     code: ACHIEVEMENT_CODES.KANJI_1000,
     category: "kanji",

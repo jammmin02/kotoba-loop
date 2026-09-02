@@ -7,16 +7,14 @@ import type { PhotoUploadPresignResult } from "@/types/photo-upload";
 
 import type { NextRequest } from "next/server";
 
-export const POST = withApiHandler(
-  async (req: NextRequest): Promise<PhotoUploadPresignResult> => {
-    const session = await auth();
-    if (!session?.user) {
-      throw new ApiError("UNAUTHORIZED", "로그인이 필요합니다.");
-    }
+export const POST = withApiHandler(async (req: NextRequest): Promise<PhotoUploadPresignResult> => {
+  const session = await auth();
+  if (!session?.user) {
+    throw new ApiError("UNAUTHORIZED", "로그인이 필요합니다.");
+  }
 
-    const body = await req.json();
-    const { mimeType } = presignPhotoUploadSchema.parse(body);
+  const body = await req.json();
+  const { mimeType } = presignPhotoUploadSchema.parse(body);
 
-    return createPhotoUploadTarget(session.user.id, mimeType);
-  },
-);
+  return createPhotoUploadTarget(session.user.id, mimeType);
+});

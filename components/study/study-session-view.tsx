@@ -40,7 +40,8 @@ export function StudySessionView({ tagId, tagName }: StudySessionViewProps) {
   const override = useTodayPlanOverride(toKstDateKey(new Date()));
   const todayQuery = useQuery({
     queryKey: ["study", "queue", override],
-    queryFn: () => apiFetch<StudyQueueResponse>(`/api/study/queue${buildTodayOverrideQueryString(override)}`),
+    queryFn: () =>
+      apiFetch<StudyQueueResponse>(`/api/study/queue${buildTodayOverrideQueryString(override)}`),
     enabled: !isTagMode,
   });
 

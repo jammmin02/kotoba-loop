@@ -104,7 +104,12 @@ test("시행 횟수가 너무 적으면(2회 미만 누적) 첫 오답만으로 
 });
 
 test("동일 상태에 동일 평가를 반복 적용해도 항상 같은 결과를 낸다(순수 함수, 정합성)", () => {
-  const state: SrsState = { intervalStage: 2, learningStatus: "REVIEW", correctCount: 3, wrongCount: 1 };
+  const state: SrsState = {
+    intervalStage: 2,
+    learningStatus: "REVIEW",
+    correctCount: 3,
+    wrongCount: 1,
+  };
   const first = applyReview(state, "GOOD", NOW);
   const second = applyReview(state, "GOOD", NOW);
   assert.deepEqual(first, second);

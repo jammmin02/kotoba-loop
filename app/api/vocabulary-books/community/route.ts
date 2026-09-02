@@ -33,7 +33,9 @@ export const GET = withApiHandler(
       db.vocabularyBook.findMany({
         where,
         orderBy:
-          sort === "popular" ? [{ import_count: "desc" as const }, { created_at: "desc" as const }] : [{ created_at: "desc" as const }],
+          sort === "popular"
+            ? [{ import_count: "desc" as const }, { created_at: "desc" as const }]
+            : [{ created_at: "desc" as const }],
         skip: (page - 1) * pageSize,
         take: pageSize,
         include: {

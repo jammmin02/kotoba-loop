@@ -2,7 +2,10 @@ import bcrypt from "bcryptjs";
 
 import { ApiError } from "@/lib/api/error";
 import { withApiHandler } from "@/lib/api/handler";
-import { isRegistrationAllowed, REGISTRATION_RESTRICTED_MESSAGE } from "@/lib/auth-registration-policy";
+import {
+  isRegistrationAllowed,
+  REGISTRATION_RESTRICTED_MESSAGE,
+} from "@/lib/auth-registration-policy";
 import { db } from "@/lib/db";
 import { Prisma } from "@/lib/generated/prisma/client";
 import { registerSchema } from "@/lib/validations/auth";

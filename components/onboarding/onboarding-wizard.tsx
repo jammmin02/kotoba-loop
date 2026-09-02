@@ -72,8 +72,7 @@ export function OnboardingWizard() {
       router.push("/");
       router.refresh();
     } catch (err) {
-      const message =
-        err instanceof ApiClientError ? err.message : "저장 중 오류가 발생했습니다.";
+      const message = err instanceof ApiClientError ? err.message : "저장 중 오류가 발생했습니다.";
       toast.error(message);
     } finally {
       setSubmitting(false);
@@ -119,7 +118,12 @@ export function OnboardingWizard() {
         </button>
       </div>
 
-      <Card variant="elevated" title="ONBOARDING.EXE" titleColor="mint" className="flex flex-col gap-5">
+      <Card
+        variant="elevated"
+        title="ONBOARDING.EXE"
+        titleColor="mint"
+        className="flex flex-col gap-5"
+      >
         <h1 className="text-lg font-bold text-foreground">{STEP_TITLES[step - 1]}</h1>
 
         {step === 1 && (
@@ -162,7 +166,10 @@ export function OnboardingWizard() {
                   {preset}개
                 </ChipButton>
               ))}
-              <ChipButton selected={isCustomWordTarget} onClick={() => store.selectCustomWordTarget()}>
+              <ChipButton
+                selected={isCustomWordTarget}
+                onClick={() => store.selectCustomWordTarget()}
+              >
                 직접 입력
               </ChipButton>
             </div>
@@ -212,7 +219,12 @@ export function OnboardingWizard() {
         )}
 
         <div className="flex items-center justify-between gap-3 pt-2">
-          <Button type="button" variant="outline" onClick={store.goBack} disabled={step === 1 || submitting}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={store.goBack}
+            disabled={step === 1 || submitting}
+          >
             이전
           </Button>
           {step < ONBOARDING_TOTAL_STEPS ? (
@@ -220,7 +232,12 @@ export function OnboardingWizard() {
               다음
             </Button>
           ) : (
-            <Button type="button" onClick={handleComplete} disabled={!canProceed} loading={submitting}>
+            <Button
+              type="button"
+              onClick={handleComplete}
+              disabled={!canProceed}
+              loading={submitting}
+            >
               완료
             </Button>
           )}

@@ -21,7 +21,10 @@ async function requireOwnedExamGoal(id: string, userId: string) {
 }
 
 export const PATCH = withApiHandler(
-  async (req: NextRequest, ctx: RouteContext<"/api/users/me/exam-goals/[id]">): Promise<ExamGoalResponse> => {
+  async (
+    req: NextRequest,
+    ctx: RouteContext<"/api/users/me/exam-goals/[id]">,
+  ): Promise<ExamGoalResponse> => {
     const session = await auth();
     if (!session?.user) {
       throw new ApiError("UNAUTHORIZED", "로그인이 필요합니다.");

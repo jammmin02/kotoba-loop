@@ -25,7 +25,9 @@ export interface WeakKanjiStat {
  * 리뷰 이력에 반영되어야 한다).
  */
 export async function getWeakKanjiStats(userId: string): Promise<WeakKanjiStat[]> {
-  const rows = await db.$queryRaw<{ kanji_id: string; recent_count: number; wrong_count: number }[]>`
+  const rows = await db.$queryRaw<
+    { kanji_id: string; recent_count: number; wrong_count: number }[]
+  >`
     WITH kanji_reviews AS (
       SELECT vk.kanji_id, rh.result,
              ROW_NUMBER() OVER (PARTITION BY vk.kanji_id ORDER BY rh.reviewed_at DESC) AS rn

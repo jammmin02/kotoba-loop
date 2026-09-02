@@ -35,8 +35,7 @@ export function ReportView() {
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["stats", "report", kind, offset],
-    queryFn: () =>
-      apiFetch<StatsReportResponse>(`/api/stats/report?kind=${kind}&offset=${offset}`),
+    queryFn: () => apiFetch<StatsReportResponse>(`/api/stats/report?kind=${kind}&offset=${offset}`),
   });
 
   function handleKindChange(next: ReportKind) {
@@ -77,9 +76,7 @@ export function ReportView() {
         >
           ◀ 이전
         </Button>
-        <span className="text-sm font-bold text-foreground">
-          {data ? data.period.label : " "}
-        </span>
+        <span className="text-sm font-bold text-foreground">{data ? data.period.label : " "}</span>
         <Button
           variant="outline"
           size="sm"
@@ -136,9 +133,7 @@ export function ReportView() {
 
               {data.weakKanji.length > 0 && (
                 <div className="flex flex-col gap-2">
-                  <p className="text-xs font-bold text-foreground/60">
-                    최근 자주 틀리는 한자
-                  </p>
+                  <p className="text-xs font-bold text-foreground/60">최근 자주 틀리는 한자</p>
                   <div className="flex flex-wrap gap-2">
                     {data.weakKanji.map((k) => (
                       <span

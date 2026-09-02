@@ -3,9 +3,7 @@ import { redirect } from "next/navigation";
 import { BattleRoomView } from "@/components/battle/battle-room-view";
 import { auth } from "@/lib/auth";
 
-export default async function BattleRoomPage({
-  params,
-}: PageProps<"/study/battle/[roomCode]">) {
+export default async function BattleRoomPage({ params }: PageProps<"/study/battle/[roomCode]">) {
   const { roomCode } = await params;
   const session = await auth();
   if (!session?.user) {

@@ -21,7 +21,10 @@ export async function generateBattleQuestions(vocabularyBookId: string): Promise
     select: { vocabulary_id: true },
   });
 
-  const candidateIds = shuffle(items.map((item) => item.vocabulary_id)).slice(0, BATTLE_ROUND_COUNT);
+  const candidateIds = shuffle(items.map((item) => item.vocabulary_id)).slice(
+    0,
+    BATTLE_ROUND_COUNT,
+  );
   const targets = await fetchQuizVocabularies(candidateIds);
   const pool = await fetchQuizPool(targets);
   const questions = generateQuizSession(targets, pool, Math.random, ["MULTIPLE_CHOICE"]);

@@ -44,7 +44,9 @@ export const GET = withApiHandler(async (req: NextRequest): Promise<TodaySummary
     getTodayKanjiQueue(userId, now, db, kanjiTarget),
   ]);
   const todayKanjiCount =
-    kanjiQueue.newKanjiIds.length + kanjiQueue.reviewKanjiIds.length + kanjiQueue.weakKanjiIds.length;
+    kanjiQueue.newKanjiIds.length +
+    kanjiQueue.reviewKanjiIds.length +
+    kanjiQueue.weakKanjiIds.length;
 
   const totalCount =
     newWordIds.length +

@@ -31,12 +31,7 @@ function randomBlinkDelay(): number {
  */
 export function PetWidget() {
   const queryClient = useQueryClient();
-  const {
-    data,
-    isLoading,
-    isError,
-    error,
-  } = useQuery({
+  const { data, isLoading, isError, error } = useQuery({
     queryKey: ["pet", "active"],
     queryFn: () => apiFetch<PetActiveResponse>("/api/pet"),
   });

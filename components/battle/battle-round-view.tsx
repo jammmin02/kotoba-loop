@@ -7,7 +7,11 @@ import { ProgressRing } from "@/components/game/progress-ring";
 import { Card } from "@/components/ui/card";
 import { apiFetch } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
-import type { BattleAnswerResult, BattleParticipantSummary, BattlePublicRound } from "@/types/battle";
+import type {
+  BattleAnswerResult,
+  BattleParticipantSummary,
+  BattlePublicRound,
+} from "@/types/battle";
 
 interface BattleRoundViewProps {
   roomCode: string;
@@ -42,7 +46,9 @@ export function BattleRoundView({ roomCode, round, participants }: BattleRoundVi
 
   const timeoutMutation = useMutation({
     mutationFn: () =>
-      apiFetch(`/api/battle-rooms/${roomCode}/rounds/${round.roundNumber}/timeout`, { method: "POST" }),
+      apiFetch(`/api/battle-rooms/${roomCode}/rounds/${round.roundNumber}/timeout`, {
+        method: "POST",
+      }),
   });
 
   useEffect(() => {

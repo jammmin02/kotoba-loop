@@ -76,7 +76,10 @@ export function FlashcardSession({ mode, queue, tagName, onComplete }: Flashcard
     setSubmitting(true);
 
     if (pendingRequestIdRef.current?.vocabularyId !== currentCard.vocabularyId) {
-      pendingRequestIdRef.current = { vocabularyId: currentCard.vocabularyId, requestId: crypto.randomUUID() };
+      pendingRequestIdRef.current = {
+        vocabularyId: currentCard.vocabularyId,
+        requestId: crypto.randomUUID(),
+      };
     }
     const requestId = pendingRequestIdRef.current.requestId;
 
@@ -121,7 +124,13 @@ export function FlashcardSession({ mode, queue, tagName, onComplete }: Flashcard
           {tally.UNKNOWN + tally.HARD}개)
         </p>
         {missedVocabularyIds.length > 0 && (
-          <Button type="button" variant="outline" size="lg" className="w-full" onClick={retryMissed}>
+          <Button
+            type="button"
+            variant="outline"
+            size="lg"
+            className="w-full"
+            onClick={retryMissed}
+          >
             틀린 것만 다시 풀기 ({missedVocabularyIds.length})
           </Button>
         )}

@@ -34,7 +34,10 @@ const SYSTEM_PROMPT = `당신은 일본어 학습 앱 kotoba-loop의 학습 분�
 function buildUserPrompt(accuracyByType: QuizTypeAccuracy[]): string {
   const lines = accuracyByType
     .filter((row) => row.total >= MIN_REVIEWS_PER_TYPE_FOR_WEAKNESS)
-    .map((row) => `- ${QUIZ_TYPE_LABELS[row.quizType]}: 정답률 ${row.accuracy}% (${row.total}문제 중 ${row.correct}개 정답)`)
+    .map(
+      (row) =>
+        `- ${QUIZ_TYPE_LABELS[row.quizType]}: 정답률 ${row.accuracy}% (${row.total}문제 중 ${row.correct}개 정답)`,
+    )
     .join("\n");
 
   return `다음은 사용자의 문제 유형별 정답률 데이터입니다.\n${lines}\n\n위 데이터에 근거해 학습 패턴 코멘트를 작성해주세요.`;

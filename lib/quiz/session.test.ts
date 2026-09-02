@@ -51,10 +51,7 @@ test("모두 생성 가능한 단어 여러 개를 넘기면 단어 수만큼 �
 
   const questions = generateQuizSession(targets, [], () => 0.4);
   assert.equal(questions.length, 6);
-  assert.deepEqual(
-    questions.map((q) => q.targetId).sort(),
-    targets.map((t) => t.id).sort(),
-  );
+  assert.deepEqual(questions.map((q) => q.targetId).sort(), targets.map((t) => t.id).sort());
   assert.ok(questions.every((q) => q.targetType === "vocab"));
 });
 

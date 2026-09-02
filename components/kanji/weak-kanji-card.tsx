@@ -69,7 +69,9 @@ export function WeakKanjiCard() {
     return (
       <Card title="취약 한자 분석" titleColor="pink">
         <p className="text-sm text-error">
-          {error instanceof ApiClientError ? error.message : "취약 한자 분석을 불러오지 못했습니다."}
+          {error instanceof ApiClientError
+            ? error.message
+            : "취약 한자 분석을 불러오지 못했습니다."}
         </p>
       </Card>
     );

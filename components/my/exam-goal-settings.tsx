@@ -33,7 +33,12 @@ export function ExamGoalSettings() {
   const [examDate, setExamDate] = useState(todayDateKey);
   const [formError, setFormError] = useState<string>();
 
-  const { data: goals, isLoading, isError, error } = useQuery({
+  const {
+    data: goals,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
     queryKey: ["users", "me", "exam-goals"],
     queryFn: () => apiFetch<ExamGoalResponse[]>("/api/users/me/exam-goals"),
   });
@@ -89,7 +94,9 @@ export function ExamGoalSettings() {
         </p>
       )}
       {goals && goals.length === 0 && (
-        <p className="text-sm text-foreground/50">등록된 시험 목표가 없어요. 아래에서 추가해보세요.</p>
+        <p className="text-sm text-foreground/50">
+          등록된 시험 목표가 없어요. 아래에서 추가해보세요.
+        </p>
       )}
       {goals && goals.length > 0 && (
         <ul className="flex flex-col gap-2">
@@ -120,7 +127,10 @@ export function ExamGoalSettings() {
         </ul>
       )}
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3 border-t-2 border-pixel-ink pt-4">
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-3 border-t-2 border-pixel-ink pt-4"
+      >
         <div className="flex flex-col gap-2">
           <p className="text-xs font-bold text-foreground/60">목표 JLPT 급수</p>
           <div className="flex flex-wrap gap-2">

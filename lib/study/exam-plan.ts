@@ -107,7 +107,8 @@ export function computeRecommendedPlan({
     Math.round(MAX_NEW_WORDS_PER_DAY * REVIEW_TO_NEW_WORD_RATIO),
   );
   const idealKanji = paceFor(backlogKanji, safeDays, MAX_KANJI_PER_DAY);
-  const idealSentence = idealNewWords > 0 ? clamp(Math.round(idealNewWords / 4), 1, MAX_SENTENCES_PER_DAY) : 0;
+  const idealSentence =
+    idealNewWords > 0 ? clamp(Math.round(idealNewWords / 4), 1, MAX_SENTENCES_PER_DAY) : 0;
 
   const idealTotal = idealNewWords + idealReview + idealKanji + idealSentence;
 
@@ -129,6 +130,8 @@ export function computeRecommendedPlan({
     reviewPerDay,
     kanjiPerDay,
     sentencePerDay,
-    estimatedMinutes: estimateStudyMinutes(newWordsPerDay + reviewPerDay + kanjiPerDay + sentencePerDay),
+    estimatedMinutes: estimateStudyMinutes(
+      newWordsPerDay + reviewPerDay + kanjiPerDay + sentencePerDay,
+    ),
   };
 }

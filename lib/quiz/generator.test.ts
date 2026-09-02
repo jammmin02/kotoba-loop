@@ -2,7 +2,12 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { generateKanjiQuestion, generateQuestion } from "@/lib/quiz/generator";
-import type { QuizKanji, QuizKanjiPoolEntry, QuizPoolEntry, QuizVocabulary } from "@/lib/quiz/types";
+import type {
+  QuizKanji,
+  QuizKanjiPoolEntry,
+  QuizPoolEntry,
+  QuizVocabulary,
+} from "@/lib/quiz/types";
 
 const TARGET: QuizVocabulary = {
   id: "target",
@@ -148,7 +153,12 @@ const SUFFICIENT_KANJI_POOL: QuizKanjiPoolEntry[] = [
 ];
 
 test("KANJI_MEANING: 뜻 풀이 충분하면 정답 1개 + 오답 3개로 4지선다를 만든다", () => {
-  const question = generateKanjiQuestion(KANJI_TARGET, "KANJI_MEANING", SUFFICIENT_KANJI_POOL, () => 0.5);
+  const question = generateKanjiQuestion(
+    KANJI_TARGET,
+    "KANJI_MEANING",
+    SUFFICIENT_KANJI_POOL,
+    () => 0.5,
+  );
   assert.ok(question);
   assert.equal(question.targetType, "kanji");
   assert.equal(question.targetId, "kanji-target");
@@ -160,7 +170,10 @@ test("KANJI_MEANING: 뜻 풀이 충분하면 정답 1개 + 오답 3개로 4지�
 
 test("KANJI_MEANING: 같은 학년 버킷에 서로 다른 뜻이 3개 미만이면 null을 반환한다", () => {
   const smallPool = SUFFICIENT_KANJI_POOL.slice(0, 2);
-  assert.equal(generateKanjiQuestion(KANJI_TARGET, "KANJI_MEANING", smallPool, () => 0.5), null);
+  assert.equal(
+    generateKanjiQuestion(KANJI_TARGET, "KANJI_MEANING", smallPool, () => 0.5),
+    null,
+  );
 });
 
 test("KANJI_READING: 음독/훈독 전부를 정답으로 인정하고 okurigana 구분점을 제거한다", () => {
@@ -172,11 +185,19 @@ test("KANJI_READING: 음독/훈독 전부를 정답으로 인정하고 okurigana
 
 test("KANJI_READING: 음독/훈독이 전혀 없으면 null을 반환한다", () => {
   const noReading: QuizKanji = { ...KANJI_TARGET, onyomi: [], kunyomi: [] };
-  assert.equal(generateKanjiQuestion(noReading, "KANJI_READING", [], () => 0), null);
+  assert.equal(
+    generateKanjiQuestion(noReading, "KANJI_READING", [], () => 0),
+    null,
+  );
 });
 
 test("KANJI_SELECT: okurigana가 있는 훈독으로 '읽기 → 한자+오쿠리가나' 보기를 만든다(계획서 33장 예시)", () => {
-  const question = generateKanjiQuestion(KANJI_TARGET, "KANJI_SELECT", SUFFICIENT_KANJI_POOL, () => 0);
+  const question = generateKanjiQuestion(
+    KANJI_TARGET,
+    "KANJI_SELECT",
+    SUFFICIENT_KANJI_POOL,
+    () => 0,
+  );
   assert.ok(question);
   assert.equal(question.prompt, "すごす");
   assert.equal(question.choices?.length, 4);
@@ -190,5 +211,8 @@ test("KANJI_SELECT: okurigana가 있는 훈독으로 '읽기 → 한자+오쿠�
 
 test("KANJI_SELECT: 오답 후보가 3개 미만이면 null을 반환한다", () => {
   const smallPool = SUFFICIENT_KANJI_POOL.slice(0, 2);
-  assert.equal(generateKanjiQuestion(KANJI_TARGET, "KANJI_SELECT", smallPool, () => 0), null);
+  assert.equal(
+    generateKanjiQuestion(KANJI_TARGET, "KANJI_SELECT", smallPool, () => 0),
+    null,
+  );
 });

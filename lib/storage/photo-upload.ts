@@ -10,7 +10,11 @@ import {
   getObjectPrefix,
   headObject,
 } from "@/lib/storage/client";
-import { mimeMatchesFormat, readImageDimensions, sniffImageFormat } from "@/lib/storage/image-inspect";
+import {
+  mimeMatchesFormat,
+  readImageDimensions,
+  sniffImageFormat,
+} from "@/lib/storage/image-inspect";
 import {
   PHOTO_ALLOWED_MIME_TYPES,
   PHOTO_MAX_BYTES,
@@ -43,7 +47,10 @@ export async function createPhotoUploadTarget(userId: string, mimeType: string) 
     return { storageKey, uploadUrl, expiresInSeconds: UPLOAD_URL_TTL_SECONDS };
   } catch (err) {
     console.error(err);
-    throw new ApiError("STORAGE_ERROR", "업로드 준비 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+    throw new ApiError(
+      "STORAGE_ERROR",
+      "업로드 준비 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
+    );
   }
 }
 
@@ -98,7 +105,10 @@ export async function verifyUploadedPhoto(
     );
   }
 
-  const prefix = await getObjectPrefix(storageKey, Math.min(INSPECT_PREFIX_BYTES, head.contentLength));
+  const prefix = await getObjectPrefix(
+    storageKey,
+    Math.min(INSPECT_PREFIX_BYTES, head.contentLength),
+  );
   const realFormat = sniffImageFormat(prefix);
   if (!realFormat || !mimeMatchesFormat(head.contentType, realFormat)) {
     return cleanupAndThrow(

@@ -117,7 +117,11 @@ export function KanjiListView({ initialQuery, initialGrade, initialJlpt }: Kanji
         <Button type="submit">검색</Button>
       </form>
 
-      <div role="tablist" aria-label="한자 분류 기준" className="flex gap-2 border-b-2 border-pixel-ink">
+      <div
+        role="tablist"
+        aria-label="한자 분류 기준"
+        className="flex gap-2 border-b-2 border-pixel-ink"
+      >
         {(
           [
             { key: "grade", label: "학년별" },
@@ -185,7 +189,9 @@ export function KanjiListView({ initialQuery, initialGrade, initialJlpt }: Kanji
       {data && data.items.length === 0 && (
         <div className="flex flex-col items-center gap-1 py-16 text-center">
           <p className="text-sm font-content text-foreground/70">조건에 맞는 한자가 없습니다.</p>
-          <p className="text-xs font-content text-foreground/50">다른 검색어나 분류를 선택해보세요.</p>
+          <p className="text-xs font-content text-foreground/50">
+            다른 검색어나 분류를 선택해보세요.
+          </p>
         </div>
       )}
 
@@ -200,8 +206,12 @@ export function KanjiListView({ initialQuery, initialGrade, initialJlpt }: Kanji
                 href={`/kanji/${encodeURIComponent(kanji.character)}`}
                 className="flex flex-col items-center gap-1 border-2 border-pixel-ink bg-surface p-2 shadow-pixel-sm transition hover:bg-background"
               >
-                <span className="font-jp text-2xl font-bold text-foreground">{kanji.character}</span>
-                <span className="truncate text-[10px] text-foreground/60">{kanji.koreanReading}</span>
+                <span className="font-jp text-2xl font-bold text-foreground">
+                  {kanji.character}
+                </span>
+                <span className="truncate text-[10px] text-foreground/60">
+                  {kanji.koreanReading}
+                </span>
               </Link>
             ))}
           </div>

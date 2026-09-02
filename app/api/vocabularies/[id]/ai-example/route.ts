@@ -1,4 +1,7 @@
-import { generateExampleBySituation, type GenerateExampleResult } from "@/lib/ai/example-by-situation";
+import {
+  generateExampleBySituation,
+  type GenerateExampleResult,
+} from "@/lib/ai/example-by-situation";
 import { ApiError } from "@/lib/api/error";
 import { withApiHandler } from "@/lib/api/handler";
 import { auth } from "@/lib/auth";

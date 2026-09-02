@@ -105,7 +105,9 @@ function AddToBookModal({
       queryClient.invalidateQueries({ queryKey: ["vocabularies"] });
       queryClient.invalidateQueries({ queryKey: ["vocabulary-books"] });
       toast.success("단어장에 추가했어요.");
-      result.unlockedAchievements.forEach((achievement) => achievementToast.show(achievement.title));
+      result.unlockedAchievements.forEach((achievement) =>
+        achievementToast.show(achievement.title),
+      );
       router.refresh();
       onAdded();
     },

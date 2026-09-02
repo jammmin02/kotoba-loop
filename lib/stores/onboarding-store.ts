@@ -3,15 +3,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-import {
-  CUSTOM_WORD_TARGET_MAX,
-  CUSTOM_WORD_TARGET_MIN,
-} from "@/lib/validations/onboarding";
-import type {
-  CurrentLevelValue,
-  JlptLevelValue,
-  PurposeValue,
-} from "@/lib/validations/onboarding";
+import { CUSTOM_WORD_TARGET_MAX, CUSTOM_WORD_TARGET_MIN } from "@/lib/validations/onboarding";
+import type { CurrentLevelValue, JlptLevelValue, PurposeValue } from "@/lib/validations/onboarding";
 
 export const ONBOARDING_TOTAL_STEPS = 5;
 

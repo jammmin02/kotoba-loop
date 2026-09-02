@@ -1,7 +1,6 @@
 import type { PetSpecies, PetStage } from "@/lib/pet/types";
 import { cn } from "@/lib/utils";
 
-
 /**
  * 실제 아트가 준비되기 전까지 쓰는 1차 렌더러(계획서 외 신규 기능, 2026-08-25 확정) — Canvas가
  * 아니라 인라인 SVG를 쓴다(리액트 트리에 바로 조합 가능, 이 프로젝트 아이콘 컴포넌트와 같은
@@ -82,7 +81,15 @@ function polar(radius: number, angleDeg: number): [number, number] {
   return [CENTER_X + radius * Math.cos(rad), CENTER_Y + radius * Math.sin(rad)];
 }
 
-function Spikes({ count, bodyRadius, fillClass }: { count: number; bodyRadius: number; fillClass: string }) {
+function Spikes({
+  count,
+  bodyRadius,
+  fillClass,
+}: {
+  count: number;
+  bodyRadius: number;
+  fillClass: string;
+}) {
   if (count <= 0) return null;
   const startAngle = -155;
   const endAngle = -25;
@@ -127,16 +134,35 @@ function CatEars({ bodyRadius, fillClass }: { bodyRadius: number; fillClass: str
     base2: [CENTER_X + bodyRadius * 0.1, baseY - earSize * 0.1],
     apex: [CENTER_X + bodyRadius * 0.45, baseY - earSize],
   };
-  const toPoints = (t: typeof left) => `${t.base1.join(",")} ${t.base2.join(",")} ${t.apex.join(",")}`;
+  const toPoints = (t: typeof left) =>
+    `${t.base1.join(",")} ${t.base2.join(",")} ${t.apex.join(",")}`;
   return (
     <>
-      <polygon points={toPoints(left)} className={cn(fillClass, "stroke-pixel-ink")} strokeWidth={2.5} strokeLinejoin="round" />
-      <polygon points={toPoints(right)} className={cn(fillClass, "stroke-pixel-ink")} strokeWidth={2.5} strokeLinejoin="round" />
+      <polygon
+        points={toPoints(left)}
+        className={cn(fillClass, "stroke-pixel-ink")}
+        strokeWidth={2.5}
+        strokeLinejoin="round"
+      />
+      <polygon
+        points={toPoints(right)}
+        className={cn(fillClass, "stroke-pixel-ink")}
+        strokeWidth={2.5}
+        strokeLinejoin="round"
+      />
     </>
   );
 }
 
-function RabbitEars({ bodyRadius, earLength, fillClass }: { bodyRadius: number; earLength: number; fillClass: string }) {
+function RabbitEars({
+  bodyRadius,
+  earLength,
+  fillClass,
+}: {
+  bodyRadius: number;
+  earLength: number;
+  fillClass: string;
+}) {
   const baseY = CENTER_Y - bodyRadius * 0.75;
   return (
     <>
@@ -241,15 +267,37 @@ function Limbs({ bodyRadius, limbLength }: { bodyRadius: number; limbLength: num
   );
 }
 
-function Face({ bodyRadius, eyesClosed, isHappy }: { bodyRadius: number; eyesClosed: boolean; isHappy: boolean }) {
+function Face({
+  bodyRadius,
+  eyesClosed,
+  isHappy,
+}: {
+  bodyRadius: number;
+  eyesClosed: boolean;
+  isHappy: boolean;
+}) {
   const eyeY = CENTER_Y - bodyRadius * 0.1;
   const eyeOffsetX = bodyRadius * 0.32;
 
   if (eyesClosed) {
     return (
       <>
-        <rect x={CENTER_X - eyeOffsetX - 3} y={eyeY} width={6} height={2} rx={1} className="fill-pixel-ink" />
-        <rect x={CENTER_X + eyeOffsetX - 3} y={eyeY} width={6} height={2} rx={1} className="fill-pixel-ink" />
+        <rect
+          x={CENTER_X - eyeOffsetX - 3}
+          y={eyeY}
+          width={6}
+          height={2}
+          rx={1}
+          className="fill-pixel-ink"
+        />
+        <rect
+          x={CENTER_X + eyeOffsetX - 3}
+          y={eyeY}
+          width={6}
+          height={2}
+          rx={1}
+          className="fill-pixel-ink"
+        />
       </>
     );
   }
@@ -257,9 +305,27 @@ function Face({ bodyRadius, eyesClosed, isHappy }: { bodyRadius: number; eyesClo
   if (isHappy) {
     return (
       <>
-        <path d={`M ${CENTER_X - eyeOffsetX - 4} ${eyeY + 2} Q ${CENTER_X - eyeOffsetX} ${eyeY - 4} ${CENTER_X - eyeOffsetX + 4} ${eyeY + 2}`} fill="none" className="stroke-pixel-ink" strokeWidth={2} strokeLinecap="round" />
-        <path d={`M ${CENTER_X + eyeOffsetX - 4} ${eyeY + 2} Q ${CENTER_X + eyeOffsetX} ${eyeY - 4} ${CENTER_X + eyeOffsetX + 4} ${eyeY + 2}`} fill="none" className="stroke-pixel-ink" strokeWidth={2} strokeLinecap="round" />
-        <path d={`M ${CENTER_X - 6} ${eyeY + 10} Q ${CENTER_X} ${eyeY + 16} ${CENTER_X + 6} ${eyeY + 10}`} fill="none" className="stroke-pixel-ink" strokeWidth={2} strokeLinecap="round" />
+        <path
+          d={`M ${CENTER_X - eyeOffsetX - 4} ${eyeY + 2} Q ${CENTER_X - eyeOffsetX} ${eyeY - 4} ${CENTER_X - eyeOffsetX + 4} ${eyeY + 2}`}
+          fill="none"
+          className="stroke-pixel-ink"
+          strokeWidth={2}
+          strokeLinecap="round"
+        />
+        <path
+          d={`M ${CENTER_X + eyeOffsetX - 4} ${eyeY + 2} Q ${CENTER_X + eyeOffsetX} ${eyeY - 4} ${CENTER_X + eyeOffsetX + 4} ${eyeY + 2}`}
+          fill="none"
+          className="stroke-pixel-ink"
+          strokeWidth={2}
+          strokeLinecap="round"
+        />
+        <path
+          d={`M ${CENTER_X - 6} ${eyeY + 10} Q ${CENTER_X} ${eyeY + 16} ${CENTER_X + 6} ${eyeY + 10}`}
+          fill="none"
+          className="stroke-pixel-ink"
+          strokeWidth={2}
+          strokeLinecap="round"
+        />
       </>
     );
   }
@@ -339,11 +405,21 @@ export function PetSprite({ species, stage, expression, size = 96, className }: 
         ) : (
           <>
             {species === "dinosaur" && (
-              <Spikes count={appearance.spikeCount} bodyRadius={appearance.bodyRadius} fillClass={fillClass} />
+              <Spikes
+                count={appearance.spikeCount}
+                bodyRadius={appearance.bodyRadius}
+                fillClass={fillClass}
+              />
             )}
-            {species === "cat" && <CatEars bodyRadius={appearance.bodyRadius} fillClass={fillClass} />}
+            {species === "cat" && (
+              <CatEars bodyRadius={appearance.bodyRadius} fillClass={fillClass} />
+            )}
             {species === "rabbit" && (
-              <RabbitEars bodyRadius={appearance.bodyRadius} earLength={appearance.earLength} fillClass={fillClass} />
+              <RabbitEars
+                bodyRadius={appearance.bodyRadius}
+                earLength={appearance.earLength}
+                fillClass={fillClass}
+              />
             )}
             <Tail
               tailLength={appearance.tailLength}
@@ -361,7 +437,11 @@ export function PetSprite({ species, stage, expression, size = 96, className }: 
               className="fill-surface stroke-pixel-ink"
               strokeWidth={3}
             />
-            <Face bodyRadius={appearance.bodyRadius} eyesClosed={appearance.eyesClosed} isHappy={appearance.isHappy} />
+            <Face
+              bodyRadius={appearance.bodyRadius}
+              eyesClosed={appearance.eyesClosed}
+              isHappy={appearance.isHappy}
+            />
           </>
         )}
         {appearance.showSparkle && <Sparkles />}

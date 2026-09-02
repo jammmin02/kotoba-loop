@@ -7,7 +7,12 @@ export const communityBookQuerySchema = z.object({
   sort: z.enum(["recent", "popular"]).default("recent"),
   userId: z.string().uuid().optional(),
   page: z.coerce.number().int().min(1).default(1),
-  pageSize: z.coerce.number().int().min(1).max(COMMUNITY_PAGE_SIZE_MAX).default(COMMUNITY_PAGE_SIZE_DEFAULT),
+  pageSize: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(COMMUNITY_PAGE_SIZE_MAX)
+    .default(COMMUNITY_PAGE_SIZE_DEFAULT),
 });
 
 export type CommunityBookQueryInput = z.infer<typeof communityBookQuerySchema>;

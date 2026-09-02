@@ -13,7 +13,10 @@ export function HandwritingSearchView() {
 
   const mutation = useMutation({
     mutationFn: (payload: { strokes: HandwritingStroke[]; width: number; height: number }) =>
-      apiFetch<HandwritingRecognitionResult>("/api/kanji/handwriting", { method: "POST", body: payload }),
+      apiFetch<HandwritingRecognitionResult>("/api/kanji/handwriting", {
+        method: "POST",
+        body: payload,
+      }),
     onSuccess: setResult,
   });
 
@@ -38,7 +41,9 @@ export function HandwritingSearchView() {
 
       {mutation.isError && (
         <p className="text-center text-sm text-error">
-          {mutation.error instanceof ApiClientError ? mutation.error.message : "손글씨 인식에 실패했습니다."}
+          {mutation.error instanceof ApiClientError
+            ? mutation.error.message
+            : "손글씨 인식에 실패했습니다."}
         </p>
       )}
 
@@ -58,8 +63,12 @@ export function HandwritingSearchView() {
                 href={`/kanji/${encodeURIComponent(kanji.character)}`}
                 className="flex flex-col items-center gap-1 border-2 border-pixel-ink bg-surface p-2 shadow-pixel-sm transition hover:bg-background"
               >
-                <span className="font-jp text-2xl font-bold text-foreground">{kanji.character}</span>
-                <span className="truncate text-[10px] text-foreground/60">{kanji.koreanReading}</span>
+                <span className="font-jp text-2xl font-bold text-foreground">
+                  {kanji.character}
+                </span>
+                <span className="truncate text-[10px] text-foreground/60">
+                  {kanji.koreanReading}
+                </span>
               </Link>
             ))}
           </div>
