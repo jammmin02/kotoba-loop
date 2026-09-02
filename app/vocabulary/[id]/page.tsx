@@ -4,6 +4,12 @@ import { notFound, redirect } from "next/navigation";
 import { PixelBookOpen, PixelPlus } from "@/components/icons/pixel-icons";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  BookEmblem,
+  BookProgressGauge,
+  BookSlotTitleBar,
+  VisibilityChip,
+} from "@/components/vocabulary/book-slot";
 import { WordListItem } from "@/components/vocabulary/word-list-item";
 import { auth } from "@/lib/auth";
 import { formatKstISOString } from "@/lib/datetime";
@@ -54,6 +60,8 @@ export default async function VocabularyBookDetailPage(props: PageProps<"/vocabu
   }));
 
   const addWordHref = `/words/new?bookId=${id}`;
+  const wordCount = book._count.items;
+  const masteredCount = wordSummaries.filter((word) => word.learningStatus === "MASTERED").length;
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
@@ -64,29 +72,26 @@ export default async function VocabularyBookDetailPage(props: PageProps<"/vocabu
         ← 단어장 목록
       </Link>
 
-      <Card
-        variant="elevated"
-        title="VOCABULARY.EXE"
-        titleColor="mint"
-        className="flex flex-col gap-3"
-      >
-        <div className="flex items-center justify-between gap-2">
-          <h1 className="text-lg font-bold text-foreground">{book.name}</h1>
-          <span
-            className={
-              book.is_public
-                ? "border-2 border-pixel-ink bg-secondary px-2 py-0.5 text-xs font-bold text-secondary-foreground"
-                : "border-2 border-pixel-ink bg-surface px-2 py-0.5 text-xs font-bold text-foreground/60"
-            }
-          >
-            {book.is_public ? "공개" : "비공개"}
-          </span>
+      <div className="overflow-hidden rounded-none border-2 border-pixel-ink bg-surface shadow-pixel-lg">
+        <BookSlotTitleBar color="mint">
+          <VisibilityChip isPublic={book.is_public} />
+        </BookSlotTitleBar>
+        <div className="flex flex-col gap-3 p-4">
+          <div className="flex items-start gap-3">
+            <BookEmblem color="mint" />
+            <div className="min-w-0 flex-1">
+              <h1 className="truncate text-lg font-bold text-foreground">{book.name}</h1>
+              {book.description && (
+                <p className="font-content text-sm text-foreground/70">{book.description}</p>
+              )}
+            </div>
+          </div>
+          <BookProgressGauge masteredCount={masteredCount} wordCount={wordCount} />
+          <p className="text-xs text-foreground/50">
+            완료 {masteredCount}개 · 단어 {wordCount}개
+          </p>
         </div>
-        {book.description && (
-          <p className="font-content text-sm text-foreground/70">{book.description}</p>
-        )}
-        <p className="text-xs text-foreground/50">단어 {book._count.items}개</p>
-      </Card>
+      </div>
 
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-sm font-bold text-foreground/70">단어 목록</h2>
