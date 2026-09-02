@@ -162,6 +162,60 @@
       transform: translateY(-4px) scale(0.98);
     }
   }
+
+  /* 펫 캐릭터(PetSprite) 전용 모션(2026-09-02) — 정지 이미지 한 장이라도 "살아있는" 느낌을
+     내기 위한 무한 반복 bob + 이벤트별로 훨씬 활발한 리액션. 히어로 카드에서 캐릭터가 크게
+     보일수록 정지 상태가 더 어색해 보여서 idle도 항상 은은하게 움직인다. */
+  --animate-pet-idle: pet-idle 3s ease-in-out infinite;
+  @keyframes pet-idle {
+    0%,
+    100% {
+      transform: translateY(0) rotate(0deg);
+    }
+    50% {
+      transform: translateY(-6%) rotate(-1.5deg);
+    }
+  }
+
+  --animate-pet-happy: pet-happy 700ms ease-out;
+  @keyframes pet-happy {
+    0% {
+      transform: translateY(0) rotate(0deg) scale(1);
+    }
+    25% {
+      transform: translateY(-16%) rotate(-8deg) scale(1.08);
+    }
+    50% {
+      transform: translateY(0) rotate(6deg) scale(1);
+    }
+    75% {
+      transform: translateY(-6%) rotate(-3deg) scale(1.03);
+    }
+    100% {
+      transform: translateY(0) rotate(0deg) scale(1);
+    }
+  }
+
+  /* PET_MOTION_DISPLAY_MS.sparkle(components/pet/pet-motion-store.ts)의 1800ms 동안 재생 —
+     둘의 지속시간을 반드시 같이 맞춰야 한다(애니메이션이 끝나기 전에 idle로 복귀하면 튐). */
+  --animate-pet-levelup: pet-levelup 1.8s ease-out;
+  @keyframes pet-levelup {
+    0% {
+      transform: translateY(0) rotate(0deg) scale(1);
+    }
+    30% {
+      transform: translateY(-28%) rotate(-5deg) scale(1.18);
+    }
+    55% {
+      transform: translateY(-28%) rotate(5deg) scale(1.18);
+    }
+    80% {
+      transform: translateY(0) rotate(-2deg) scale(1.05);
+    }
+    100% {
+      transform: translateY(0) rotate(0deg) scale(1);
+    }
+  }
 }
 
 /*

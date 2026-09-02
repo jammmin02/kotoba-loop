@@ -35,6 +35,14 @@ const SPECIES_STROKE_CLASS: Record<PetSpecies, string> = {
   rabbit: "stroke-accent",
 };
 
+// 종류별로 idle bob의 시작 위상을 어긋나게 둔다(음수 delay = 이미 그 지점부터 재생 중인 것처럼
+// 시작) — 여러 종을 나란히 보여줄 때(종 선택 그리드 등) 전부 똑같이 맞춰 움직이면 뻣뻣해 보인다.
+const SPECIES_IDLE_DELAY: Record<PetSpecies, string> = {
+  cat: "0s",
+  dinosaur: "-1s",
+  rabbit: "-2s",
+};
+
 export interface PetAppearance {
   isEgg: boolean;
   /** baby=0 … adult=3. egg는 의미 없음(0). */
@@ -392,11 +400,20 @@ export function PetSprite({ species, stage, expression, size = 96, className }: 
       aria-label={`${species} 펫, ${stage} 단계`}
       className={cn(
         "relative inline-flex shrink-0 items-center justify-center rounded-full",
-        appearance.isHappy && "animate-quiz-flash",
-        appearance.showSparkle && "animate-level-up shadow-glow",
+        appearance.isHappy && "animate-pet-happy",
+        appearance.showSparkle && "animate-pet-levelup shadow-glow",
+        !appearance.isHappy && !appearance.showSparkle && "animate-pet-idle",
         className,
       )}
-      style={{ width: size, height: size }}
+      style={{
+        width: size,
+        height: size,
+        // 음수 delay는 idle의 무한 루프 위상만 어긋내려는 목적 — happy/levelup처럼 1회만 재생되는
+        // 반응 애니메이션에 그대로 걸면 재생 시점이 지나가버려(음수 delay > 재생시간) 아예 안
+        // 보일 수 있으니 그때는 0으로 되돌린다.
+        animationDelay:
+          appearance.isHappy || appearance.showSparkle ? "0s" : SPECIES_IDLE_DELAY[species],
+      }}
     >
       {!imageFailed ? (
         // eslint-disable-next-line @next/next/no-img-element -- public/ 고정 스프라이트, 최적화 불필요, 404 시 SVG 폴백으로 전환

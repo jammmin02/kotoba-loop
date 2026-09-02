@@ -188,18 +188,30 @@ export function PetWidget() {
 
   const expression: PetExpression = motionPending ?? (blinking ? "blink" : "idle");
 
+  // 탭해서 쓰다듬기(2026-09-02, 사용자 요청) — 정답/레벨업 때 쓰는 것과 같은 petMotion 스토어를
+  // 그대로 재사용한다. sparkle이 이미 대기 중이면 markPending이 자체적으로 무시하므로(성장
+  // 연출이 더 중요) 여기서 따로 막을 필요가 없다.
+  function handlePoke() {
+    petMotion.markPending("happy");
+  }
+
   return (
-    <Card variant="elevated" title="PET.EXE" titleColor="mint" className="flex flex-col gap-3">
-      <div className="flex items-center gap-4">
-        <PetSprite species={pet.species} stage={pet.stage} expression={expression} size={80} />
-        <div className="flex flex-1 flex-col gap-1">
-          <p className="text-sm font-extrabold text-foreground">{PET_STAGE_LABELS[pet.stage]}</p>
-          <p className="text-xs text-foreground/60">
-            {pet.levelsUntilNextStage > 0
-              ? `다음 단계까지 레벨 ${pet.levelsUntilNextStage}`
-              : "곧 다음 단계로 자라요"}
-          </p>
-        </div>
+    <Card variant="elevated" title="PET.EXE" titleColor="mint" className="flex flex-col gap-4">
+      <div className="flex flex-col items-center gap-2 py-2">
+        <button
+          type="button"
+          onClick={handlePoke}
+          aria-label="펫 쓰다듬기"
+          className="cursor-pointer transition-transform hover:scale-105 active:scale-95"
+        >
+          <PetSprite species={pet.species} stage={pet.stage} expression={expression} size={220} />
+        </button>
+        <p className="text-lg font-extrabold text-foreground">{PET_STAGE_LABELS[pet.stage]}</p>
+        <p className="text-xs text-foreground/60">
+          {pet.levelsUntilNextStage > 0
+            ? `다음 단계까지 레벨 ${pet.levelsUntilNextStage}`
+            : "곧 다음 단계로 자라요"}
+        </p>
       </div>
       <ProgressBar value={pet.stageProgressCurrent} max={pet.stageProgressTotal} />
 
