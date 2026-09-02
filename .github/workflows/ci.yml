@@ -1,0 +1,39 @@
+name: CI
+
+# 검증 전용 파이프라인 (PROMPT 61 5단계): 실제 배포는 Vercel이 브랜치 push에
+# 반응해 별도로 처리하므로, 여기서는 build/lint/format/test만 실행하고 배포는 하지 않는다.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      # 빌드 시점에만 필요한 더미 값 — 실제 프로덕션 값은 Vercel 프로젝트 환경변수에 등록한다.
+      DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci?schema=public"
+      AUTH_SECRET: "ci-dummy-secret"
+      LLM_API_KEY: "ci-dummy-key"
+      STORAGE_ENDPOINT: "https://s3.us-west-004.backblazeb2.com"
+      STORAGE_REGION: "us-west-004"
+      STORAGE_ACCESS_KEY: "ci-dummy-key-id"
+      STORAGE_SECRET_KEY: "ci-dummy-secret-key"
+      STORAGE_BUCKET: "ci-dummy-bucket"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - run: npm ci
+
+      - run: npm run lint
+
+      - run: npm run format:check
+
+      - run: npm run build
+
+      - run: npm test
