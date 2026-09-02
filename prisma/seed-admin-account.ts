@@ -23,13 +23,17 @@ async function main() {
     throw new Error("사용법: tsx prisma/seed-admin-account.ts <password>");
   }
 
+  const password_hash = await bcrypt.hash(ADMIN_PASSWORD, 10);
+
   const existing = await db.user.findUnique({ where: { email: ADMIN_EMAIL } });
   if (existing) {
-    console.log("이미 존재하는 관리자 계정입니다 (user id:", existing.id, ")");
+    // 쉘에서 비밀번호에 특수문자(예: &)가 들어가면 따옴표 없이 실행 시 잘려서 저장될 수 있어,
+    // 재실행 시 비밀번호를 그냥 덮어쓰도록 한다(계정을 두 번 만들지 않기 위해 create는 안 함).
+    await db.user.update({ where: { id: existing.id }, data: { password_hash } });
+    console.log("기존 관리자 계정의 비밀번호를 갱신했습니다 (user id:", existing.id, ")");
     return;
   }
 
-  const password_hash = await bcrypt.hash(ADMIN_PASSWORD, 10);
   const user = await db.user.create({
     data: {
       email: ADMIN_EMAIL,
