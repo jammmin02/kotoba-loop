@@ -72,3 +72,29 @@ export const kanjiMnemonicRequestSchema = z.object({
 });
 
 export type KanjiMnemonicRequestInput = z.infer<typeof kanjiMnemonicRequestSchema>;
+
+/** 단어 사전 화면에서 특정 단어에 대해 AI에게 이어서 묻는 채팅 한 턴의 길이 제한. */
+export const WORD_CHAT_QUESTION_MAX = 200;
+export const WORD_CHAT_ANSWER_MAX = 500;
+export const WORD_CHAT_HISTORY_MAX = 12;
+
+export const wordChatMessageSchema = z.object({
+  role: z.enum(["user", "assistant"]),
+  content: z.string().trim().min(1).max(WORD_CHAT_ANSWER_MAX),
+});
+
+export const wordChatSchema = z.object({
+  word: z
+    .string()
+    .trim()
+    .min(1, "단어를 입력해주세요.")
+    .max(VOCABULARY_WORD_MAX, `단어는 ${VOCABULARY_WORD_MAX}자 이하여야 합니다.`),
+  question: z
+    .string()
+    .trim()
+    .min(1, "질문을 입력해주세요.")
+    .max(WORD_CHAT_QUESTION_MAX, `질문은 ${WORD_CHAT_QUESTION_MAX}자 이하여야 합니다.`),
+  history: z.array(wordChatMessageSchema).max(WORD_CHAT_HISTORY_MAX).optional(),
+});
+
+export type WordChatInput = z.infer<typeof wordChatSchema>;
