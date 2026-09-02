@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 
 import { ApiError } from "@/lib/api/error";
 import { withApiHandler } from "@/lib/api/handler";
+import { isRegistrationAllowed, REGISTRATION_RESTRICTED_MESSAGE } from "@/lib/auth-registration-policy";
 import { db } from "@/lib/db";
 import { Prisma } from "@/lib/generated/prisma/client";
 import { registerSchema } from "@/lib/validations/auth";
@@ -19,6 +20,10 @@ interface RegisterData {
 export const POST = withApiHandler(async (req: NextRequest): Promise<RegisterData> => {
   const body = await req.json();
   const { nickname, email, password } = registerSchema.parse(body);
+
+  if (!isRegistrationAllowed(email)) {
+    throw new ApiError("VALIDATION_ERROR", REGISTRATION_RESTRICTED_MESSAGE);
+  }
 
   const existing = await db.user.findUnique({ where: { email } });
   if (existing) {

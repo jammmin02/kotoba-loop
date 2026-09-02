@@ -9,7 +9,7 @@ export const AUTH_ERROR_MESSAGES: Record<string, string> = {
   google_only_account: "Google로 가입된 계정입니다. Google로 로그인해주세요.",
   credentials: "이메일 또는 비밀번호가 올바르지 않습니다.",
   OAuthAccountNotLinked: "이미 다른 방법으로 가입된 이메일입니다.",
-  AccessDenied: "Google 로그인이 취소되었습니다.",
+  AccessDenied: "현재는 @g.yju.ac.kr 이메일만 가입할 수 있습니다.",
   OAuthSignin: "Google 인증에 실패했습니다.",
   OAuthCallback: "Google 인증에 실패했습니다.",
   OAuthCallbackError: "Google 인증에 실패했습니다.",

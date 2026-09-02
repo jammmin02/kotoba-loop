@@ -12,6 +12,9 @@ export default function RegisterPage() {
         <p className="text-sm font-content text-foreground/60">
           이메일 또는 Google로 시작해보세요.
         </p>
+        <p className="text-xs font-content text-foreground/50">
+          현재는 @g.yju.ac.kr 이메일만 가입할 수 있습니다.
+        </p>
       </div>
 
       <RegisterForm />

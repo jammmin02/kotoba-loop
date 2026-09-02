@@ -3,6 +3,7 @@ import NextAuth, { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 
+import { isRegistrationAllowed } from "@/lib/auth-registration-policy";
 import { db } from "@/lib/db";
 
 /**
@@ -61,6 +62,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         user.email = existing.email;
         return true;
       }
+
+      if (!isRegistrationAllowed(email)) return false;
 
       const created = await db.user.create({
         data: {
