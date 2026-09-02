@@ -16,23 +16,25 @@ export default async function CommunityBookDetailPage(props: PageProps<"/communi
   }
 
   const { id } = await props.params;
-  const book = await db.vocabularyBook.findUnique({
-    where: { id },
-    include: {
-      user: { select: { nickname: true } },
-      _count: { select: { items: true } },
-    },
-  });
+  // words는 book 조회 결과와 무관하게(id만으로) 나가는 독립 쿼리라 병렬로 보낸다.
+  const [book, words] = await Promise.all([
+    db.vocabularyBook.findUnique({
+      where: { id },
+      include: {
+        user: { select: { nickname: true } },
+        _count: { select: { items: true } },
+      },
+    }),
+    db.vocabulary.findMany({
+      where: { bookItems: { some: { vocabulary_book_id: id } } },
+      orderBy: { created_at: "desc" },
+      include: { meanings: { select: { meaning: true } } },
+    }),
+  ]);
 
   if (!book || (!book.is_public && book.user_id !== session.user.id)) {
     notFound();
   }
-
-  const words = await db.vocabulary.findMany({
-    where: { bookItems: { some: { vocabulary_book_id: id } } },
-    orderBy: { created_at: "desc" },
-    include: { meanings: { select: { meaning: true } } },
-  });
 
   const isOwner = book.user_id === session.user.id;
 

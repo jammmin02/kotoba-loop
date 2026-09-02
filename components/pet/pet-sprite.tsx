@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 
 import type { PetSpecies, PetStage } from "@/lib/pet/types";
@@ -416,10 +417,13 @@ export function PetSprite({ species, stage, expression, size = 96, className }: 
       }}
     >
       {!imageFailed ? (
-        // eslint-disable-next-line @next/next/no-img-element -- public/ 고정 스프라이트, 최적화 불필요, 404 시 SVG 폴백으로 전환
-        <img
+        // 원본 PNG가 1254x1254(1MB+)라 표시 크기(size)로 리사이즈/압축해 내려주지 않으면
+        // 페이지가 무겁게 느껴진다 — next/image가 Vercel 이미지 최적화를 거쳐 처리한다.
+        <Image
           src={imageSrc}
           alt={`${species} 펫, ${stage} 단계`}
+          width={size}
+          height={size}
           className="size-full object-contain"
           onError={() => setImageFailed(true)}
         />

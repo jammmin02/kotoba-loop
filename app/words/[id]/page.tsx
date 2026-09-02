@@ -24,25 +24,30 @@ export default async function WordDetailPage(props: PageProps<"/words/[id]">) {
   }
 
   const { id } = await props.params;
-  const userVocabulary = await db.userVocabulary.findUnique({
-    where: { user_id_vocabulary_id: { user_id: session.user.id, vocabulary_id: id } },
-  });
+  // 셋 다 서로 독립적인 조회라 병렬로 보내 왕복 지연을 한 번만 문다(DB가 다른 리전이라 특히 체감됨).
+  const [userVocabulary, vocabulary, userSentence] = await Promise.all([
+    db.userVocabulary.findUnique({
+      where: { user_id_vocabulary_id: { user_id: session.user.id, vocabulary_id: id } },
+    }),
+    db.vocabulary.findUnique({
+      where: { id },
+      include: {
+        meanings: true,
+        examples: true,
+        tags: {
+          select: { tag: { select: { id: true, name: true } } },
+          orderBy: { tag: { name: "asc" } },
+        },
+        kanji: { select: { kanji: { select: { character: true } } } },
+      },
+    }),
+    db.userSentence.findUnique({
+      where: { user_id_vocabulary_id: { user_id: session.user.id, vocabulary_id: id } },
+    }),
+  ]);
   if (!userVocabulary) {
     notFound();
   }
-
-  const vocabulary = await db.vocabulary.findUnique({
-    where: { id },
-    include: {
-      meanings: true,
-      examples: true,
-      tags: {
-        select: { tag: { select: { id: true, name: true } } },
-        orderBy: { tag: { name: "asc" } },
-      },
-      kanji: { select: { kanji: { select: { character: true } } } },
-    },
-  });
   if (!vocabulary) {
     notFound();
   }
@@ -51,10 +56,6 @@ export default async function WordDetailPage(props: PageProps<"/words/[id]">) {
   // 단어에 포함된 문자 중 常用漢字로 연결된 것만 한자 상세로 이동하는 링크로 만든다(계획서
   // 30장 — 見逃す의 見/逃처럼, 히라가나 등 나머지 문자는 그대로 텍스트로 남긴다).
   const kanjiCharacters = new Set(vocabulary.kanji.map((k) => k.kanji.character));
-
-  const userSentence = await db.userSentence.findUnique({
-    where: { user_id_vocabulary_id: { user_id: session.user.id, vocabulary_id: id } },
-  });
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
