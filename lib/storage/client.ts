@@ -13,26 +13,31 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 export const STORAGE_BUCKET = process.env.STORAGE_BUCKET ?? "";
 
 /**
- * Native AWS S3 (kotoba-loop-roadmap.md B섹션 object-storage decision, migrated
- * 2026-08-27 from Cloudflare R2 — no custom endpoint/path-style/checksum
- * workarounds needed, S3 supports the SDK's defaults directly).
+ * Backblaze B2 (kotoba-loop-roadmap.md B섹션 object-storage decision, changed
+ * 2026-09-01 from Cloudflare R2 — R2 requires a card on file even for free-tier
+ * usage; B2's free tier needs no payment method at signup). Vercel has no IAM
+ * compute-role equivalent, so credentials are always passed explicitly via
+ * server-only env vars rather than relying on a default credential provider
+ * chain.
  *
- * Credentials are only passed explicitly when STORAGE_ACCESS_KEY/SECRET are set
- * (local dev via `.env.local`). In production (Amplify Hosting), leave them
- * unset and grant S3 access to the compute role instead — the SDK's default
- * credential provider chain picks that up automatically, so no access key ever
- * needs to exist.
+ * forcePathStyle is required — B2's S3-compatible API doesn't support
+ * virtual-hosted-style addressing (`<bucket>.<endpoint>`).
+ *
+ * requestChecksumCalculation/responseChecksumValidation are pinned to
+ * "WHEN_REQUIRED" because newer AWS SDK v3 versions attach checksum headers by
+ * default that non-AWS S3-compatible APIs don't support, which breaks
+ * presigned URL signatures otherwise.
  */
 export const s3 = new S3Client({
-  region: process.env.STORAGE_REGION ?? "ap-northeast-2",
-  ...(process.env.STORAGE_ACCESS_KEY && process.env.STORAGE_SECRET_KEY
-    ? {
-        credentials: {
-          accessKeyId: process.env.STORAGE_ACCESS_KEY,
-          secretAccessKey: process.env.STORAGE_SECRET_KEY,
-        },
-      }
-    : {}),
+  region: process.env.STORAGE_REGION,
+  endpoint: process.env.STORAGE_ENDPOINT,
+  forcePathStyle: true,
+  credentials: {
+    accessKeyId: process.env.STORAGE_ACCESS_KEY ?? "",
+    secretAccessKey: process.env.STORAGE_SECRET_KEY ?? "",
+  },
+  requestChecksumCalculation: "WHEN_REQUIRED",
+  responseChecksumValidation: "WHEN_REQUIRED",
 });
 
 export function createPresignedPutUrl(key: string, contentType: string, ttlSeconds: number) {
