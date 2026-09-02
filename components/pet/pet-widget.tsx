@@ -1,9 +1,14 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 
-import { PET_MOTION_DISPLAY_MS, usePetMotionPending } from "@/components/pet/pet-motion-store";
+import {
+  petMotion,
+  PET_MOTION_DISPLAY_MS,
+  usePetMotionPending,
+} from "@/components/pet/pet-motion-store";
 import { PetSprite } from "@/components/pet/pet-sprite";
 import type { PetExpression } from "@/components/pet/pet-sprite";
 import { Button } from "@/components/ui/button";
@@ -11,10 +16,11 @@ import { Card } from "@/components/ui/card";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { toast } from "@/components/ui/toast";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
+import { isAdminEmail } from "@/lib/auth-admin";
 import { PET_SPECIES_OPTIONS, PET_STAGE_LABELS } from "@/lib/pet/constants";
 import type { PetSpecies } from "@/lib/pet/types";
 import { cn } from "@/lib/utils";
-import type { PetActiveResponse } from "@/types/pet";
+import type { AdminPetLevelResponse, PetActiveResponse } from "@/types/pet";
 
 const BLINK_MIN_MS = 6000;
 const BLINK_MAX_MS = 10000;
@@ -38,6 +44,8 @@ export function PetWidget() {
   const [selected, setSelected] = useState<PetSpecies>();
   const [blinking, setBlinking] = useState(false);
   const [motionPending, clearMotionPending] = usePetMotionPending();
+  const { data: session } = useSession();
+  const isAdmin = isAdminEmail(session?.user?.email);
 
   const pet = data?.pet ?? null;
 
@@ -51,6 +59,48 @@ export function PetWidget() {
     },
     onError: (err) => {
       toast.error(err instanceof ApiClientError ? err.message : "펫 선택에 실패했습니다.");
+    },
+  });
+
+  // 관리자 전용 풀테스트 도구(2026-09-02 신설, 사용자 요청) — 레벨업/레벨다운 두 버튼이 같은
+  // API에 direction만 다르게 보낸다. 실제 성장/졸업이 일어나면 일반 학습 흐름과 동일하게
+  // sparkle 모션 + 토스트를 띄운다(lib/game/notify.ts의 petGrowth 처리와 같은 UX).
+  const adminLevelMutation = useMutation({
+    mutationFn: (direction: 1 | -1) =>
+      apiFetch<AdminPetLevelResponse>("/api/admin/pet/level", {
+        method: "POST",
+        body: { direction },
+      }),
+    onSuccess: ({ growth }) => {
+      queryClient.invalidateQueries({ queryKey: ["pet", "active"] });
+      if (growth) {
+        petMotion.markPending("sparkle");
+        queryClient.invalidateQueries({ queryKey: ["pet", "history"] });
+        toast.success(
+          growth.justGraduated
+            ? "[관리자] 펫이 다 자라 졸업했어요."
+            : `[관리자] 펫이 ${PET_STAGE_LABELS[growth.newStage]} 단계로 바뀌었어요.`,
+        );
+      }
+    },
+    onError: (err) => {
+      toast.error(err instanceof ApiClientError ? err.message : "레벨 조정에 실패했습니다.");
+    },
+  });
+
+  const adminSelectMutation = useMutation({
+    mutationFn: (species: PetSpecies) =>
+      apiFetch<AdminPetLevelResponse>("/api/admin/pet/select", {
+        method: "POST",
+        body: { species },
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pet", "active"] });
+      queryClient.invalidateQueries({ queryKey: ["pet", "history"] });
+      toast.success("[관리자] 펫을 교체했어요.");
+    },
+    onError: (err) => {
+      toast.error(err instanceof ApiClientError ? err.message : "펫 교체에 실패했습니다.");
     },
   });
 
@@ -152,6 +202,49 @@ export function PetWidget() {
         </div>
       </div>
       <ProgressBar value={pet.stageProgressCurrent} max={pet.stageProgressTotal} />
+
+      {isAdmin && (
+        <div className="flex flex-col gap-2 border-2 border-dashed border-pixel-ink/40 p-2">
+          <p className="text-xs font-bold text-foreground/60">ADMIN 풀테스트</p>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              loading={adminLevelMutation.isPending && adminLevelMutation.variables === 1}
+              onClick={() => adminLevelMutation.mutate(1)}
+            >
+              레벨업
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              size="sm"
+              loading={adminLevelMutation.isPending && adminLevelMutation.variables === -1}
+              onClick={() => adminLevelMutation.mutate(-1)}
+            >
+              레벨다운
+            </Button>
+          </div>
+          <div className="flex gap-2">
+            {PET_SPECIES_OPTIONS.map((option) => (
+              <Button
+                key={option.value}
+                type="button"
+                variant="ghost"
+                size="sm"
+                disabled={option.value === pet.species}
+                loading={
+                  adminSelectMutation.isPending && adminSelectMutation.variables === option.value
+                }
+                onClick={() => adminSelectMutation.mutate(option.value)}
+              >
+                {option.label}로 변경
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
     </Card>
   );
 }

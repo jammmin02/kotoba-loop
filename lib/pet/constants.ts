@@ -12,7 +12,7 @@ export const PET_STAGE_ORDER = [
 
 export const PET_SPECIES_OPTIONS: { value: PetSpecies; label: string; colorToken: string }[] = [
   { value: "cat", label: "고양이", colorToken: "primary" },
-  { value: "dinosaur", label: "공룡", colorToken: "secondary" },
+  { value: "dinosaur", label: "강아지", colorToken: "secondary" },
   { value: "rabbit", label: "토끼", colorToken: "accent" },
 ];
 

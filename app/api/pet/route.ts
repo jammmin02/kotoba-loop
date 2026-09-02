@@ -2,28 +2,12 @@ import { ApiError } from "@/lib/api/error";
 import { withApiHandler } from "@/lib/api/handler";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { getStageProgress, levelsUntilNextThreshold } from "@/lib/pet/engine";
 import { getActivePet, selectNewPet } from "@/lib/pet/service";
-import type { ActivePetRow } from "@/lib/pet/service";
+import { toPetView } from "@/lib/pet/view";
 import { petSelectSchema } from "@/lib/validations/pet";
-import type { PetActiveResponse, UserPetView } from "@/types/pet";
+import type { PetActiveResponse } from "@/types/pet";
 
 import type { NextRequest } from "next/server";
-
-function toPetView(pet: ActivePetRow, currentLevel: number): UserPetView {
-  const levelsSinceStart = currentLevel - pet.level_at_start;
-  const stageProgress = getStageProgress(levelsSinceStart);
-  return {
-    id: pet.id,
-    species: pet.species,
-    stage: pet.stage,
-    levelsSinceStart,
-    levelsUntilNextStage: levelsUntilNextThreshold(levelsSinceStart),
-    stageProgressCurrent: stageProgress.current,
-    stageProgressTotal: stageProgress.total,
-    startedAt: pet.started_at.toISOString(),
-  };
-}
 
 export const GET = withApiHandler(async (): Promise<PetActiveResponse> => {
   const session = await auth();

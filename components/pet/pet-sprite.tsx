@@ -1,13 +1,17 @@
+"use client";
+
+import { useState } from "react";
+
 import type { PetSpecies, PetStage } from "@/lib/pet/types";
 import { cn } from "@/lib/utils";
 
 /**
- * 실제 아트가 준비되기 전까지 쓰는 1차 렌더러(계획서 외 신규 기능, 2026-08-25 확정) — Canvas가
- * 아니라 인라인 SVG를 쓴다(리액트 트리에 바로 조합 가능, 이 프로젝트 아이콘 컴포넌트와 같은
- * 방식). 나중에 실제 PNG/스프라이트로 교체할 때는 이 파일(구체적으로 아래 `PetSprite`의 내부
- * 렌더링부)만 "이미지 로드"로 바꿔 끼우면 되고, `getPetAppearance`가 노출하는
- * species/stage/expression → 파라미터 계산 로직과 이걸 호출하는 쪽(components/pet/pet-widget.tsx)은
- * 손댈 필요가 없다.
+ * 인라인 SVG 파라메트릭 렌더러(계획서 외 신규 기능, 2026-08-25 확정)에 실제 PNG 아트 로딩을
+ * 얹었다(2026-09-02) — `public/pets/{species}/{stage}-{expression}.png`가 있으면 그 이미지를
+ * 쓰고, 아직 없거나(404) 로드에 실패하면 기존 SVG 도형으로 자동 폴백한다. 종별로 그림이 준비되는
+ * 대로(예: cat만 먼저 채워지면) 그 종만 실제 아트로 바뀌고 나머지는 계속 SVG로 보인다 — 별도 플래그
+ * 없이 파일 존재 여부만으로 전환된다. `getPetAppearance`가 노출하는 species/stage/expression →
+ * 파라미터 계산 로직과 이걸 호출하는 쪽(components/pet/pet-widget.tsx)은 손댈 필요가 없다.
  */
 export type PetExpression = "idle" | "blink" | "happy" | "sparkle";
 
@@ -370,6 +374,17 @@ export function PetSprite({ species, stage, expression, size = 96, className }: 
   const appearance = getPetAppearance(species, stage, expression);
   const fillClass = SPECIES_FILL_CLASS[species];
   const strokeClass = SPECIES_STROKE_CLASS[species];
+  const imageSrc = `/pets/${species}/${stage}-${expression}.png`;
+  const [imageFailed, setImageFailed] = useState(false);
+  const [lastAttemptedSrc, setLastAttemptedSrc] = useState(imageSrc);
+
+  // species/stage/expression 조합이 바뀔 때마다 그 조합의 이미지를 다시 시도한다 — 이전 조합이
+  // 404였다고 해서 새 조합까지 SVG 폴백에 계속 묶여있으면 안 된다. useEffect 대신 렌더 중 상태
+  // 조정 패턴(react.dev "Adjusting state when a prop changes")을 쓴다.
+  if (imageSrc !== lastAttemptedSrc) {
+    setLastAttemptedSrc(imageSrc);
+    setImageFailed(false);
+  }
 
   return (
     <div
@@ -383,69 +398,79 @@ export function PetSprite({ species, stage, expression, size = 96, className }: 
       )}
       style={{ width: size, height: size }}
     >
-      <svg viewBox="0 0 120 120" className="size-full" shapeRendering="geometricPrecision">
-        {appearance.isEgg ? (
-          <>
-            <ellipse
-              cx={CENTER_X}
-              cy={CENTER_Y}
-              rx={appearance.bodyRadius * 0.78}
-              ry={appearance.bodyRadius}
-              className="fill-surface stroke-pixel-ink"
-              strokeWidth={3}
-            />
-            <path
-              d={`M ${CENTER_X - 10} ${CENTER_Y - 6} L ${CENTER_X - 2} ${CENTER_Y + 4} L ${CENTER_X + 6} ${CENTER_Y - 2} L ${CENTER_X + 12} ${CENTER_Y + 10}`}
-              fill="none"
-              className="stroke-pixel-ink"
-              strokeWidth={1.5}
-              opacity={0.4}
-            />
-          </>
-        ) : (
-          <>
-            {species === "dinosaur" && (
-              <Spikes
-                count={appearance.spikeCount}
+      {!imageFailed ? (
+        // eslint-disable-next-line @next/next/no-img-element -- public/ 고정 스프라이트, 최적화 불필요, 404 시 SVG 폴백으로 전환
+        <img
+          src={imageSrc}
+          alt={`${species} 펫, ${stage} 단계`}
+          className="size-full object-contain"
+          onError={() => setImageFailed(true)}
+        />
+      ) : (
+        <svg viewBox="0 0 120 120" className="size-full" shapeRendering="geometricPrecision">
+          {appearance.isEgg ? (
+            <>
+              <ellipse
+                cx={CENTER_X}
+                cy={CENTER_Y}
+                rx={appearance.bodyRadius * 0.78}
+                ry={appearance.bodyRadius}
+                className="fill-surface stroke-pixel-ink"
+                strokeWidth={3}
+              />
+              <path
+                d={`M ${CENTER_X - 10} ${CENTER_Y - 6} L ${CENTER_X - 2} ${CENTER_Y + 4} L ${CENTER_X + 6} ${CENTER_Y - 2} L ${CENTER_X + 12} ${CENTER_Y + 10}`}
+                fill="none"
+                className="stroke-pixel-ink"
+                strokeWidth={1.5}
+                opacity={0.4}
+              />
+            </>
+          ) : (
+            <>
+              {species === "dinosaur" && (
+                <Spikes
+                  count={appearance.spikeCount}
+                  bodyRadius={appearance.bodyRadius}
+                  fillClass={fillClass}
+                />
+              )}
+              {species === "cat" && (
+                <CatEars bodyRadius={appearance.bodyRadius} fillClass={fillClass} />
+              )}
+              {species === "rabbit" && (
+                <RabbitEars
+                  bodyRadius={appearance.bodyRadius}
+                  earLength={appearance.earLength}
+                  fillClass={fillClass}
+                />
+              )}
+              <Tail
+                tailLength={appearance.tailLength}
                 bodyRadius={appearance.bodyRadius}
                 fillClass={fillClass}
+                strokeClass={strokeClass}
+                rounded={species === "rabbit"}
               />
-            )}
-            {species === "cat" && (
-              <CatEars bodyRadius={appearance.bodyRadius} fillClass={fillClass} />
-            )}
-            {species === "rabbit" && (
-              <RabbitEars
+              <Limbs bodyRadius={appearance.bodyRadius} limbLength={appearance.limbLength} />
+              <ellipse
+                cx={CENTER_X}
+                cy={CENTER_Y}
+                rx={appearance.bodyRadius}
+                ry={appearance.bodyRadius * 0.92}
+                className="fill-surface stroke-pixel-ink"
+                strokeWidth={3}
+              />
+              <Face
                 bodyRadius={appearance.bodyRadius}
-                earLength={appearance.earLength}
-                fillClass={fillClass}
+                eyesClosed={appearance.eyesClosed}
+                isHappy={appearance.isHappy}
               />
-            )}
-            <Tail
-              tailLength={appearance.tailLength}
-              bodyRadius={appearance.bodyRadius}
-              fillClass={fillClass}
-              strokeClass={strokeClass}
-              rounded={species === "rabbit"}
-            />
-            <Limbs bodyRadius={appearance.bodyRadius} limbLength={appearance.limbLength} />
-            <ellipse
-              cx={CENTER_X}
-              cy={CENTER_Y}
-              rx={appearance.bodyRadius}
-              ry={appearance.bodyRadius * 0.92}
-              className="fill-surface stroke-pixel-ink"
-              strokeWidth={3}
-            />
-            <Face
-              bodyRadius={appearance.bodyRadius}
-              eyesClosed={appearance.eyesClosed}
-              isHappy={appearance.isHappy}
-            />
-          </>
-        )}
-        {appearance.showSparkle && <Sparkles />}
-      </svg>
+            </>
+          )}
+          {appearance.showSparkle && <Sparkles />}
+        </svg>
+      )}
     </div>
   );
 }

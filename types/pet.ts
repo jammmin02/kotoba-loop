@@ -29,6 +29,13 @@ export interface PetActiveResponse {
   pet: UserPetView | null;
 }
 
+/** POST /api/admin/pet/level, /api/admin/pet/select 응답 — 관리자 전용 풀테스트 도구. */
+export interface AdminPetLevelResponse {
+  pet: UserPetView;
+  /** 이 조작으로 단계/졸업이 실제로 바뀌었을 때만 값이 있다(펫 위젯 sparkle 모션 트리거용). */
+  growth: PetGrowthResult | null;
+}
+
 /** GET /api/pet/history — 현재 펫 + 과거(졸업한) 펫 전체 목록, 최신순. */
 export interface PetHistoryEntry {
   id: string;
