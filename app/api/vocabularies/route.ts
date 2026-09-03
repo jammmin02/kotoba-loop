@@ -43,7 +43,7 @@ export const GET = withApiHandler(async (req: NextRequest): Promise<VocabularySu
       meanings: { select: { meaning: true } },
       userVocabularies: {
         where: { user_id: session.user.id },
-        select: { learning_status: true, is_favorite: true },
+        select: { learning_status: true, is_favorite: true, next_review_at: true },
       },
       bookItems: { select: { vocabulary_book_id: true } },
       tags: { select: { tag: { select: { id: true, name: true } } } },
@@ -62,6 +62,9 @@ export const GET = withApiHandler(async (req: NextRequest): Promise<VocabularySu
     isFavorite: vocabulary.userVocabularies[0]?.is_favorite ?? false,
     tags: vocabulary.tags.map((t) => t.tag),
     createdAt: formatKstISOString(vocabulary.created_at),
+    nextReviewAt: vocabulary.userVocabularies[0]?.next_review_at
+      ? formatKstISOString(vocabulary.userVocabularies[0].next_review_at)
+      : null,
   }));
 });
 

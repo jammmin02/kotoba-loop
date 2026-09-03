@@ -24,6 +24,8 @@ export interface VocabularySummary {
   isFavorite: boolean;
   tags: TagSummary[];
   createdAt: string;
+  /** 복습 예정순 정렬(단어 목록)에만 쓰인다 — 채워주지 않는 호출부는 정렬 시 "예정 없음" 취급된다. */
+  nextReviewAt?: string | null;
   /** 방금 이 요청으로 새로 잠금 해제된 업적(PROMPT 27) — 등록(POST) 응답에서만 값이 채워진다. */
   unlockedAchievements?: UnlockedAchievementView[];
 }

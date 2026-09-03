@@ -10,7 +10,7 @@ import {
   BookSlotTitleBar,
   VisibilityChip,
 } from "@/components/vocabulary/book-slot";
-import { WordListItem } from "@/components/vocabulary/word-list-item";
+import { BookWordList } from "@/components/vocabulary/book-word-list";
 import { auth } from "@/lib/auth";
 import { formatKstISOString } from "@/lib/datetime";
 import { db } from "@/lib/db";
@@ -39,7 +39,7 @@ export default async function VocabularyBookDetailPage(props: PageProps<"/vocabu
       meanings: { select: { meaning: true } },
       userVocabularies: {
         where: { user_id: session.user.id },
-        select: { learning_status: true, is_favorite: true },
+        select: { learning_status: true, is_favorite: true, next_review_at: true },
       },
       tags: { select: { tag: { select: { id: true, name: true } } } },
     },
@@ -57,6 +57,9 @@ export default async function VocabularyBookDetailPage(props: PageProps<"/vocabu
     isFavorite: word.userVocabularies[0]?.is_favorite ?? false,
     tags: word.tags.map((t) => t.tag),
     createdAt: formatKstISOString(word.created_at),
+    nextReviewAt: word.userVocabularies[0]?.next_review_at
+      ? formatKstISOString(word.userVocabularies[0].next_review_at)
+      : null,
   }));
 
   const addWordHref = `/words/new?bookId=${id}`;
@@ -118,11 +121,7 @@ export default async function VocabularyBookDetailPage(props: PageProps<"/vocabu
           </Link>
         </Card>
       ) : (
-        <div className="flex flex-col gap-3">
-          {wordSummaries.map((word) => (
-            <WordListItem key={word.id} word={word} />
-          ))}
-        </div>
+        <BookWordList bookId={id} words={wordSummaries} />
       )}
     </main>
   );

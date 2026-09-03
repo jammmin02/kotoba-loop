@@ -100,8 +100,15 @@ function SessionRunner({ session, onExit }: { session: StartedSession; onExit: (
   );
 }
 
-export function CustomStudyView() {
-  const [selectedBookIds, setSelectedBookIds] = useState<string[]>([]);
+export interface CustomStudyViewProps {
+  /** 단어 상세의 "복습하기" 진입 등에서 넘어올 때 STEP 1의 단어장 선택을 미리 채워준다. */
+  initialBookId?: string;
+}
+
+export function CustomStudyView({ initialBookId }: CustomStudyViewProps = {}) {
+  const [selectedBookIds, setSelectedBookIds] = useState<string[]>(
+    initialBookId ? [initialBookId] : [],
+  );
   const [gameMode, setGameMode] = useState<GameMode | null>(null);
   const [selectedQuizTypes, setSelectedQuizTypes] = useState<QuizType[]>([]);
   const [session, setSession] = useState<StartedSession | null>(null);

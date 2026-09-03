@@ -2,17 +2,24 @@
 
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { PixelBookOpen, PixelPlus, PixelStar } from "@/components/icons/pixel-icons";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { TagManagerModal } from "@/components/vocabulary/tag-manager-modal";
 import { TagStudyButton } from "@/components/vocabulary/tag-study-button";
 import { WordListItem } from "@/components/vocabulary/word-list-item";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
+import {
+  matchesWordQuery,
+  sortWordSummaries,
+  WORD_SORT_OPTIONS,
+  type WordSortKey,
+} from "@/lib/vocabulary/sort";
 import type { TagSummary } from "@/types/tag";
 import type { VocabularySummary } from "@/types/vocabulary";
 import type { VocabularyBookSummary } from "@/types/vocabulary-book";
@@ -36,6 +43,8 @@ export function WordsView({ initialBookId }: WordsViewProps) {
   const [tagId, setTagId] = useState("");
   const [favoriteOnly, setFavoriteOnly] = useState(false);
   const [tagManagerOpen, setTagManagerOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [sortKey, setSortKey] = useState<WordSortKey>("createdDesc");
 
   const { data: books } = useQuery({
     queryKey: ["vocabulary-books"],
@@ -67,6 +76,11 @@ export function WordsView({ initialBookId }: WordsViewProps) {
 
   const newWordHref = bookId ? `/words/new?bookId=${bookId}` : "/words/new";
   const hasFilters = !!(bookId || status || tagId || favoriteOnly);
+
+  const visibleWords = useMemo(() => {
+    const matched = (words ?? []).filter((word) => matchesWordQuery(word, query));
+    return sortWordSummaries(matched, sortKey);
+  }, [words, query, sortKey]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -133,6 +147,23 @@ export function WordsView({ initialBookId }: WordsViewProps) {
         </button>
       </div>
 
+      <div className="flex flex-wrap items-end gap-3">
+        <Input
+          label="검색"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="단어, 읽기, 뜻으로 검색"
+          className="min-w-40 flex-1"
+        />
+        <Select
+          label="정렬"
+          value={sortKey}
+          onChange={(e) => setSortKey(e.target.value as WordSortKey)}
+          options={WORD_SORT_OPTIONS}
+          className="min-w-40"
+        />
+      </div>
+
       <TagManagerModal open={tagManagerOpen} onClose={() => setTagManagerOpen(false)} />
 
       {isLoading && <p className="text-sm text-foreground/60">불러오는 중...</p>}
@@ -163,10 +194,19 @@ export function WordsView({ initialBookId }: WordsViewProps) {
         </Card>
       )}
 
-      {words && words.length > 0 && (
+      {words && words.length > 0 && visibleWords.length === 0 && (
+        <p className="py-6 text-center text-sm text-foreground/50">검색 결과가 없어요.</p>
+      )}
+
+      {visibleWords.length > 0 && (
         <div className="flex flex-col gap-3">
-          {words.map((word) => (
-            <WordListItem key={word.id} word={word} />
+          {visibleWords.map((word) => (
+            <WordListItem
+              key={word.id}
+              word={word}
+              bookId={bookId || undefined}
+              highlightQuery={query}
+            />
           ))}
         </div>
       )}

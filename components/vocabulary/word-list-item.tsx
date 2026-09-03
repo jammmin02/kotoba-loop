@@ -11,16 +11,20 @@ export interface WordListItemProps {
   word: VocabularySummary;
   /** When provided, wraps matching substrings of word/reading/meaning in <mark>. */
   highlightQuery?: string;
+  /** When provided, the word detail page can navigate to prev/next words within this book. */
+  bookId?: string;
 }
 
 export const WordListItem = memo(function WordListItem({
   word,
   highlightQuery,
+  bookId,
 }: WordListItemProps) {
+  const detailHref = bookId ? `/words/${word.id}?bookId=${bookId}` : `/words/${word.id}`;
   return (
     <Card className="flex flex-col gap-2 transition hover:bg-background">
       <div className="flex items-center justify-between gap-3">
-        <Link href={`/words/${word.id}`} className="flex min-w-0 flex-1 flex-col gap-1">
+        <Link href={detailHref} className="flex min-w-0 flex-1 flex-col gap-1">
           <div className="flex items-baseline gap-2">
             <span className="font-jp text-lg font-bold text-foreground">
               <HighlightText text={word.word} query={highlightQuery} />
