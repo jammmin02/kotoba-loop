@@ -27,9 +27,12 @@ function formatDate(iso: string) {
 
 function WrongNoteRow({ item }: { item: WrongNoteItem }) {
   return (
-    <Card className="flex flex-col gap-2">
+    <Card className="flex flex-col gap-2 transition hover:bg-background">
       <div className="flex items-start justify-between gap-3">
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <Link
+          href={`/words/${item.vocabularyId}`}
+          className="flex min-w-0 flex-1 flex-col gap-1"
+        >
           <div className="flex items-baseline gap-2">
             <span className="font-jp text-lg font-bold text-foreground">{item.word}</span>
             <span className="font-jp text-sm text-foreground/60">{item.reading}</span>
@@ -37,7 +40,7 @@ function WrongNoteRow({ item }: { item: WrongNoteItem }) {
           <p className="truncate text-sm font-content text-foreground/60">
             {item.meanings.join(", ")}
           </p>
-        </div>
+        </Link>
         <StatusBadge status={item.learningStatus} className="shrink-0" />
       </div>
       <div className="flex flex-wrap items-center justify-between gap-1 border-t-2 border-pixel-ink pt-2 text-xs text-foreground/60">
