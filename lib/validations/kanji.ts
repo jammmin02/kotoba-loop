@@ -36,3 +36,38 @@ export const kanjiListQuerySchema = z
   });
 
 export type KanjiListQueryInput = z.infer<typeof kanjiListQuerySchema>;
+
+/**
+ * `GET /api/kanji/practice-pool`(한자 퀴즈 연습 모드 — 전체 랜덤/학년·JLPT/커스텀) 쿼리 검증.
+ * 페이지네이션이 없다 — 셔플링/커스텀 선택의 재료가 될 id 목록 전체가 필요해서, 이미
+ * `getTodayKanjiQueue`(lib/study/queries.ts)가 하듯 常用漢字 전량을 한 번에 불러온다.
+ */
+export const kanjiPracticePoolQuerySchema = z
+  .object({
+    q: z.string().trim().max(KANJI_QUERY_MAX).optional(),
+    grade: z.coerce
+      .number()
+      .int()
+      .refine((v) => (KANJI_SCHOOL_GRADES as readonly number[]).includes(v))
+      .optional(),
+    jlpt: z.enum(JLPT_LEVEL_OPTIONS).optional(),
+    // `z.coerce.boolean()`은 "false" 문자열도 true로 만들어버려("false"는 빈 문자열이
+    // 아니므로) 값 자체를 비교해야 한다 — 파라미터가 없으면 undefined로 취급한다.
+    favoritesOnly: z
+      .enum(["true", "false"])
+      .optional()
+      .transform((v) => v === "true"),
+    // 전체 랜덤/학년·JLPT 모드가 오늘의 학습 페이싱(DAILY_KANJI_TARGET)을 건너뛰고 아직
+    // 한 번도 리뷰하지 않은 한자까지 SRS 추적을 시작해버리지 않도록, 이미 리뷰한 적 있는
+    // 한자(learning_status !== "NEW")로만 풀을 제한할 때 쓴다. 커스텀 모드(직접 검색/선택)는
+    // 사용자가 의도적으로 고르는 것이라 이 제한을 적용하지 않는다.
+    seenOnly: z
+      .enum(["true", "false"])
+      .optional()
+      .transform((v) => v === "true"),
+  })
+  .refine((v) => !(v.grade !== undefined && v.jlpt !== undefined), {
+    message: "학년과 JLPT 분류는 동시에 지정할 수 없습니다.",
+  });
+
+export type KanjiPracticePoolQueryInput = z.infer<typeof kanjiPracticePoolQuerySchema>;

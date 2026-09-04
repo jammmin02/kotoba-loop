@@ -79,8 +79,12 @@ export interface TodayKanjiQueue {
 
 /**
  * "오늘의 한자"(PROMPT 36) — `getTodayQueueBuckets`(단어)의 한자 버전. `UserKanji`는 첫 리뷰
- * 전까지 행이 없으므로(PROMPT 35), 신규 한자는 "행이 없는 한자"로 판정한다. 常用漢字 전체가
- * 2,136자로 고정돼 있어(PROMPT 33) 전량을 불러와도 부담이 없다(`GET /api/kanji`와 동일 전례).
+ * 전까지 행이 없으므로(PROMPT 35), 기본적으로 신규 한자는 "행이 없는 한자"로 판정한다.
+ * 다만 한자 퀴즈 연습 모드의 즐겨찾기(`GET /api/kanji/[character]/favorite`)는 리뷰 전에도
+ * 행을 먼저 만들 수 있어, "행 존재"가 아니라 `learning_status === "NEW"`까지 함께 신규로
+ * 본다 — 그래야 즐겨찾기만 해두고 아직 안 배운 한자가 오늘의 학습 큐에서 사라지지 않는다.
+ * 常用漢字 전체가 2,136자로 고정돼 있어(PROMPT 33) 전량을 불러와도 부담이 없다
+ * (`GET /api/kanji`와 동일 전례).
  */
 export async function getTodayKanjiQueue(
   userId: string,
@@ -105,7 +109,7 @@ export async function getTodayKanjiQueue(
   const userKanjiByKanjiId = new Map(userKanjiRows.map((row) => [row.kanji_id, row]));
   const newKanjiIds = allKanji
     .map((row) => row.id)
-    .filter((id) => !userKanjiByKanjiId.has(id))
+    .filter((id) => (userKanjiByKanjiId.get(id)?.learning_status ?? "NEW") === "NEW")
     .slice(0, kanjiTargetOverride ?? DAILY_KANJI_TARGET);
 
   const reviewKanjiIds: string[] = [];

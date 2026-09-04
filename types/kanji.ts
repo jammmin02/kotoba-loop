@@ -27,6 +27,21 @@ export interface KanjiQuizQueueResponse {
   kanjiIds: string[];
 }
 
+/**
+ * `GET /api/kanji/practice-pool` 항목 하나 — 한자 퀴즈 연습 모드(전체 랜덤/학년·JLPT/커스텀)
+ * 화면이 셔플·검색·즐겨찾기 표시에 쓴다. `KanjiSummary`와 달리 `id`(퀴즈 대상 id로 그대로
+ * 쓰임)와 `isFavorite`(요청자 기준)를 포함한다.
+ */
+export interface KanjiPracticePoolItem extends KanjiSummary {
+  id: string;
+  isFavorite: boolean;
+}
+
+/** `GET /api/kanji/practice-pool` 응답 — 조건에 맞는 한자 전체(페이지네이션 없음). */
+export interface KanjiPracticePoolResponse {
+  items: KanjiPracticePoolItem[];
+}
+
 /** 취약 한자에 딸린 추천 단어 하나(PROMPT 40) — 사용자가 아직 등록하지 않은, 그 한자를 포함한 단어. */
 export interface WeakKanjiRecommendation {
   vocabularyId: string;

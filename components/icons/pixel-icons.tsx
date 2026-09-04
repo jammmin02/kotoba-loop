@@ -347,3 +347,40 @@ export const PixelMic: PixelIconComponent = (props) => (
     {...props}
   />
 );
+
+/** 한자 퀴즈 연습 모드(components/kanji/kanji-practice-view.tsx) "전체 랜덤" 탭 아이콘 — 주사위 눈 5. */
+export const PixelDice: PixelIconComponent = (props) => (
+  <PixelGlyph
+    blocks={[
+      [1, 1, 14, 2],
+      [1, 13, 14, 2],
+      [1, 1, 2, 14],
+      [13, 1, 2, 14],
+      [3, 3, 2, 2],
+      [11, 3, 2, 2],
+      [7, 7, 2, 2],
+      [3, 11, 2, 2],
+      [11, 11, 2, 2],
+    ]}
+    {...props}
+  />
+);
+
+/** 한자 퀴즈 연습 모드 "학년·JLPT" 탭 아이콘 — 학사모. */
+export const PixelGraduationCap: PixelIconComponent = (props) => (
+  <PixelGlyph
+    blocks={[
+      [6, 1, 4, 2],
+      [3, 3, 10, 2],
+      [1, 5, 14, 2],
+      [6, 7, 4, 6],
+      [11, 8, 2, 2],
+    ]}
+    {...props}
+  />
+);
+
+/** 한자 퀴즈 연습 모드의 문항 수 감소 버튼 아이콘 — `PixelPlus`의 짝. */
+export const PixelMinus: PixelIconComponent = (props) => (
+  <PixelGlyph blocks={[[1, 6, 14, 4]]} {...props} />
+);

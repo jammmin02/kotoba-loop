@@ -2,34 +2,13 @@ import { ApiError } from "@/lib/api/error";
 import { withApiHandler } from "@/lib/api/handler";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { matchesKanjiQuery } from "@/lib/kanji/search";
 import { normalizeSearchQuery } from "@/lib/search";
 import { kanjiListQuerySchema } from "@/lib/validations/kanji";
 import type { PaginatedResponse } from "@/types/api";
 import type { KanjiSummary } from "@/types/kanji";
 
 import type { NextRequest } from "next/server";
-
-type KanjiSearchRow = {
-  character: string;
-  onyomi: string[];
-  kunyomi: string[];
-  korean_reading: string;
-  meaning: string;
-  school_grade: number | null;
-  jlpt_level_ref: KanjiSummary["jlptLevelRef"];
-};
-
-/** 훈독의 오쿠리가나 구분점(예: "み.える")을 제거해 "みえる"로도 검색되게 한다. */
-function matchesQuery(kanji: KanjiSearchRow, normalizedQuery: string): boolean {
-  const query = normalizedQuery.toLowerCase();
-  return (
-    kanji.character === normalizedQuery ||
-    kanji.korean_reading.includes(normalizedQuery) ||
-    kanji.meaning.toLowerCase().includes(query) ||
-    kanji.onyomi.some((reading) => reading.includes(normalizedQuery)) ||
-    kanji.kunyomi.some((reading) => reading.replace(/\./g, "").includes(normalizedQuery))
-  );
-}
 
 /** 常用漢字 2,136자는 이 프로젝트 전체에서 고정 데이터라(PROMPT 33) 매 요청마다 전량을 훑어
  *  메모리에서 필터링해도 부담이 없다 — Postgres에 훈독/음독 배열의 부분 일치 조건을 태우는
@@ -68,7 +47,7 @@ export const GET = withApiHandler(
 
     const normalizedQuery = q ? normalizeSearchQuery(q) : "";
     const filtered = normalizedQuery
-      ? rows.filter((row) => matchesQuery(row, normalizedQuery))
+      ? rows.filter((row) => matchesKanjiQuery(row, normalizedQuery))
       : rows;
 
     const total = filtered.length;

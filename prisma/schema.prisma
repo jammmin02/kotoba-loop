@@ -553,6 +553,10 @@ model UserKanji {
   interval_stage   Int            @default(0)
   correct_count    Int            @default(0)
   wrong_count      Int            @default(0)
+  // 한자 퀴즈 커스텀 연습 모드의 "즐겨찾기 한자" — 즐겨찾기만 켜도 첫 리뷰 전에 행이 먼저
+  // 생길 수 있어, lib/study/queries.ts의 getTodayKanjiQueue는 "신규" 판정을 행 존재 여부가
+  // 아니라 learning_status === "NEW"로 본다.
+  is_favorite      Boolean        @default(false)
   // 리포트(PROMPT 44)의 "기간 내 신규 한자 수" 집계용 — 이 테이블 자체가 첫 리뷰 시점에만
   // 생성되므로(위 학년 주석 참고) created_at은 곧 "이 한자를 처음 학습한 시점"과 같다.
   created_at       DateTime       @default(now())

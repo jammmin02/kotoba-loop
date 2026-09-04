@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { PixelSparkles } from "@/components/icons/pixel-icons";
+import { PixelDice, PixelSparkles } from "@/components/icons/pixel-icons";
 import { KanjiListView } from "@/components/kanji/kanji-list-view";
 import { KanjiProgressCard } from "@/components/kanji/kanji-progress-card";
 import { WeakKanjiCard } from "@/components/kanji/weak-kanji-card";
@@ -24,13 +24,22 @@ export default async function KanjiListPage(props: PageProps<"/kanji">) {
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
       <KanjiProgressCard />
       <WeakKanjiCard />
-      <Link
-        href="/kanji/quiz"
-        className={cn(buttonVariants({ variant: "quest", size: "lg" }), "w-full sm:w-fit")}
-      >
-        <PixelSparkles className="size-5" aria-hidden="true" />
-        한자 퀴즈 풀기
-      </Link>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <Link
+          href="/kanji/quiz"
+          className={cn(buttonVariants({ variant: "quest", size: "lg" }), "w-full sm:w-fit")}
+        >
+          <PixelSparkles className="size-5" aria-hidden="true" />
+          한자 퀴즈 풀기
+        </Link>
+        <Link
+          href="/kanji/practice"
+          className={cn(buttonVariants({ variant: "outline", size: "lg" }), "w-full sm:w-fit")}
+        >
+          <PixelDice className="size-5" aria-hidden="true" />
+          연습 모드 만들기
+        </Link>
+      </div>
       <KanjiListView initialQuery={q} initialGrade={grade} initialJlpt={jlpt} />
     </main>
   );
