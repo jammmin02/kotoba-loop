@@ -1,4 +1,4 @@
-import type { JlptLevel, WordStatus } from "@/components/ui/badge";
+import type { JlptLevel, RelatedExpressionType, WordStatus } from "@/components/ui/badge";
 import type { UnlockedAchievementView } from "@/types/achievement";
 import type { TagSummary } from "@/types/tag";
 
@@ -10,6 +10,15 @@ export interface ExampleSentenceInput {
 export interface ExampleSentenceRecord extends ExampleSentenceInput {
   id: string;
   source: string | null;
+}
+
+export type { RelatedExpressionType };
+
+export interface RelatedExpressionRecord {
+  id: string;
+  relationType: RelatedExpressionType;
+  expression: string;
+  meaning: string;
 }
 
 export interface VocabularySummary {
@@ -32,6 +41,7 @@ export interface VocabularySummary {
 
 export interface VocabularyDetail extends VocabularySummary {
   examples: ExampleSentenceInput[];
+  relatedExpressions: RelatedExpressionRecord[];
   lastReviewedAt: string | null;
   nextReviewAt: string | null;
 }

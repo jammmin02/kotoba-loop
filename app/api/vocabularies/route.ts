@@ -82,6 +82,7 @@ export const POST = withApiHandler(async (req: NextRequest): Promise<VocabularyS
     jlptLevel,
     meanings,
     examples,
+    relatedExpressions,
     vocabularyBookIds,
     aiAnalysisId,
     aiFieldsEdited,
@@ -106,6 +107,14 @@ export const POST = withApiHandler(async (req: NextRequest): Promise<VocabularyS
           create: examples.map((example) => ({
             japanese: example.japanese,
             korean: example.korean,
+          })),
+        },
+        relatedExpressions: {
+          create: relatedExpressions.map((related, index) => ({
+            relation_type: related.relationType,
+            expression: related.expression,
+            meaning: related.meaning,
+            order: index,
           })),
         },
         bookItems: { create: vocabularyBookIds.map((bookId) => ({ vocabulary_book_id: bookId })) },

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
-import { JlptBadge, StatusBadge } from "@/components/ui/badge";
+import { JlptBadge, RelatedExpressionBadge, StatusBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { DeleteWordButton } from "@/components/vocabulary/delete-word-button";
@@ -38,6 +38,7 @@ export default async function WordDetailPage(props: PageProps<"/words/[id]">) {
       include: {
         meanings: true,
         examples: true,
+        relatedExpressions: { orderBy: { order: "asc" } },
         tags: {
           select: { tag: { select: { id: true, name: true } } },
           orderBy: { tag: { name: "asc" } },
@@ -80,6 +81,26 @@ export default async function WordDetailPage(props: PageProps<"/words/[id]">) {
       : undefined;
   const prevHref = prevWordId ? `/words/${prevWordId}?bookId=${bookId}` : null;
   const nextHref = nextWordId ? `/words/${nextWordId}?bookId=${bookId}` : null;
+
+  // 관련 표현 중 사용자가 이미 등록해둔 단어와 정확히 일치하는 것만 그 단어 상세로 연결한다
+  // (한자 상세 링크와 같은 패턴). 없으면 그냥 텍스트로만 보여준다.
+  const relatedExpressionWords = [
+    ...new Set(vocabulary.relatedExpressions.map((r) => r.expression)),
+  ];
+  const relatedVocabularyIdByWord =
+    relatedExpressionWords.length === 0
+      ? new Map<string, string>()
+      : new Map(
+          (
+            await db.vocabulary.findMany({
+              where: {
+                word: { in: relatedExpressionWords },
+                userVocabularies: { some: { user_id: session.user.id } },
+              },
+              select: { id: true, word: true },
+            })
+          ).map((related) => [related.word, related.id]),
+        );
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
@@ -216,7 +237,36 @@ export default async function WordDetailPage(props: PageProps<"/words/[id]">) {
 
         <Card className="flex flex-col gap-3">
           <h2 className="text-sm font-bold text-foreground/70">관련 표현</h2>
-          <p className="text-sm text-foreground/50">관련 표현 정보가 아직 없어요.</p>
+          {vocabulary.relatedExpressions.length === 0 ? (
+            <p className="text-sm text-foreground/50">관련 표현 정보가 아직 없어요.</p>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {vocabulary.relatedExpressions.map((related) => {
+                const linkedId = relatedVocabularyIdByWord.get(related.expression);
+                return (
+                  <li
+                    key={related.id}
+                    className="flex flex-wrap items-center gap-2 border-2 border-pixel-ink bg-background p-2.5"
+                  >
+                    <RelatedExpressionBadge type={related.relation_type} />
+                    {linkedId ? (
+                      <Link
+                        href={`/words/${linkedId}`}
+                        className="font-jp font-bold text-primary hover:underline"
+                      >
+                        {related.expression}
+                      </Link>
+                    ) : (
+                      <span className="font-jp font-bold text-foreground">
+                        {related.expression}
+                      </span>
+                    )}
+                    <span className="text-sm text-foreground/60">{related.meaning}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </Card>
       </WordDetailNav>
     </main>

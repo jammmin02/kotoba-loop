@@ -50,6 +50,33 @@ export function JlptBadge({ level, className }: JlptBadgeProps) {
   );
 }
 
+export type RelatedExpressionType = "SIMILAR" | "OPPOSITE" | "DERIVED";
+
+const relatedExpressionStyles: Record<RelatedExpressionType, string> = {
+  SIMILAR: "bg-success text-success-foreground",
+  OPPOSITE: "bg-error text-error-foreground",
+  DERIVED: "bg-primary text-primary-foreground",
+};
+
+const relatedExpressionLabels: Record<RelatedExpressionType, string> = {
+  SIMILAR: "유사어",
+  OPPOSITE: "반대말",
+  DERIVED: "파생어",
+};
+
+export interface RelatedExpressionBadgeProps {
+  type: RelatedExpressionType;
+  className?: string;
+}
+
+export function RelatedExpressionBadge({ type, className }: RelatedExpressionBadgeProps) {
+  return (
+    <span className={cn(badgeBaseClassName, relatedExpressionStyles[type], className)}>
+      {relatedExpressionLabels[type]}
+    </span>
+  );
+}
+
 export interface TagBadgeProps {
   name: string;
   className?: string;

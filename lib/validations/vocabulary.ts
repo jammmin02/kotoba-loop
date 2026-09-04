@@ -22,6 +22,11 @@ export const EXAMPLE_MAX = 300;
 export const MAX_EXAMPLES = 10;
 export const EXAMPLE_SOURCE_MAX = 50;
 
+/** 유사어/반대말/파생어 — 관련 표현 칩 색상(components/ui/badge.tsx RelatedExpressionType)과
+ * 반드시 같은 값이어야 한다. */
+export const RELATED_EXPRESSION_TYPE_OPTIONS = ["SIMILAR", "OPPOSITE", "DERIVED"] as const;
+export const MAX_RELATED_EXPRESSIONS = 10;
+
 const jlptLevelEnum = z.enum(JLPT_LEVEL_OPTIONS);
 
 export const exampleSentenceSchema = z.object({
@@ -34,6 +39,14 @@ export const addExampleSentenceSchema = exampleSentenceSchema.extend({
 });
 
 export type AddExampleSentenceInput = z.infer<typeof addExampleSentenceSchema>;
+
+export const relatedExpressionSchema = z.object({
+  relationType: z.enum(RELATED_EXPRESSION_TYPE_OPTIONS),
+  expression: z.string().trim().min(1, "표현을 입력해주세요.").max(VOCABULARY_WORD_MAX),
+  meaning: z.string().trim().min(1, "뜻을 입력해주세요.").max(MEANING_MAX),
+});
+
+export type RelatedExpressionInput = z.infer<typeof relatedExpressionSchema>;
 
 export const vocabularySchema = z.object({
   word: z
@@ -55,6 +68,13 @@ export const vocabularySchema = z.object({
   examples: z
     .array(exampleSentenceSchema)
     .max(MAX_EXAMPLES, `예문은 ${MAX_EXAMPLES}개까지 등록할 수 있습니다.`),
+  relatedExpressions: z
+    .array(relatedExpressionSchema)
+    .max(
+      MAX_RELATED_EXPRESSIONS,
+      `관련 표현은 ${MAX_RELATED_EXPRESSIONS}개까지 등록할 수 있습니다.`,
+    )
+    .default([]),
   vocabularyBookIds: z.array(z.string().min(1)).min(1, "단어장을 1개 이상 선택해주세요."),
 });
 

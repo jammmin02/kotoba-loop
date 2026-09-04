@@ -10,8 +10,10 @@ import {
   JLPT_LEVEL_OPTIONS,
   MAX_EXAMPLES,
   MAX_MEANINGS,
+  MAX_RELATED_EXPRESSIONS,
   MEANING_MAX,
   PART_OF_SPEECH_OPTIONS,
+  RELATED_EXPRESSION_TYPE_OPTIONS,
   VOCABULARY_READING_MAX,
   VOCABULARY_WORD_MAX,
 } from "@/lib/validations/vocabulary";
@@ -45,6 +47,18 @@ export const wordAnalysisSchema = z.object({
     .max(MAX_EXAMPLES),
   synonyms: z.array(z.string().min(1).max(VOCABULARY_WORD_MAX)).max(MAX_RELATED),
   relatedExpressions: z.array(z.string().min(1).max(VOCABULARY_WORD_MAX)).max(MAX_RELATED),
+  // synonyms/relatedExpressions(위 두 필드)는 "새 단어로 등록할 후보" 문자열 목록이고, 이 필드는
+  // 현재 단어 자체에 저장할 관련 표현 후보다(뜻과 관계 유형까지 포함) — 목적이 달라 별도 필드로
+  // 둔다(VocabularyRelatedExpression, PROMPT 외 2026-09-04 신규).
+  relatedExpressionSuggestions: z
+    .array(
+      z.object({
+        relationType: z.enum(RELATED_EXPRESSION_TYPE_OPTIONS),
+        expression: z.string().min(1).max(VOCABULARY_WORD_MAX),
+        meaning: z.string().min(1).max(MEANING_MAX),
+      }),
+    )
+    .max(MAX_RELATED_EXPRESSIONS),
 });
 
 export type WordAnalysisResult = z.infer<typeof wordAnalysisSchema>;
@@ -61,10 +75,15 @@ const SYSTEM_PROMPT = `당신은 일본어 학습 앱 kotoba-loop의 단어 분�
 - relatedKanji에는 단어를 구성하는 한자를 각각 하나씩 나열하세요(한자가 없는 단어는 빈 배열).
 - examples에는 실생활에서 자연스러운 예문을 1개 이상(일본어+한국어 대응) 반환하세요.
 - synonyms/relatedExpressions는 없으면 빈 배열로 반환하세요.
+- relatedExpressionSuggestions에는 이 단어와 뜻으로 이어지는 관계 표현을 최대 5개까지 제안하세요.
+  각 항목은 relationType(SIMILAR=비슷한 뜻의 유사어, OPPOSITE=반대되는 뜻의 반대말,
+  DERIVED=활용형·파생어 등 형태적으로 연관된 표현), expression(일본어 표현), meaning(그 표현의
+  한국어 뜻)을 모두 채우세요. 확실한 관계만 제안하고, 없으면 빈 배열로 반환하세요.
 - 근거 없는 정보를 지어내지 마세요. 입력이 실제 존재하는 일본어 단어인지 확신할 수 없는 경우,
   meanings의 첫 항목에 "실제 존재하는 단어인지 확인이 필요합니다"라고 명시하고 jlptLevel은 null,
-  relatedKanji/synonyms/relatedExpressions는 빈 배열로 반환하되, examples는 입력 문자열을 그대로
-  사용한 예문 1개를 만들어 반환하세요(예문 필드는 항상 비어 있으면 안 됩니다).`;
+  relatedKanji/synonyms/relatedExpressions/relatedExpressionSuggestions는 빈 배열로 반환하되,
+  examples는 입력 문자열을 그대로 사용한 예문 1개를 만들어 반환하세요(예문 필드는 항상 비어
+  있으면 안 됩니다).`;
 
 function buildUserPrompt(word: string): string {
   return `다음 일본어 단어를 분석해주세요: ${word}`;

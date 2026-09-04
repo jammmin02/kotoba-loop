@@ -25,6 +25,7 @@ export default async function EditWordPage(props: PageProps<"/words/[id]/edit">)
     include: {
       meanings: true,
       examples: true,
+      relatedExpressions: { orderBy: { order: "asc" } },
       bookItems: true,
       tags: { select: { tag: { select: { id: true, name: true } } } },
     },
@@ -42,6 +43,12 @@ export default async function EditWordPage(props: PageProps<"/words/[id]/edit">)
     learningStatus: userVocabulary.learning_status,
     meanings: vocabulary.meanings.map((m) => m.meaning),
     examples: vocabulary.examples.map((e) => ({ japanese: e.japanese, korean: e.korean })),
+    relatedExpressions: vocabulary.relatedExpressions.map((related) => ({
+      id: related.id,
+      relationType: related.relation_type,
+      expression: related.expression,
+      meaning: related.meaning,
+    })),
     bookIds: vocabulary.bookItems.map((item) => item.vocabulary_book_id),
     isFavorite: userVocabulary.is_favorite,
     tags: vocabulary.tags.map((t) => t.tag),

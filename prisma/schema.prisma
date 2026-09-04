@@ -164,15 +164,41 @@ model Vocabulary {
   difficulty     Int?
   created_at     DateTime   @default(now())
 
-  meanings         VocabularyMeaning[]
-  examples         ExampleSentence[]
-  images           Image[]
-  bookItems        VocabularyBookItem[]
-  userVocabularies UserVocabulary[]
-  tags             VocabularyTag[]
-  sentences        UserSentence[]
-  kanji            VocabularyKanji[]
-  battleRounds     BattleRound[]
+  meanings           VocabularyMeaning[]
+  examples           ExampleSentence[]
+  images             Image[]
+  bookItems          VocabularyBookItem[]
+  userVocabularies   UserVocabulary[]
+  tags               VocabularyTag[]
+  sentences          UserSentence[]
+  kanji              VocabularyKanji[]
+  battleRounds       BattleRound[]
+  relatedExpressions VocabularyRelatedExpression[]
+}
+
+enum RelatedExpressionType {
+  SIMILAR
+  OPPOSITE
+  DERIVED
+}
+
+// 관련 표현(2026-09-04 신규) — 단어 상세 "관련 표현" 카드가 지금까지 항상 빈 placeholder였던
+// 것을 실제 데이터로 채운다. 등록/수정 폼에서 뜻/예문과 같은 방식(행 추가/삭제)으로 직접
+// 관리하거나, AI 분석의 관련 표현 제안(wordAnalysisSchema.relatedExpressionSuggestions)을
+// 그대로 채워 넣을 수 있다. AI 분석이 컴패니언 단어 등록용으로 이미 쓰는
+// synonyms/relatedExpressions(단순 문자열 배열, PROMPT 10)와는 별개 필드다 — 그쪽은 새 단어를
+// 등록하기 위한 후보이고, 이 테이블은 "지금 이 단어"에 딸린 관계 정보라 목적이 다르다.
+model VocabularyRelatedExpression {
+  id            String                @id @default(uuid())
+  vocabulary_id String
+  relation_type RelatedExpressionType
+  expression    String
+  meaning       String
+  order         Int                   @default(0)
+
+  vocabulary Vocabulary @relation(fields: [vocabulary_id], references: [id], onDelete: Cascade)
+
+  @@index([vocabulary_id])
 }
 
 model VocabularyMeaning {

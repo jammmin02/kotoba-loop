@@ -21,11 +21,13 @@ import {
   JLPT_LEVEL_OPTIONS,
   MAX_EXAMPLES,
   MAX_MEANINGS,
+  MAX_RELATED_EXPRESSIONS,
   PART_OF_SPEECH_OPTIONS,
   vocabularySchema,
 } from "@/lib/validations/vocabulary";
 import type { VocabularyCreateInput, VocabularyInput } from "@/lib/validations/vocabulary";
-import type { VocabularyDetail } from "@/types/vocabulary";
+import { RELATED_EXPRESSION_TYPE_SELECT_OPTIONS } from "@/lib/vocabulary/related-expression";
+import type { RelatedExpressionType, VocabularyDetail } from "@/types/vocabulary";
 import type { VocabularyBookSummary } from "@/types/vocabulary-book";
 
 import type { FormEvent } from "react";
@@ -70,6 +72,16 @@ interface ExtraWordEntry {
   analyzing: boolean;
 }
 
+interface RelatedExpressionRow {
+  relationType: RelatedExpressionType;
+  expression: string;
+  meaning: string;
+}
+
+/** "AI로 전체 자동 완성"(전체) 대비 섹션별 "이 항목만 채우기" 버튼이 어디에만 적용할지 고른다 —
+ * 둘 다 같은 `/api/ai/analyze-word` 응답을 재사용하고, 이 값에 따라 그중 일부만 폼에 반영한다. */
+type AnalysisTarget = "all" | "basic" | "meanings" | "examples" | "related";
+
 const JLPT_SELECT_OPTIONS = [
   { value: "", label: "선택 안 함" },
   ...JLPT_LEVEL_OPTIONS.map((level) => ({ value: level, label: level })),
@@ -110,6 +122,15 @@ export function VocabularyForm({
   const [examples, setExamples] = useState(
     initialData?.examples ?? initialAnalysis?.result.examples ?? [],
   );
+  const [relatedExpressions, setRelatedExpressions] = useState<RelatedExpressionRow[]>(
+    initialData?.relatedExpressions.map(({ relationType, expression, meaning }) => ({
+      relationType,
+      expression,
+      meaning,
+    })) ??
+      initialAnalysis?.result.relatedExpressionSuggestions ??
+      [],
+  );
   const [selectedBookIds, setSelectedBookIds] = useState<string[]>(
     initialData?.bookIds ?? (initialBookId ? [initialBookId] : []),
   );
@@ -127,6 +148,9 @@ export function VocabularyForm({
   );
   const [aiExampleHighlight, setAiExampleHighlight] = useState<boolean[]>(
     initialAnalysis?.result.examples.map(() => true) ?? [],
+  );
+  const [aiRelatedHighlight, setAiRelatedHighlight] = useState<boolean[]>(
+    initialData ? [] : (initialAnalysis?.result.relatedExpressionSuggestions.map(() => true) ?? []),
   );
   const [aiExtras, setAiExtras] = useState<{
     relatedKanji: string[];
@@ -177,28 +201,47 @@ export function VocabularyForm({
     },
   });
 
-  const analyzeMutation = useMutation({
+  // 상단 "AI로 전체 자동 완성" 배너와 섹션별 "이 항목만 채우기" 버튼은 같은 분석 응답을
+  // 재사용한다 — target이 어느 섹션에만 반영할지를 고를 뿐, 호출 자체는 항상 전체 분석이다.
+  const analyzeMutation = useMutation<AnalyzeWordResult, Error, AnalysisTarget>({
     mutationFn: () =>
       apiFetch<AnalyzeWordResult>("/api/ai/analyze-word", {
         method: "POST",
         body: { word },
         timeoutMs: 45_000,
       }),
-    onSuccess: ({ id, result }) => {
-      setReading(result.reading);
-      setPartOfSpeech(result.partOfSpeech);
-      setJlptLevel(result.jlptLevel ?? "");
-      setMeanings(result.meanings);
-      setExamples(result.examples);
+    onSuccess: ({ id, result }, target) => {
+      const applyBasic = target === "all" || target === "basic";
+      const applyMeanings = target === "all" || target === "meanings";
+      const applyExamples = target === "all" || target === "examples";
+      const applyRelated = target === "all" || target === "related";
+
+      if (applyBasic) {
+        setReading(result.reading);
+        setPartOfSpeech(result.partOfSpeech);
+        setJlptLevel(result.jlptLevel ?? "");
+        setAiHighlight({
+          reading: true,
+          partOfSpeech: true,
+          jlptLevel: result.jlptLevel != null,
+        });
+      }
+      if (applyMeanings) {
+        setMeanings(result.meanings);
+        setAiMeaningHighlight(result.meanings.map(() => true));
+      }
+      if (applyExamples) {
+        setExamples(result.examples);
+        setAiExampleHighlight(result.examples.map(() => true));
+      }
+      if (applyRelated) {
+        setRelatedExpressions(result.relatedExpressionSuggestions);
+        setAiRelatedHighlight(result.relatedExpressionSuggestions.map(() => true));
+      }
       setAiAnalysisId(id);
-      setAiFieldsEdited(false);
-      setAiHighlight({
-        reading: true,
-        partOfSpeech: true,
-        jlptLevel: result.jlptLevel != null,
-      });
-      setAiMeaningHighlight(result.meanings.map(() => true));
-      setAiExampleHighlight(result.examples.map(() => true));
+      // 전체 분석은 완전히 새 상태라 "AI 그대로" 취급하고, 섹션별 재생성은 다른 섹션에 이미
+      // 남아있을 수 있는 사용자 수정 여부를 그대로 유지한다(둘 다 덮어쓰면 잘못된 신호가 된다).
+      if (target === "all") setAiFieldsEdited(false);
       setAiExtras({
         relatedKanji: result.relatedKanji,
         synonyms: result.synonyms,
@@ -211,6 +254,10 @@ export function VocabularyForm({
     },
   });
 
+  function isAnalyzing(target: AnalysisTarget) {
+    return analyzeMutation.isPending && analyzeMutation.variables === target;
+  }
+
   function markEdited() {
     if (aiAnalysisId) setAiFieldsEdited(true);
   }
@@ -221,6 +268,7 @@ export function VocabularyForm({
     setAiHighlight({ reading: false, partOfSpeech: false, jlptLevel: false });
     setAiMeaningHighlight([]);
     setAiExampleHighlight([]);
+    setAiRelatedHighlight([]);
     setAiExtras(null);
   }
 
@@ -278,6 +326,26 @@ export function VocabularyForm({
   function removeExample(index: number) {
     setExamples((prev) => prev.filter((_, i) => i !== index));
     setAiExampleHighlight((prev) => prev.filter((_, i) => i !== index));
+    markEdited();
+  }
+
+  function updateRelatedExpression(index: number, patch: Partial<RelatedExpressionRow>) {
+    setRelatedExpressions((prev) => prev.map((r, i) => (i === index ? { ...r, ...patch } : r)));
+    setAiRelatedHighlight((prev) => prev.map((h, i) => (i === index ? false : h)));
+    markEdited();
+  }
+  function addRelatedExpression() {
+    setRelatedExpressions((prev) =>
+      prev.length >= MAX_RELATED_EXPRESSIONS
+        ? prev
+        : [...prev, { relationType: "SIMILAR", expression: "", meaning: "" }],
+    );
+    setAiRelatedHighlight((prev) => [...prev, false]);
+    markEdited();
+  }
+  function removeRelatedExpression(index: number) {
+    setRelatedExpressions((prev) => prev.filter((_, i) => i !== index));
+    setAiRelatedHighlight((prev) => prev.filter((_, i) => i !== index));
     markEdited();
   }
 
@@ -469,6 +537,13 @@ export function VocabularyForm({
       examples: examples
         .filter((ex) => ex.japanese.trim() || ex.korean.trim())
         .map((ex) => ({ japanese: ex.japanese.trim(), korean: ex.korean.trim() })),
+      relatedExpressions: relatedExpressions
+        .filter((r) => r.expression.trim() || r.meaning.trim())
+        .map((r) => ({
+          relationType: r.relationType,
+          expression: r.expression.trim(),
+          meaning: r.meaning.trim(),
+        })),
       vocabularyBookIds: selectedBookIds,
     });
 
@@ -578,20 +653,27 @@ export function VocabularyForm({
           <VoiceInputButton onResult={handleWordChange} />
         </div>
 
-        <div className="flex flex-col gap-1.5">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="self-start"
-            loading={analyzeMutation.isPending}
-            disabled={!word.trim() || analyzeMutation.isPending}
-            onClick={() => analyzeMutation.mutate()}
-          >
-            <PixelSparkles className="size-3.5" aria-hidden="true" />
-            AI로 자동 분석
-          </Button>
-          {analyzeMutation.isPending && (
+        <div className="flex flex-col gap-2 border-2 border-pixel-ink bg-accent/10 p-3 ring-2 ring-accent/40">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <p className="text-sm font-bold text-foreground">✨ AI로 전체 자동 완성</p>
+              <p className="text-xs text-foreground/70">
+                단어만 입력하면 읽기 · 품사 · JLPT · 뜻 · 예문 · 관련 표현까지 한 번에 채워드려요
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="quest"
+              size="sm"
+              loading={isAnalyzing("all")}
+              disabled={!word.trim() || analyzeMutation.isPending}
+              onClick={() => analyzeMutation.mutate("all")}
+            >
+              <PixelSparkles className="size-3.5" aria-hidden="true" />
+              전체 자동분석
+            </Button>
+          </div>
+          {isAnalyzing("all") && (
             <p className="text-xs text-foreground/50">
               AI가 분석하고 있어요. 최대 30초 정도 걸릴 수 있어요.
             </p>
@@ -601,13 +683,26 @@ export function VocabularyForm({
               AI 분석에 실패했어요. 직접 입력해도 괜찮아요.{" "}
               <button
                 type="button"
-                onClick={() => analyzeMutation.mutate()}
+                onClick={() => analyzeMutation.mutate("all")}
                 className="font-bold text-primary hover:underline"
               >
                 다시 시도
               </button>
             </p>
           )}
+        </div>
+
+        <div className="flex items-center justify-between border-t-2 border-dashed border-pixel-ink/35 pt-3">
+          <span className="text-sm font-medium text-foreground">기본 정보</span>
+          <button
+            type="button"
+            onClick={() => analyzeMutation.mutate("basic")}
+            disabled={!word.trim() || analyzeMutation.isPending}
+            className="flex items-center gap-1 text-xs font-bold text-primary hover:underline disabled:pointer-events-none disabled:opacity-40"
+          >
+            <PixelSparkles className="size-3" aria-hidden="true" />
+            {isAnalyzing("basic") ? "채우는 중..." : "이 항목만 채우기"}
+          </button>
         </div>
 
         <div className="flex flex-col gap-1">
@@ -656,13 +751,24 @@ export function VocabularyForm({
           <span className="text-sm font-medium text-foreground">
             뜻<span className="text-error"> *</span>
           </span>
-          <button
-            type="button"
-            onClick={addMeaning}
-            className="flex items-center gap-1 text-xs font-bold text-primary hover:underline"
-          >
-            <PixelPlus className="size-3" aria-hidden="true" />뜻 추가
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => analyzeMutation.mutate("meanings")}
+              disabled={!word.trim() || analyzeMutation.isPending}
+              className="flex items-center gap-1 text-xs font-bold text-primary hover:underline disabled:pointer-events-none disabled:opacity-40"
+            >
+              <PixelSparkles className="size-3" aria-hidden="true" />
+              {isAnalyzing("meanings") ? "채우는 중..." : "이 항목만 채우기"}
+            </button>
+            <button
+              type="button"
+              onClick={addMeaning}
+              className="flex items-center gap-1 text-xs font-bold text-primary hover:underline"
+            >
+              <PixelPlus className="size-3" aria-hidden="true" />뜻 추가
+            </button>
+          </div>
         </div>
         {meanings.map((meaning, index) => (
           <div key={index} className="flex flex-col gap-1">
@@ -696,14 +802,25 @@ export function VocabularyForm({
       <Card className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium text-foreground">예문</span>
-          <button
-            type="button"
-            onClick={addExample}
-            className="flex items-center gap-1 text-xs font-bold text-primary hover:underline"
-          >
-            <PixelPlus className="size-3" aria-hidden="true" />
-            예문 추가
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => analyzeMutation.mutate("examples")}
+              disabled={!word.trim() || analyzeMutation.isPending}
+              className="flex items-center gap-1 text-xs font-bold text-primary hover:underline disabled:pointer-events-none disabled:opacity-40"
+            >
+              <PixelSparkles className="size-3" aria-hidden="true" />
+              {isAnalyzing("examples") ? "채우는 중..." : "이 항목만 채우기"}
+            </button>
+            <button
+              type="button"
+              onClick={addExample}
+              className="flex items-center gap-1 text-xs font-bold text-primary hover:underline"
+            >
+              <PixelPlus className="size-3" aria-hidden="true" />
+              예문 추가
+            </button>
+          </div>
         </div>
         {examples.length === 0 && (
           <p className="text-xs text-foreground/50">선택 사항이에요. 필요하면 추가해보세요.</p>
@@ -744,9 +861,83 @@ export function VocabularyForm({
         ))}
       </Card>
 
+      <Card className="flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium text-foreground">관련 표현</span>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => analyzeMutation.mutate("related")}
+              disabled={!word.trim() || analyzeMutation.isPending}
+              className="flex items-center gap-1 text-xs font-bold text-primary hover:underline disabled:pointer-events-none disabled:opacity-40"
+            >
+              <PixelSparkles className="size-3" aria-hidden="true" />
+              {isAnalyzing("related") ? "채우는 중..." : "이 항목만 채우기"}
+            </button>
+            <button
+              type="button"
+              onClick={addRelatedExpression}
+              className="flex items-center gap-1 text-xs font-bold text-primary hover:underline"
+            >
+              <PixelPlus className="size-3" aria-hidden="true" />
+              표현 추가
+            </button>
+          </div>
+        </div>
+        {relatedExpressions.length === 0 && (
+          <p className="text-xs text-foreground/50">
+            선택 사항이에요. 유사어·반대말·파생어처럼 이 단어와 관계된 표현을 추가해보세요.
+          </p>
+        )}
+        {relatedExpressions.map((related, index) => (
+          <div key={index} className="flex flex-col gap-1">
+            <div
+              className={cn(
+                "flex items-start gap-2 border-2 border-pixel-ink bg-background p-3",
+                aiRelatedHighlight[index] && "ring-2 ring-accent/60 bg-accent/5",
+              )}
+            >
+              <Select
+                value={related.relationType}
+                onChange={(e) =>
+                  updateRelatedExpression(index, {
+                    relationType: e.target.value as RelatedExpressionType,
+                  })
+                }
+                options={RELATED_EXPRESSION_TYPE_SELECT_OPTIONS}
+                className="w-28 shrink-0"
+              />
+              <div className="flex flex-1 flex-col gap-2">
+                <Input
+                  value={related.expression}
+                  onChange={(e) => updateRelatedExpression(index, { expression: e.target.value })}
+                  placeholder="일본어 표현"
+                />
+                <Input
+                  value={related.meaning}
+                  onChange={(e) => updateRelatedExpression(index, { meaning: e.target.value })}
+                  placeholder="뜻"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => removeRelatedExpression(index)}
+                aria-label="관련 표현 삭제"
+                className="flex size-9 shrink-0 items-center justify-center border-2 border-pixel-ink bg-surface text-foreground/60 shadow-bevel-raised transition hover:bg-background"
+              >
+                <PixelX className="size-3.5" aria-hidden="true" />
+              </button>
+            </div>
+            {aiRelatedHighlight[index] && (
+              <span className="text-[11px] font-bold text-accent">✨ AI가 채운 값</span>
+            )}
+          </div>
+        ))}
+      </Card>
+
       {aiExtras && (
         <Card className="flex flex-col gap-3">
-          <span className="text-sm font-medium text-foreground">AI 분석 추가 정보</span>
+          <span className="text-sm font-medium text-foreground">함께 등록할 단어 후보</span>
           {aiExtras.relatedKanji.length > 0 && (
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs text-foreground/60">관련 한자</span>
@@ -786,7 +977,7 @@ export function VocabularyForm({
           )}
           {aiExtras.relatedExpressions.length > 0 && (
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs text-foreground/60">관련 표현</span>
+              <span className="text-xs text-foreground/60">연관 표현</span>
               {aiExtras.relatedExpressions.map((expr) => {
                 const added = extraWords.some((entry) => entry.sourceText === expr);
                 return (
@@ -809,8 +1000,9 @@ export function VocabularyForm({
             </div>
           )}
           <p className="text-xs text-foreground/50">
-            유의어·관련 표현을 클릭하면 아래에 등록 폼이 추가돼요. 다시 누르면 취소돼요. 관련 한자는
-            추후 한자 학습 기능(Phase 9)과 연결될 예정이라 지금은 참고용 텍스트로만 표시돼요.
+            유의어·연관 표현을 클릭하면 이 단어와는 별개로 새로 등록할 단어 폼이 아래에 추가돼요 (위
+            &ldquo;관련 표현&rdquo; 섹션과 달리 새 단어를 만들어요). 다시 누르면 취소돼요. 관련
+            한자는 추후 한자 학습 기능(Phase 9)과 연결될 예정이라 지금은 참고용 텍스트로만 표시돼요.
           </p>
         </Card>
       )}

@@ -6,7 +6,7 @@ import { db } from "@/lib/db";
 import { vocabularySchema } from "@/lib/validations/vocabulary";
 import { syncVocabularyKanji } from "@/lib/vocabulary-kanji";
 import { requireOwnedVocabulary } from "@/lib/vocabulary-ownership";
-import type { VocabularyDetail } from "@/types/vocabulary";
+import type { RelatedExpressionRecord, VocabularyDetail } from "@/types/vocabulary";
 
 import type { NextRequest } from "next/server";
 
@@ -28,6 +28,10 @@ export const GET = withApiHandler(
       include: {
         meanings: { select: { meaning: true } },
         examples: { select: { japanese: true, korean: true } },
+        relatedExpressions: {
+          orderBy: { order: "asc" },
+          select: { id: true, relation_type: true, expression: true, meaning: true },
+        },
         bookItems: { select: { vocabulary_book_id: true } },
         tags: { select: { tag: { select: { id: true, name: true } } } },
       },
@@ -42,6 +46,12 @@ export const GET = withApiHandler(
       learningStatus: userVocabulary.learning_status,
       meanings: vocabulary.meanings.map((m) => m.meaning),
       examples: vocabulary.examples,
+      relatedExpressions: vocabulary.relatedExpressions.map((related): RelatedExpressionRecord => ({
+        id: related.id,
+        relationType: related.relation_type,
+        expression: related.expression,
+        meaning: related.meaning,
+      })),
       bookIds: vocabulary.bookItems.map((item) => item.vocabulary_book_id),
       isFavorite: userVocabulary.is_favorite,
       tags: vocabulary.tags.map((t) => t.tag),
@@ -70,8 +80,16 @@ export const PATCH = withApiHandler(
     const userVocabulary = await requireOwnedVocabulary(id, session.user.id);
 
     const body = await req.json();
-    const { word, reading, partOfSpeech, jlptLevel, meanings, examples, vocabularyBookIds } =
-      vocabularySchema.parse(body);
+    const {
+      word,
+      reading,
+      partOfSpeech,
+      jlptLevel,
+      meanings,
+      examples,
+      relatedExpressions,
+      vocabularyBookIds,
+    } = vocabularySchema.parse(body);
 
     const ownedBookCount = await db.vocabularyBook.count({
       where: { id: { in: vocabularyBookIds }, user_id: session.user.id },
@@ -83,6 +101,7 @@ export const PATCH = withApiHandler(
     const vocabulary = await db.$transaction(async (tx) => {
       await tx.vocabularyMeaning.deleteMany({ where: { vocabulary_id: id } });
       await tx.exampleSentence.deleteMany({ where: { vocabulary_id: id } });
+      await tx.vocabularyRelatedExpression.deleteMany({ where: { vocabulary_id: id } });
       await tx.vocabularyBookItem.deleteMany({ where: { vocabulary_id: id } });
       await syncVocabularyKanji(tx, id, word);
 
@@ -100,11 +119,25 @@ export const PATCH = withApiHandler(
               korean: example.korean,
             })),
           },
+          relatedExpressions: {
+            create: relatedExpressions.map((related, index) => ({
+              relation_type: related.relationType,
+              expression: related.expression,
+              meaning: related.meaning,
+              order: index,
+            })),
+          },
           bookItems: {
             create: vocabularyBookIds.map((bookId) => ({ vocabulary_book_id: bookId })),
           },
         },
-        include: { tags: { select: { tag: { select: { id: true, name: true } } } } },
+        include: {
+          tags: { select: { tag: { select: { id: true, name: true } } } },
+          relatedExpressions: {
+            orderBy: { order: "asc" },
+            select: { id: true, relation_type: true, expression: true, meaning: true },
+          },
+        },
       });
     });
 
@@ -117,6 +150,12 @@ export const PATCH = withApiHandler(
       learningStatus: userVocabulary.learning_status,
       meanings,
       examples,
+      relatedExpressions: vocabulary.relatedExpressions.map((related): RelatedExpressionRecord => ({
+        id: related.id,
+        relationType: related.relation_type,
+        expression: related.expression,
+        meaning: related.meaning,
+      })),
       bookIds: vocabularyBookIds,
       isFavorite: userVocabulary.is_favorite,
       tags: vocabulary.tags.map((t) => t.tag),

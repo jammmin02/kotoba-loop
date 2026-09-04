@@ -10,8 +10,10 @@ import {
   JLPT_LEVEL_OPTIONS,
   MAX_EXAMPLES,
   MAX_MEANINGS,
+  MAX_RELATED_EXPRESSIONS,
   MEANING_MAX,
   PART_OF_SPEECH_OPTIONS,
+  RELATED_EXPRESSION_TYPE_OPTIONS,
   VOCABULARY_READING_MAX,
   VOCABULARY_WORD_MAX,
 } from "@/lib/validations/vocabulary";
@@ -49,6 +51,15 @@ export const naturalSearchAnswerSchema = z.object({
     .max(MAX_EXAMPLES),
   synonyms: z.array(z.string().min(1).max(VOCABULARY_WORD_MAX)).max(MAX_RELATED),
   relatedExpressions: z.array(z.string().min(1).max(VOCABULARY_WORD_MAX)).max(MAX_RELATED),
+  relatedExpressionSuggestions: z
+    .array(
+      z.object({
+        relationType: z.enum(RELATED_EXPRESSION_TYPE_OPTIONS),
+        expression: z.string().min(1).max(VOCABULARY_WORD_MAX),
+        meaning: z.string().min(1).max(MEANING_MAX),
+      }),
+    )
+    .max(MAX_RELATED_EXPRESSIONS),
 });
 
 export type NaturalSearchAnswer = z.infer<typeof naturalSearchAnswerSchema>;
@@ -67,6 +78,10 @@ const SYSTEM_PROMPT = `당신은 일본어 학습 앱 kotoba-loop의 자연어 �
 - relatedKanji에는 단어를 구성하는 한자를 각각 하나씩 나열하세요(한자가 없으면 빈 배열).
 - examples에는 사용자가 설명한 상황을 반영한 예문을 1개 이상(일본어+한국어 대응) 반환하세요.
 - synonyms/relatedExpressions는 없으면 빈 배열로 반환하세요.
+- relatedExpressionSuggestions에는 찾은 표현과 뜻으로 이어지는 관계 표현을 최대 5개까지
+  제안하세요. 각 항목은 relationType(SIMILAR=유사어, OPPOSITE=반대말, DERIVED=파생어),
+  expression(일본어 표현), meaning(한국어 뜻)을 모두 채우세요. 확실한 관계만 제안하고, 없으면
+  빈 배열로 반환하세요.
 - explanation에는 "가장 적절한 표현은 「XXX」입니다." 형식으로 한 문장 요약을 반환하세요.
 - found는 설명에 확신을 갖고 부합하는 일본어 표현을 찾았으면 true, 그렇지 않으면(설명이
   모호하거나, 일본어 단어와 무관하거나, 존재하지 않는 개념을 묻는 경우) false로 반환하세요.
