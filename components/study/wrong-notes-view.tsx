@@ -29,10 +29,7 @@ function WrongNoteRow({ item }: { item: WrongNoteItem }) {
   return (
     <Card className="flex flex-col gap-2 transition hover:bg-background">
       <div className="flex items-start justify-between gap-3">
-        <Link
-          href={`/words/${item.vocabularyId}`}
-          className="flex min-w-0 flex-1 flex-col gap-1"
-        >
+        <Link href={`/words/${item.vocabularyId}`} className="flex min-w-0 flex-1 flex-col gap-1">
           <div className="flex items-baseline gap-2">
             <span className="font-jp text-lg font-bold text-foreground">{item.word}</span>
             <span className="font-jp text-sm text-foreground/60">{item.reading}</span>
