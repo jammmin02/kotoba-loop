@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import {
   PixelBarChart,
   PixelBookOpen,
+  PixelChevronDown,
   PixelGlobe,
   PixelHome,
   PixelPenTool,
@@ -49,18 +51,47 @@ function isActivePath(pathname: string, href: string) {
   return pathname.startsWith(href);
 }
 
+const SIDEBAR_COLLAPSED_KEY = "kotoba-loop:sidebar-collapsed";
+
 export function Sidebar({ className }: { className?: string }) {
   const pathname = usePathname();
+  const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    setCollapsed(localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "1");
+  }, []);
+
+  const toggleCollapsed = () => {
+    setCollapsed((prev) => {
+      const next = !prev;
+      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, next ? "1" : "0");
+      return next;
+    });
+  };
 
   return (
     <nav
       aria-label="주 메뉴"
       className={cn(
-        "hidden w-56 shrink-0 flex-col gap-1.5 border-r-2 border-pixel-ink bg-surface p-4 lg:flex",
+        "relative hidden shrink-0 flex-col gap-1.5 border-r-2 border-pixel-ink bg-surface p-4 transition-[width] duration-200 lg:flex",
+        collapsed ? "w-[4.5rem] items-center px-2" : "w-56",
         className,
       )}
     >
-      <NavSearchBox className="mb-2" />
+      <button
+        type="button"
+        onClick={toggleCollapsed}
+        aria-label={collapsed ? "메뉴 펼치기" : "메뉴 접기"}
+        aria-pressed={collapsed}
+        className="absolute -right-3.5 top-6 flex size-7 items-center justify-center border-2 border-pixel-ink bg-surface text-foreground shadow-bevel hover:bg-background focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+      >
+        <PixelChevronDown
+          className={cn("size-4 transition-transform", collapsed ? "-rotate-90" : "rotate-90")}
+          aria-hidden="true"
+        />
+      </button>
+
+      {!collapsed && <NavSearchBox className="mb-2" />}
       {desktopNavItems.map((item) => {
         const active = isActivePath(pathname, item.href);
         const Icon = item.icon;
@@ -69,15 +100,17 @@ export function Sidebar({ className }: { className?: string }) {
             key={item.href}
             href={item.href}
             aria-current={active ? "page" : undefined}
+            title={collapsed ? item.label : undefined}
             className={cn(
-              "flex items-center gap-3 border-2 px-3 py-2 text-sm font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+              "flex items-center gap-3 border-2 py-2 text-sm font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+              collapsed ? "w-11 justify-center px-0" : "px-3",
               active
                 ? "border-pixel-ink bg-primary text-primary-foreground shadow-bevel-sunken"
                 : "border-transparent text-foreground/70 hover:border-pixel-ink hover:bg-background hover:text-foreground",
             )}
           >
-            <Icon className="size-5" aria-hidden="true" />
-            {item.label}
+            <Icon className="size-5 shrink-0" aria-hidden="true" />
+            {!collapsed && item.label}
           </Link>
         );
       })}
