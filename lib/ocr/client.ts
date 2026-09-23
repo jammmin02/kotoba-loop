@@ -3,6 +3,7 @@ import "server-only";
 import os from "node:os";
 import path from "node:path";
 
+import sharp from "sharp";
 import { OEM, createWorker } from "tesseract.js";
 
 /**
@@ -72,12 +73,39 @@ export interface RecognizeResult {
 }
 
 /**
+ * Camera photos routinely come in at 3000px+ on a side (lib/validations/photo-upload.ts's
+ * PHOTO_MAX_BYTES comment: "5-10MB range"). Tesseract.js gains nothing from that much detail for
+ * printed text and its runtime scales with pixel count, so an unscaled photo can blow past
+ * OCR_TIMEOUT_MS (and the route's maxDuration) on nothing but sheer resolution.
+ */
+const OCR_MAX_DIMENSION = 2000;
+
+/** Best-effort — an image sharp can't decode (e.g. an edge-case HEIC variant) just skips scaling. */
+async function prepareForOcr(image: Buffer): Promise<Buffer> {
+  try {
+    return await sharp(image)
+      .resize({
+        width: OCR_MAX_DIMENSION,
+        height: OCR_MAX_DIMENSION,
+        fit: "inside",
+        withoutEnlargement: true,
+      })
+      .toBuffer();
+  } catch (err) {
+    console.error("[ocr] downscale failed, using original image", err);
+    return image;
+  }
+}
+
+/**
  * Runs Tesseract.js (server-in-process, not an external API — see kotoba-loop-roadmap.md C.1's
  * 2026-08-25 OCR provider decision) against `image` and returns the raw recognized text.
  * Spawns and tears down a worker per call rather than pooling one, matching tesseract.js's own
  * guidance for serverless environments (no state persists across invocations anyway).
  */
 export async function recognizeJapaneseText(image: Buffer): Promise<RecognizeResult> {
+  const prepared = await prepareForOcr(image);
+
   const worker = await createWorker("jpn", OEM.LSTM_ONLY, {
     workerPath: WORKER_SCRIPT_PATH,
     corePath: CORE_PATH,
@@ -88,7 +116,10 @@ export async function recognizeJapaneseText(image: Buffer): Promise<RecognizeRes
   });
 
   try {
-    const { data } = await withTimeout(worker.recognize(image, {}, { text: true }), OCR_TIMEOUT_MS);
+    const { data } = await withTimeout(
+      worker.recognize(prepared, {}, { text: true }),
+      OCR_TIMEOUT_MS,
+    );
     return { text: data.text, confidence: data.confidence };
   } finally {
     await worker.terminate().catch((err) => console.error("[ocr] worker terminate failed", err));
