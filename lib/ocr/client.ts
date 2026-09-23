@@ -29,16 +29,17 @@ const CACHE_PATH = os.tmpdir();
  * original node_modules location. `serverExternalPackages` in next.config.ts keeps this package
  * un-bundled so that continues to hold, and these explicit paths are a second layer of defense
  * against path resolution failing in a bundled/serverless environment.
+ *
+ * WORKER_SCRIPT_PATH is resolved via `require.resolve` rather than a plain `path.join` — Next's
+ * build-time file tracer only walks a file's own `require`s when it sees it referenced through an
+ * actual `require`/`require.resolve` call. tesseract.js loads this file via
+ * `new Worker(workerPath)`, which the tracer treats as an opaque leaf asset without following its
+ * further requires (`./getCore`, `..` for worker-script/index.js, and everything *that* needs —
+ * `regenerator-runtime`, `is-url`, etc.). A plain string here silently produced a
+ * `Cannot find module '..'` crash in production; `require.resolve` makes the tracer include the
+ * whole chain.
  */
-const WORKER_SCRIPT_PATH = path.join(
-  process.cwd(),
-  "node_modules",
-  "tesseract.js",
-  "src",
-  "worker-script",
-  "node",
-  "index.js",
-);
+const WORKER_SCRIPT_PATH = require.resolve("tesseract.js/src/worker-script/node/index.js");
 const CORE_PATH = path.join(process.cwd(), "node_modules", "tesseract.js-core");
 
 /** Thrown by `recognizeJapaneseText` when OCR exceeds its internal budget — see OCR_TIMEOUT_MS. */
