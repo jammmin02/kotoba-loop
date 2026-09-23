@@ -1,0 +1,55 @@
+flowchart TB
+    USER[학습자 · 모바일 / 데스크톱]
+    subgraph CLIENT[브라우저 / 설치형 PWA]
+        UI[React 19 UI · Tailwind CSS]
+        STATE[TanStack Query · Zustand]
+        SW[Service Worker · 정적 캐시 / 오프라인 안내]
+        UI --- STATE
+        UI --- SW
+    end
+
+    subgraph APP[Next.js 16 앱 · Vercel 배포 설정 sin1]
+        SSR[App Router · 서버 페이지]
+        API[Route Handlers · app/api]
+        AUTH[Auth.js · JWT 세션 / 접근 권한]
+        DOMAIN[단어장 · SRS · 퀴즈 · 한자 · 통계]
+        GAME[경험치 · 퀘스트 · 업적 · 펫 · 대결]
+        AI[AI 오케스트레이션 · 검증 / 재시도 / 캐시]
+        OCR[Tesseract.js · 일본어 OCR 워커]
+        ORM[Prisma 7 · PostgreSQL adapter]
+        SSR --> AUTH
+        SSR --> DOMAIN
+        API --> AUTH
+        API --> DOMAIN
+        API --> GAME
+        API --> AI
+        API --> OCR
+        DOMAIN --> ORM
+        GAME --> ORM
+        AI --> ORM
+        OCR --> ORM
+        AUTH --> ORM
+    end
+
+    DB[(PostgreSQL · Neon 의도 구성)]
+    LLM[Anthropic Claude API]
+    B2[Backblaze B2 · S3 호환 저장소]
+    PUSHER[Pusher Channels]
+    GOOGLE[Google OAuth]
+    HAND[Google Input Tools · 비공식 필기 인식]
+    CDN[jsDelivr · 일본어 획순 데이터]
+
+    USER --> UI
+    UI -->|페이지 요청| SSR
+    UI -->|HTTPS JSON| API
+    ORM --> DB
+    AUTH <-->|OAuth 인증 연동| GOOGLE
+    AI -->|분석·교정·설명 요청| LLM
+    API -->|서명 URL 발급·업로드 검증| B2
+    UI -->|서명 URL로 사진 PUT / GET| B2
+    OCR -->|서버에서 원본 사진 다운로드| B2
+    GAME -->|대결 상태 변경 알림| PUSHER
+    PUSHER -.->|이벤트 수신 후 API 재조회| UI
+    UI -->|채널 인증 요청| API
+    API -->|필기 좌표 전달| HAND
+    CDN -.->|획순 JSON| UI
