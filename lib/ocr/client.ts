@@ -30,17 +30,34 @@ const CACHE_PATH = os.tmpdir();
  * un-bundled so that continues to hold, and these explicit paths are a second layer of defense
  * against path resolution failing in a bundled/serverless environment.
  *
- * WORKER_SCRIPT_PATH is resolved via `require.resolve` rather than a plain `path.join` — Next's
- * build-time file tracer only walks a file's own `require`s when it sees it referenced through an
- * actual `require`/`require.resolve` call. tesseract.js loads this file via
- * `new Worker(workerPath)`, which the tracer treats as an opaque leaf asset without following its
- * further requires (`./getCore`, `..` for worker-script/index.js, and everything *that* needs —
- * `regenerator-runtime`, `is-url`, etc.). A plain string here silently produced a
- * `Cannot find module '..'` crash in production; `require.resolve` makes the tracer include the
- * whole chain.
+ * This must be a plain `path.join` (a real string at runtime), not `require.resolve(...)` —
+ * Turbopack rewrites `require.resolve` calls to its own internal numeric module reference, which
+ * then crashes `new Worker(filename)` with "filename argument must be of type string ... Received
+ * type number". See the dead `require.resolve` call below for why one is still needed.
  */
-const WORKER_SCRIPT_PATH = require.resolve("tesseract.js/src/worker-script/node/index.js");
+const WORKER_SCRIPT_PATH = path.join(
+  process.cwd(),
+  "node_modules",
+  "tesseract.js",
+  "src",
+  "worker-script",
+  "node",
+  "index.js",
+);
 const CORE_PATH = path.join(process.cwd(), "node_modules", "tesseract.js-core");
+
+/**
+ * Never executed (the `0 &&` always short-circuits) — this exists purely so the build's static
+ * file tracer discovers it. tesseract.js's worker script is loaded via `new Worker(filename)`
+ * above, which the tracer treats as an opaque leaf asset without following ITS OWN requires
+ * (`./getCore`, `..` for worker-script/index.js, and everything *that* pulls in —
+ * `regenerator-runtime`, `is-url`, etc.). Without this literal `require.resolve(...)` call
+ * pointing the tracer at the same file, those files silently get left out of the deployed
+ * function bundle, crashing with "Cannot find module '..'" the first time OCR actually runs.
+ */
+if (0 && require.resolve("tesseract.js/src/worker-script/node/index.js")) {
+  throw new Error("unreachable");
+}
 
 /** Thrown by `recognizeJapaneseText` when OCR exceeds its internal budget — see OCR_TIMEOUT_MS. */
 export class OcrTimeoutError extends Error {}
