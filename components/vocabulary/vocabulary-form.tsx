@@ -125,6 +125,9 @@ export function VocabularyForm({
   );
   // 저장 후 폼을 비울 때 WordFields를 새로 마운트해 분석 상태·모달 등 내부 상태까지 초기화한다.
   const [mainKey, setMainKey] = useState(0);
+  // 카드가 있을 때 메인 단어도 카드처럼 접을 수 있다. 접어도 입력 UI는 마운트된 채 숨기기만 해서
+  // 진행 중인 AI 분석 같은 내부 상태가 사라지지 않는다.
+  const [mainExpanded, setMainExpanded] = useState(true);
   const [selectedBookIds, setSelectedBookIds] = useState<string[]>(
     initialData?.bookIds ?? (initialBookId ? [initialBookId] : []),
   );
@@ -210,6 +213,7 @@ export function VocabularyForm({
     if (!storedDraft) return;
     setMain(storedDraft.main);
     setMainKey((k) => k + 1);
+    setMainExpanded(true);
     setExtraWords(storedDraft.extraWords);
     nextExtraKeyRef.current = nextExtraKeyIndex(storedDraft.extraWords);
     if (storedDraft.selectedBookIds.length > 0) setSelectedBookIds(storedDraft.selectedBookIds);
@@ -236,17 +240,20 @@ export function VocabularyForm({
 
   function addBlankExtraWord() {
     const key = `extra-${nextExtraKeyRef.current++}`;
-    // 새 카드에 집중할 수 있게 앞선 카드는 접는다(접힌 카드에도 단어·뜻 요약과 오류 표시는 남는다).
+    // 새 카드에 집중할 수 있게 메인 단어와 앞선 카드는 접는다(접힌 곳에도 단어·뜻 요약과 오류 표시는 남는다).
+    setMainExpanded(false);
     setExtraWords((prev) => [
       ...prev.map((entry) => ({ ...entry, expanded: false })),
       createExtraWordEntry(key, ""),
     ]);
   }
 
-  const allExtrasExpanded = extraWords.every((entry) => entry.expanded);
+  const mainCollapsed = !mainExpanded && extraWords.length > 0;
+  const allExpanded = !mainCollapsed && extraWords.every((entry) => entry.expanded);
 
-  function toggleAllExtras() {
-    setExtraWords((prev) => prev.map((entry) => ({ ...entry, expanded: !allExtrasExpanded })));
+  function toggleAll() {
+    setMainExpanded(!allExpanded);
+    setExtraWords((prev) => prev.map((entry) => ({ ...entry, expanded: !allExpanded })));
   }
 
   function toggleExtraWord(text: string) {
@@ -280,6 +287,7 @@ export function VocabularyForm({
   function resetMainForm() {
     setMain(emptyDraft());
     setMainKey((k) => k + 1);
+    setMainExpanded(true);
     setError(undefined);
     setFieldErrors({});
     // 새로 마운트된 단어 입력칸에 포커스를 준다.
@@ -364,6 +372,7 @@ export function VocabularyForm({
     const fieldErrorCount = Object.keys(nextFieldErrors).length;
     if (fieldErrorCount > 0 || invalid.size > 0 || otherError) {
       setFieldErrors(nextFieldErrors);
+      if (MAIN_FIELD_ORDER.some((key) => nextFieldErrors[key])) setMainExpanded(true);
       setExtraWords((prev) =>
         prev.map((e) =>
           invalid.has(e.key)
@@ -696,15 +705,42 @@ export function VocabularyForm({
           </div>
         </div>
       )}
-      <WordFields
-        key={mainKey}
-        draft={main}
-        onChange={setMain}
-        variant="main"
-        errors={fieldErrors}
-        onEdit={clearFieldError}
-        wordInputRef={wordInputRef}
-      />
+      {extraWords.length > 0 && (
+        <Card className="flex items-center gap-2 border-accent/60">
+          <button
+            type="button"
+            onClick={() => setMainExpanded(mainCollapsed)}
+            aria-expanded={!mainCollapsed}
+            aria-label={mainCollapsed ? "메인 단어 펼치기" : "메인 단어 접기"}
+            className="flex min-h-11 min-w-0 flex-1 items-center gap-2 text-left"
+          >
+            <span className="text-xs font-bold text-foreground/60" aria-hidden="true">
+              {mainCollapsed ? "▸" : "▾"}
+            </span>
+            <span className="shrink-0 text-sm font-medium text-foreground">단어 1</span>
+            {mainCollapsed && (
+              <span className="min-w-0 flex-1 truncate text-sm text-foreground/70">
+                {main.word || "(단어 없음)"}
+                {main.meanings.find((m) => m.trim())
+                  ? ` — ${main.meanings.find((m) => m.trim())}`
+                  : ""}
+              </span>
+            )}
+          </button>
+        </Card>
+      )}
+
+      <div className={cn(mainCollapsed ? "hidden" : "contents")}>
+        <WordFields
+          key={mainKey}
+          draft={main}
+          onChange={setMain}
+          variant="main"
+          errors={fieldErrors}
+          onEdit={clearFieldError}
+          wordInputRef={wordInputRef}
+        />
+      </div>
 
       {main.aiExtras && (
         <Card className="flex flex-col gap-3">
@@ -780,13 +816,13 @@ export function VocabularyForm({
         </Card>
       )}
 
-      {extraWords.length >= 2 && (
+      {extraWords.length >= 1 && (
         <button
           type="button"
-          onClick={toggleAllExtras}
+          onClick={toggleAll}
           className="self-end text-xs font-bold text-primary hover:underline"
         >
-          {allExtrasExpanded ? "카드 모두 접기" : "카드 모두 펼치기"}
+          {allExpanded ? "모두 접기" : "모두 펼치기"}
         </button>
       )}
 
