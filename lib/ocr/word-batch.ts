@@ -6,6 +6,7 @@ import {
   extractOcrWords,
   MAX_OCR_WORDS,
 } from "@/lib/ai/ocr-word-extraction";
+import { runWithAiUser } from "@/lib/ai/usage-context";
 import { WORD_ANALYSIS_TYPE, analyzeWord } from "@/lib/ai/word-analysis";
 import type { WordAnalysisResult } from "@/lib/ai/word-analysis";
 import { ApiError } from "@/lib/api/error";
@@ -94,7 +95,7 @@ export async function getOrCreateOcrWordJob(
   }
 
   const rawText = await requireOcrText(photoUploadId, userId);
-  const extracted = await extractOcrWords(rawText);
+  const extracted = await runWithAiUser(userId, () => extractOcrWords(rawText));
 
   const job: OcrWordBatchJob = {
     analysisId: "",

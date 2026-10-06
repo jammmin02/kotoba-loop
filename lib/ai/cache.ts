@@ -1,5 +1,6 @@
 import "server-only";
 
+import { runWithAiUser } from "@/lib/ai/usage-context";
 import { db } from "@/lib/db";
 import { Prisma } from "@/lib/generated/prisma/client";
 
@@ -58,7 +59,8 @@ export async function withAnalysisCache<T>({
   }
 
   const promise = (async (): Promise<AnalysisCacheResult<T>> => {
-    const data = await run();
+    // 이 호출이 누구 때문에 일어났는지 사용량 로그에 남기도록 사용자 컨텍스트 안에서 실행한다.
+    const data = await runWithAiUser(userId, run);
 
     try {
       const created = await db.aIAnalysis.create({

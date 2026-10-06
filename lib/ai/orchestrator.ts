@@ -11,6 +11,7 @@ import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 
 import { AI_MAX_RETRIES, AI_MODEL, AI_TIMEOUT_MS, anthropic } from "@/lib/ai/client";
 import { withRetry } from "@/lib/ai/retry";
+import { recordAiUsage } from "@/lib/ai/usage-log";
 import { ApiError } from "@/lib/api/error";
 
 import type { Message } from "@anthropic-ai/sdk/resources/messages";
@@ -107,6 +108,12 @@ export async function runStructuredAnalysis<Schema extends z.ZodType>({
         const usage = buildUsageLog(analysisType, model, attempts, response);
         // Minimal cost/token log for later monitoring — see roadmap PROMPT 13 requirements.
         console.info("[ai-orchestrator] usage", usage);
+        recordAiUsage({
+          feature: analysisType,
+          model,
+          inputTokens: usage.inputTokens,
+          outputTokens: usage.outputTokens,
+        });
 
         // response.parsed_output is already schema-shaped when non-null, but AI
         // output is treated like any other external input (instructions 8) — it

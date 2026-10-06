@@ -1,4 +1,5 @@
 import { enforceRateLimit } from "@/lib/ai/rate-limit";
+import { runWithAiUser } from "@/lib/ai/usage-context";
 import { chatAboutWord, type WordChatResult } from "@/lib/ai/word-chat";
 import { ApiError } from "@/lib/api/error";
 import { withApiHandler } from "@/lib/api/handler";
@@ -18,5 +19,5 @@ export const POST = withApiHandler(async (req: NextRequest): Promise<WordChatRes
   const body = await req.json();
   const { word, question, history } = wordChatSchema.parse(body);
 
-  return chatAboutWord(word, question, history ?? []);
+  return runWithAiUser(session.user.id, () => chatAboutWord(word, question, history ?? []));
 });
