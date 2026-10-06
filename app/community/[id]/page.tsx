@@ -23,7 +23,7 @@ export default async function CommunityBookDetailPage(props: PageProps<"/communi
     db.vocabularyBook.findUnique({
       where: { id },
       include: {
-        user: { select: { nickname: true } },
+        user: { select: { nickname: true, deleted_at: true } },
         _count: { select: { items: true } },
       },
     }),
@@ -34,7 +34,7 @@ export default async function CommunityBookDetailPage(props: PageProps<"/communi
     }),
   ]);
 
-  if (!book || (!book.is_public && book.user_id !== session.user.id)) {
+  if (!book || book.user.deleted_at || (!book.is_public && book.user_id !== session.user.id)) {
     notFound();
   }
 

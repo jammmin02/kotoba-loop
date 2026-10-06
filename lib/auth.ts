@@ -29,6 +29,9 @@ export class AccountRejectedError extends CredentialsSignin {
 export class AccountSuspendedError extends CredentialsSignin {
   code = "account_suspended";
 }
+export class AccountDeletedError extends CredentialsSignin {
+  code = "account_deleted";
+}
 
 // JWT에 실린 role/status가 DB와 어긋나 있어도 이 시간 안에는 다시 조회하지 않는다. 정지·거절은
 // 최대 이 시간 안에 기존 세션에도 반영된다.
@@ -62,6 +65,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!valid) throw new InvalidPasswordError();
 
         // 비밀번호가 맞은 뒤에만 상태를 알려준다(상태를 알아내는 용도로 계정 존재를 탐색하지 못하게).
+        if (user.deleted_at) throw new AccountDeletedError();
         if (user.status === "PENDING") throw new AccountPendingError();
         if (user.status === "REJECTED") throw new AccountRejectedError();
         if (user.status === "SUSPENDED") throw new AccountSuspendedError();
@@ -79,6 +83,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       const existing = await db.user.findUnique({ where: { email } });
       if (existing) {
         // 문자열을 반환하면 Auth.js가 그 경로로 리다이렉트한다(로그인 세션은 만들어지지 않는다).
+        if (existing.deleted_at) return "/login?error=account_deleted";
         if (existing.status === "PENDING") return "/pending";
         if (existing.status === "REJECTED") return "/login?error=account_rejected";
         if (existing.status === "SUSPENDED") return "/login?error=account_suspended";
@@ -87,7 +92,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         return true;
       }
 
-      if (!isRegistrationAllowed(email)) return false;
+      if (!(await isRegistrationAllowed(email))) return false;
 
       // 신규 Google 가입도 이메일 가입과 같이 관리자 승인 전까지는 로그인할 수 없다.
       await db.user.create({
@@ -109,10 +114,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (typeof token.id === "string" && now - checkedAt > SESSION_REFRESH_MS) {
         const current = await db.user.findUnique({
           where: { id: token.id },
-          select: { status: true, role: true, last_active_at: true },
+          select: { status: true, role: true, last_active_at: true, deleted_at: true },
         });
         // 계정이 사라졌거나 승인 상태가 아니면 세션을 무효화한다(null 반환 시 쿠키가 지워진다).
-        if (!current || current.status !== "APPROVED") return null;
+        if (!current || current.deleted_at || current.status !== "APPROVED") return null;
 
         token.role = current.role;
         token.checkedAt = now;

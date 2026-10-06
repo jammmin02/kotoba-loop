@@ -2,9 +2,12 @@ import { NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/auth-admin";
+import { getMaintenanceState } from "@/lib/settings";
 
 // Routes (and their sub-paths) that don't require a session.
-const PUBLIC_ROUTES = ["/welcome", "/login", "/register", "/pending", "/dev"];
+const PUBLIC_ROUTES = ["/welcome", "/login", "/register", "/pending", "/maintenance", "/dev"];
+// 점검 중에도 관리자가 로그인할 수 있어야 하므로 로그인 경로는 막지 않는다.
+const MAINTENANCE_EXEMPT_ROUTES = ["/login", "/maintenance"];
 // Of those, the ones a signed-in user shouldn't be able to revisit (they'd just
 // hit a "가입 중"/duplicate-email dead end instead of continuing where they left off).
 const GUEST_ONLY_ROUTES = ["/welcome", "/login", "/register"];
@@ -17,7 +20,22 @@ function isGuestOnlyRoute(pathname: string) {
   return GUEST_ONLY_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`));
 }
 
-export default auth((req) => {
+function isMaintenanceExempt(pathname: string) {
+  return MAINTENANCE_EXEMPT_ROUTES.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`),
+  );
+}
+
+export default auth(async (req) => {
+  // 점검 모드: 관리자를 뺀 모든 사용자를 점검 안내 화면으로 보낸다. 조회에 실패하면 서비스를 열어 둔다
+  // (getMaintenanceState가 fail-open). /api/* 는 이 파일의 matcher에서 빠져 있어 영향받지 않는다.
+  if (!isAdminRole(req.auth?.user?.role) && !isMaintenanceExempt(req.nextUrl.pathname)) {
+    const maintenance = await getMaintenanceState();
+    if (maintenance.enabled) {
+      return NextResponse.redirect(new URL("/maintenance", req.nextUrl));
+    }
+  }
+
   // 비로그인 방문자가 사이트 첫 화면(/)으로 들어오면 로그인 폼 대신 앱 소개 온보딩을 먼저 보여준다
   // (2026-09-23). 다른 보호 경로는 기존처럼 callbackUrl을 달고 로그인으로 보낸다.
   if (!req.auth && req.nextUrl.pathname === "/") {

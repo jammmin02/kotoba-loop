@@ -28,7 +28,7 @@ export const GET = withApiHandler(
     const book = await db.vocabularyBook.findUnique({
       where: { id },
       include: {
-        user: { select: { nickname: true } },
+        user: { select: { nickname: true, deleted_at: true } },
         _count: { select: { items: true } },
         items: {
           select: {
@@ -45,7 +45,7 @@ export const GET = withApiHandler(
       },
     });
 
-    if (!book || (!book.is_public && book.user_id !== session.user.id)) {
+    if (!book || book.user.deleted_at || (!book.is_public && book.user_id !== session.user.id)) {
       throw new ApiError("NOT_FOUND", "단어장을 찾을 수 없습니다.");
     }
 

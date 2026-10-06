@@ -26,6 +26,7 @@ export const GET = withApiHandler(
 
     const where = {
       is_public: true,
+      user: { deleted_at: null },
       ...(userId !== undefined && { user_id: userId }),
     };
 

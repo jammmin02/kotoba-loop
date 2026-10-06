@@ -348,7 +348,7 @@ export function WelcomeIntro() {
 
               {isLast && (
                 <p className="order-5 text-center font-content text-xs text-foreground/70 lg:text-left lg:text-sm">
-                  현재는 @g.yju.ac.kr 이메일로 가입할 수 있어요.
+                  허용된 이메일로 가입할 수 있고, 관리자 승인 후 이용할 수 있어요.
                 </p>
               )}
 

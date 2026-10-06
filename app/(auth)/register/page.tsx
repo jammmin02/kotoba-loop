@@ -3,8 +3,10 @@ import Link from "next/link";
 import { GoogleSignInButton } from "@/components/auth/google-signin-button";
 import { RegisterForm } from "@/components/auth/register-form";
 import { Card } from "@/components/ui/card";
+import { getAllowedEmailDomains } from "@/lib/settings";
 
-export default function RegisterPage() {
+export default async function RegisterPage() {
+  const domains = await getAllowedEmailDomains();
   return (
     <Card variant="elevated" title="SIGNUP.EXE" titleColor="mint" className="flex flex-col gap-6">
       <div className="flex flex-col gap-1 text-center">
@@ -13,7 +15,7 @@ export default function RegisterPage() {
           이메일 또는 Google로 시작해보세요.
         </p>
         <p className="text-xs font-content text-foreground/50">
-          현재는 @g.yju.ac.kr 이메일만 가입할 수 있습니다.
+          현재는 {domains.join(", ")} 이메일만 가입할 수 있습니다.
         </p>
         <p className="text-xs font-content text-foreground/50">
           가입 후 관리자 승인이 완료되면 로그인할 수 있어요.
