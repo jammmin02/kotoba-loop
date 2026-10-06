@@ -212,3 +212,12 @@ export const vocabularyListQuerySchema = z.object({
     .optional()
     .transform((value) => (value === undefined ? undefined : value === "true")),
 });
+
+/** 단어장 상세에서 여러 단어를 한 번에 삭제할 때 한 요청이 받는 최대 개수. */
+export const BULK_DELETE_MAX_IDS = 500;
+
+export const bulkDeleteSchema = z.object({
+  ids: z.array(z.string().min(1)).min(1, "삭제할 단어를 선택해주세요.").max(BULK_DELETE_MAX_IDS),
+});
+
+export type BulkDeleteInput = z.infer<typeof bulkDeleteSchema>;
