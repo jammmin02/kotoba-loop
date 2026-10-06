@@ -47,6 +47,20 @@ enum AdminAuditAction {
   RESTRICT_WRITE
   RESOLVE_REPORT
   DISMISS_REPORT
+  CREATE_ANNOUNCEMENT
+  UPDATE_ANNOUNCEMENT
+  DELETE_ANNOUNCEMENT
+  UPDATE_SETTING
+  UPDATE_CONTENT
+  SOFT_DELETE_USER
+  RESTORE_USER
+  EXPORT_MEMBERS
+  BLOCK_AI_RESULT
+}
+
+enum AnnouncementLevel {
+  INFO
+  WARNING
 }
 
 // 커뮤니티 모더레이션(2026-10): 이 앱의 커뮤니티 콘텐츠는 게시글·댓글이 아니라 공개 단어장뿐이라
@@ -141,6 +155,12 @@ model User {
   write_restricted_until DateTime?
   warning_count          Int       @default(0)
 
+  // 소프트 삭제(2026-10): 값이 있으면 로그인할 수 없고, 계정 행은 남겨 같은 이메일의 재가입도 막는다.
+  deleted_at DateTime?
+
+  announcements Announcement[] @relation("AnnouncementAuthor")
+  aiUsageLogs   AiUsageLog[]
+
   reportsFiled Report[] @relation("ReportReporter")
 
   adminAuditLogsAsAdmin  AdminAuditLog[] @relation("AdminAuditAdmin")
@@ -211,6 +231,46 @@ model Report {
   @@unique([reporter_id, target_type, target_id])
   @@index([target_type, target_id])
   @@index([status])
+}
+
+// 공지(2026-10): 노출 기간(starts_at~ends_at)과 상단 고정을 가진다. ends_at이 없으면 계속 노출된다.
+model Announcement {
+  id         String            @id @default(uuid())
+  title      String
+  body       String
+  level      AnnouncementLevel @default(INFO)
+  starts_at  DateTime          @default(now())
+  ends_at    DateTime?
+  is_pinned  Boolean           @default(false)
+  created_by String?
+  created_at DateTime          @default(now())
+
+  author User? @relation("AnnouncementAuthor", fields: [created_by], references: [id], onDelete: SetNull)
+
+  @@index([starts_at, ends_at])
+}
+
+// 운영 설정 key/value — 값은 문자열(JSON)로 저장한다. 키 목록은 lib/settings.ts에 정의한다.
+model SystemSetting {
+  key        String   @id
+  value      String
+  updated_at DateTime @updatedAt
+}
+
+// AI 호출 사용량 로그. 사용자를 알 수 없는 호출은 user_id가 null이다. 기록 실패는 본 기능을 막지 않는다.
+model AiUsageLog {
+  id            String   @id @default(uuid())
+  user_id       String?
+  feature       String
+  model         String
+  input_tokens  Int
+  output_tokens Int
+  created_at    DateTime @default(now())
+
+  user User? @relation(fields: [user_id], references: [id], onDelete: SetNull)
+
+  @@index([created_at])
+  @@index([user_id, created_at])
 }
 
 // 친구(팔로우) 기능(PROMPT 58) — 인스타그램형 상호 승인이 아니라 "관심 단어장 구독"에 가까운
