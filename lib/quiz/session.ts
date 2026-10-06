@@ -52,6 +52,44 @@ function runQuizSessionAssembly<T extends { id: string }>(
   return questions;
 }
 
+/**
+ * 선택한 유형 중 하나라도 문제를 만들 수 있는 대상만 남기고(예: 빈칸/문장 번역은 예문이 있는
+ * 단어만), 그중 무작위로 `count`개를 고른다. `count`가 없으면 출제 가능한 대상 전부. 먼저 걸러야
+ * 요청한 개수만큼 실제 문제가 나온다 — 걸러내지 않고 뽑으면 문제를 못 만드는 대상이 섞여 개수가 준다.
+ */
+function selectQuizTargets<T extends { id: string }>(
+  targets: T[],
+  generateFn: (target: T, quizType: QuizType, random: () => number) => QuizQuestion | null,
+  allowedTypes: readonly QuizType[],
+  count: number | undefined,
+  random: () => number,
+): { selected: T[]; availableCount: number } {
+  const eligible = shuffle(targets, random).filter((target) =>
+    allowedTypes.some((quizType) => generateFn(target, quizType, random) !== null),
+  );
+  return {
+    selected: count === undefined ? eligible : eligible.slice(0, count),
+    availableCount: eligible.length,
+  };
+}
+
+export function selectVocabQuizTargets(
+  targets: QuizVocabulary[],
+  pool: QuizPoolEntry[],
+  allowedTypes: readonly QuizType[],
+  count: number | undefined,
+  random: () => number = Math.random,
+) {
+  const types = allowedTypes.length > 0 ? allowedTypes : VOCAB_QUIZ_TYPES;
+  return selectQuizTargets(
+    targets,
+    (target, quizType, r) => generateQuestion(target, quizType, pool, r),
+    types,
+    count,
+    random,
+  );
+}
+
 export function generateQuizSession(
   targets: QuizVocabulary[],
   pool: QuizPoolEntry[],

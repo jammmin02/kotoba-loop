@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { generateKanjiQuizSession, generateQuizSession } from "@/lib/quiz/session";
+import {
+  generateKanjiQuizSession,
+  generateQuizSession,
+  selectVocabQuizTargets,
+} from "@/lib/quiz/session";
 import type { QuizKanji, QuizVocabulary } from "@/lib/quiz/types";
 
 test("생성 가능한 유형이 있는 단어는 배정된 유형이 실패해도 다른 유형으로 대체되어 문제가 나온다", () => {
@@ -86,4 +90,33 @@ test("한자 세션: 읽기조차 없는 한자는 결과에서 제외된다", (
 
   const questions = generateKanjiQuizSession([empty], [], () => 0.1);
   assert.equal(questions.length, 0);
+});
+
+test("문항 수를 지정하면 선택한 유형으로 출제 가능한 단어에서만 그 개수를 뽑는다", () => {
+  const make = (id: string, withExample: boolean): QuizVocabulary => ({
+    id,
+    word: "食べる",
+    reading: "たべる",
+    partOfSpeech: "동사",
+    jlptLevel: "N5",
+    meanings: ["먹다"],
+    examples: withExample ? [{ japanese: "りんごを食べる。", korean: "사과를 먹는다." }] : [],
+  });
+  const targets = [make("a", true), make("b", true), make("c", true), make("d", false)];
+
+  // 빈칸 유형은 예문이 있는 단어(3개)만 가능 — 5개를 요청해도 3개, availableCount도 3.
+  const all = selectVocabQuizTargets(targets, [], ["FILL_IN_BLANK"], 5);
+  assert.equal(all.availableCount, 3);
+  assert.equal(all.selected.length, 3);
+  assert.ok(all.selected.every((target) => target.id !== "d"));
+
+  const two = selectVocabQuizTargets(targets, [], ["FILL_IN_BLANK"], 2);
+  assert.equal(two.selected.length, 2);
+  assert.equal(two.availableCount, 3);
+
+  // count가 없으면 출제 가능한 단어 전부.
+  assert.equal(
+    selectVocabQuizTargets(targets, [], ["FILL_IN_BLANK"], undefined).selected.length,
+    3,
+  );
 });

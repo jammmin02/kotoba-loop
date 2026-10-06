@@ -8,7 +8,11 @@ import {
   fetchQuizPool,
   fetchQuizVocabularies,
 } from "@/lib/quiz/queries";
-import { generateKanjiQuizSession, generateQuizSession } from "@/lib/quiz/session";
+import {
+  generateKanjiQuizSession,
+  generateQuizSession,
+  selectVocabQuizTargets,
+} from "@/lib/quiz/session";
 import { KANJI_QUIZ_TYPES, VOCAB_QUIZ_TYPES } from "@/lib/quiz/types";
 import type { QuizType } from "@/lib/quiz/types";
 import { getQuizTypeAccuracy } from "@/lib/study/weakness";
@@ -35,7 +39,9 @@ export const POST = withApiHandler(async (req: NextRequest): Promise<QuizSession
     throw new ApiError("UNAUTHORIZED", "로그인이 필요합니다.");
   }
 
-  const { targetType, targetIds, quizTypes } = quizSessionRequestSchema.parse(await req.json());
+  const { targetType, targetIds, quizTypes, count } = quizSessionRequestSchema.parse(
+    await req.json(),
+  );
   const userId = session.user.id;
 
   const kanjiTypeSet: readonly QuizType[] = KANJI_QUIZ_TYPES;
@@ -58,7 +64,13 @@ export const POST = withApiHandler(async (req: NextRequest): Promise<QuizSession
   await requireOwnedVocabularies(targetIds, userId);
   const targets = await fetchQuizVocabularies(targetIds);
   const pool = await fetchQuizPool(targets);
-  const questions = generateQuizSession(targets, pool, Math.random, allowedTypes, weights);
+  // 문항 수(count)가 있으면 선택한 유형으로 출제 가능한 단어만 추려 그중 count개를 뽑는다.
+  const { selected, availableCount } = selectVocabQuizTargets(targets, pool, allowedTypes, count);
+  const questions = generateQuizSession(selected, pool, Math.random, allowedTypes, weights);
 
-  return { questions, boostedType: pickBoostedType(weights) };
+  return {
+    questions,
+    boostedType: pickBoostedType(weights),
+    ...(count !== undefined && { availableCount }),
+  };
 });

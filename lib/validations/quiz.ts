@@ -2,7 +2,8 @@ import { z } from "zod";
 
 import { QUIZ_TARGET_TYPES, QUIZ_TYPES } from "@/lib/quiz/types";
 
-export const QUIZ_SESSION_MAX_IDS = 100;
+/** 커스텀 학습에서 단어장 전체를 출제 후보로 넘길 수 있도록 넉넉하게 둔 안전 상한. 실제 출제 수는 `count`가 정한다. */
+export const QUIZ_SESSION_MAX_IDS = 10000;
 
 export const quizSessionRequestSchema = z.object({
   /** 생략 시 단어 세션(기존 호출부 호환). PROMPT 36부터 "kanji"도 지원한다. */
@@ -13,6 +14,8 @@ export const quizSessionRequestSchema = z.object({
     .max(QUIZ_SESSION_MAX_IDS),
   /** 지정하면 이 유형들로만 문제를 낸다("게임 종류 선택" 커스텀 학습용). 생략 시 전체 유형. */
   quizTypes: z.array(z.enum(QUIZ_TYPES)).min(1).optional(),
+  /** 지정하면 출제 가능한 대상 중 무작위로 이 개수만 문제로 낸다(커스텀 학습의 문항 수). 생략 시 전부. */
+  count: z.number().int().min(1).optional(),
 });
 
 export type QuizSessionRequestInput = z.infer<typeof quizSessionRequestSchema>;

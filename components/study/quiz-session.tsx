@@ -212,6 +212,8 @@ export interface QuizSessionProps {
   targetType?: QuizTargetType;
   /** 지정하면 이 유형들로만 문제를 낸다(커스텀 학습에서 게임 종류를 고른 경우). 생략 시 전체 유형. */
   quizTypes?: QuizType[];
+  /** 지정하면 출제 가능한 대상 중 이 개수만 문제로 낸다(커스텀 학습의 문항 수). 생략 시 전부. */
+  count?: number;
   /** 세션 종료 후 돌아갈 경로. onExit이 없을 때만 쓰인다. 기본값은 오늘의 학습 홈("/"). */
   returnHref?: string;
   /** 돌아가기 버튼/링크 라벨. 기본값은 화면별로 다르다("복습할 문제가 없어요" vs 완료 화면). */
@@ -224,6 +226,7 @@ export function QuizSession({
   targetIds,
   targetType = "vocab",
   quizTypes,
+  count,
   returnHref = "/",
   returnLabel,
   onExit,
@@ -247,6 +250,8 @@ export function QuizSession({
   const [loadError, setLoadError] = useState<string | null>(null);
   // 정답률 기반으로 비중을 높인 유형(PROMPT 39) — 있으면 세션 상단에 짧은 안내만 띄운다.
   const [boostedType, setBoostedType] = useState<QuizType | null>(null);
+  // 요청한 문항 수보다 출제 가능한 단어가 적을 때(예: 예문 없는 단어 제외) 띄우는 안내용.
+  const [shortfall, setShortfall] = useState<{ requested: number; available: number } | null>(null);
   const questionStartedAtRef = useRef(0);
   // 재시도까지 실패한 제출을 세션 종료 시점에 한 번 더 시도해본다(별도 영속 저장소 없이
   // "최선을 다해 보존"하는 수준 — 탭을 닫아버리면 그 답안의 SRS 갱신은 유실될 수 있다).
@@ -254,14 +259,23 @@ export function QuizSession({
 
   useEffect(() => {
     let cancelled = false;
+    // "틀린 것만 다시 풀기"로 대상이 바뀐 뒤에는 문항 수 제한을 적용하지 않는다.
+    const effectiveCount = activeIds === targetIds ? count : undefined;
     apiFetch<QuizSessionResponse>("/api/quiz/session", {
       method: "POST",
-      body: { targetType, targetIds: activeIds, quizTypes },
+      body: { targetType, targetIds: activeIds, quizTypes, count: effectiveCount },
     })
       .then((res) => {
         if (!cancelled) {
           startSession(res.questions);
           setBoostedType(res.boostedType);
+          setShortfall(
+            effectiveCount !== undefined &&
+              res.availableCount !== undefined &&
+              res.availableCount < effectiveCount
+              ? { requested: effectiveCount, available: res.availableCount }
+              : null,
+          );
         }
       })
       .catch((err) => {
@@ -406,6 +420,12 @@ export function QuizSession({
 
   return (
     <div className="flex w-full max-w-md flex-col gap-4">
+      {shortfall && (
+        <p className="text-xs font-bold text-foreground/50">
+          선택한 유형으로 낼 수 있는 단어가 {shortfall.available}개뿐이라 {shortfall.available}
+          문제로 진행해요.
+        </p>
+      )}
       {boostedType && (
         <p className="text-xs font-bold text-foreground/50">
           오늘은 {QUIZ_TYPE_LABELS[boostedType]} 문제가 더 많이 나와요.
