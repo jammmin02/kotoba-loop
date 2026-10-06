@@ -40,6 +40,32 @@ enum AdminAuditAction {
   REJECT
   SUSPEND
   RESTORE
+  HIDE_CONTENT
+  RESTORE_CONTENT
+  DELETE_CONTENT
+  WARN
+  RESTRICT_WRITE
+  RESOLVE_REPORT
+  DISMISS_REPORT
+}
+
+// 커뮤니티 모더레이션(2026-10): 이 앱의 커뮤니티 콘텐츠는 게시글·댓글이 아니라 공개 단어장뿐이라
+// 신고 대상은 BOOK 하나다. 게시판이 생기면 값을 추가한다.
+enum ReportTargetType {
+  BOOK
+}
+
+enum ReportReason {
+  SPAM
+  ABUSE
+  INAPPROPRIATE
+  OTHER
+}
+
+enum ReportStatus {
+  OPEN
+  RESOLVED
+  DISMISSED
 }
 
 enum LearningStatus {
@@ -111,6 +137,12 @@ model User {
   reject_reason  String?
   last_active_at DateTime?
 
+  // 작성 제한(2026-10): 미래 시각이면 단어장 생성·수정 등 작성 API가 거부된다.
+  write_restricted_until DateTime?
+  warning_count          Int       @default(0)
+
+  reportsFiled Report[] @relation("ReportReporter")
+
   adminAuditLogsAsAdmin  AdminAuditLog[] @relation("AdminAuditAdmin")
   adminAuditLogsAsTarget AdminAuditLog[] @relation("AdminAuditTarget")
 
@@ -140,19 +172,45 @@ model User {
 // 관리자 액션 감사 로그 — 승인/거절/정지/복구는 상태 변경과 같은 트랜잭션에서 기록한다.
 // 관리자·대상 계정이 나중에 삭제돼도 로그는 남도록 SetNull + 이메일 스냅샷을 둔다.
 model AdminAuditLog {
-  id                String           @id @default(uuid())
+  id                String            @id @default(uuid())
   admin_id          String?
   target_user_id    String?
   target_user_email String
   action            AdminAuditAction
   reason            String?
-  created_at        DateTime         @default(now())
+  // 콘텐츠 관련 액션이면 대상을 남긴다. 대상이 삭제돼도 로그에서 알아볼 수 있게 이름을 스냅샷으로 둔다.
+  target_type       ReportTargetType?
+  target_id         String?
+  target_label      String?
+  created_at        DateTime          @default(now())
 
   admin      User? @relation("AdminAuditAdmin", fields: [admin_id], references: [id], onDelete: SetNull)
   targetUser User? @relation("AdminAuditTarget", fields: [target_user_id], references: [id], onDelete: SetNull)
 
   @@index([created_at])
   @@index([target_user_id])
+}
+
+// 신고 — 대상이 여러 종류가 될 수 있어 target_id는 FK 없이 문자열로 둔다(대상이 삭제돼도 남는다).
+// 같은 사용자의 같은 대상 중복 신고는 unique로 막는다.
+model Report {
+  id              String           @id @default(uuid())
+  reporter_id     String
+  target_type     ReportTargetType
+  target_id       String
+  reason          ReportReason
+  detail          String?
+  status          ReportStatus     @default(OPEN)
+  handled_by      String?
+  handled_at      DateTime?
+  resolution_note String?
+  created_at      DateTime         @default(now())
+
+  reporter User @relation("ReportReporter", fields: [reporter_id], references: [id], onDelete: Cascade)
+
+  @@unique([reporter_id, target_type, target_id])
+  @@index([target_type, target_id])
+  @@index([status])
 }
 
 // 친구(팔로우) 기능(PROMPT 58) — 인스타그램형 상호 승인이 아니라 "관심 단어장 구독"에 가까운
@@ -200,6 +258,11 @@ model VocabularyBook {
   // (app/api/vocabulary-books/community/[id]/import) 원자적으로 증가시킨다.
   import_count Int      @default(0)
   created_at   DateTime @default(now())
+
+  // 관리자 숨김(2026-10): 삭제 대신 숨김이 기본이다. 숨겨진 단어장은 작성자·관리자만 원문을 볼 수 있다.
+  hidden_at   DateTime?
+  hidden_by   String?
+  hide_reason String?
 
   user        User                 @relation(fields: [user_id], references: [id], onDelete: Cascade)
   items       VocabularyBookItem[]
