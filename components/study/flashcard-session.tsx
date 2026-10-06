@@ -8,6 +8,7 @@ import type { ReviewResultResponse } from "@/app/api/user-vocabulary/[id]/review
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cardVariants } from "@/components/ui/card";
 import { ProgressBar } from "@/components/ui/progress-bar";
+import { SpeakButton } from "@/components/ui/speak-button";
 import { toast } from "@/components/ui/toast";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
 import { notifyGameProfileGain } from "@/lib/game/notify";
@@ -179,7 +180,12 @@ export function FlashcardSession({ mode, queue, tagName, onComplete }: Flashcard
             )}
             style={{ backfaceVisibility: "hidden" }}
           >
-            <p className="font-jp text-4xl font-bold text-foreground">{currentCard?.word}</p>
+            <div className="flex items-center gap-2">
+              <p className="font-jp text-4xl font-bold text-foreground">{currentCard?.word}</p>
+              {currentCard && (
+                <SpeakButton text={currentCard.reading || currentCard.word} size="md" />
+              )}
+            </div>
             <Button type="button" variant="outline" onClick={flip}>
               뜻 보기
             </Button>
@@ -205,9 +211,12 @@ export function FlashcardSession({ mode, queue, tagName, onComplete }: Flashcard
             </ul>
             {currentCard && currentCard.examples.length > 0 && (
               <div className="flex flex-col gap-1 border-t-2 border-pixel-ink pt-2">
-                <p className="font-jp text-sm text-foreground">
-                  {currentCard.examples[0].japanese}
-                </p>
+                <div className="flex items-center justify-center gap-2">
+                  <p className="font-jp text-sm text-foreground">
+                    {currentCard.examples[0].japanese}
+                  </p>
+                  <SpeakButton text={currentCard.examples[0].japanese} label="예문 듣기" />
+                </div>
                 <p className="font-content text-xs text-foreground/60">
                   {currentCard.examples[0].korean}
                 </p>

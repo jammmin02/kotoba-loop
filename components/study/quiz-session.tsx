@@ -10,6 +10,7 @@ import { cardVariants } from "@/components/ui/card";
 import { ChipButton } from "@/components/ui/chip-button";
 import { Input } from "@/components/ui/input";
 import { ProgressBar } from "@/components/ui/progress-bar";
+import { SpeakButton } from "@/components/ui/speak-button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/toast";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
@@ -424,9 +425,13 @@ export function QuizSession({
         <span className="text-xs font-bold text-foreground/50">
           {QUIZ_TYPE_LABELS[current.quizType]}
         </span>
-        <p className="font-jp text-2xl font-bold whitespace-pre-wrap text-foreground">
-          {current.prompt}
-        </p>
+        <div className="flex items-center gap-2">
+          <p className="font-jp text-2xl font-bold whitespace-pre-wrap text-foreground">
+            {current.prompt}
+          </p>
+          {/* 일본어 단어를 보여주고 한국어 뜻을 묻는 유형만 — 읽기를 묻는 유형에서는 정답이 새어나간다. */}
+          {current.quizType === "JA_TO_KO" && <SpeakButton text={current.prompt} size="md" />}
+        </div>
 
         <QuizAnswerArea
           question={current}

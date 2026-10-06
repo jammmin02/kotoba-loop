@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { JlptBadge, RelatedExpressionBadge, StatusBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { SpeakButton } from "@/components/ui/speak-button";
 import { DeleteWordButton } from "@/components/vocabulary/delete-word-button";
 import { FavoriteButton } from "@/components/vocabulary/favorite-button";
 import { SentencePracticeCard } from "@/components/vocabulary/sentence-practice-card";
@@ -159,6 +160,7 @@ export default async function WordDetailPage(props: PageProps<"/words/[id]">) {
                 </p>
                 <p className="font-jp text-lg text-foreground/60">{vocabulary.reading}</p>
               </div>
+              <SpeakButton text={vocabulary.reading || vocabulary.word} className="mt-1" />
             </div>
             <div className="flex gap-2">
               <StatusBadge status={userVocabulary.learning_status} />
@@ -217,7 +219,10 @@ export default async function WordDetailPage(props: PageProps<"/words/[id]">) {
                       {example.source}
                     </span>
                   )}
-                  <p className="font-jp text-foreground">{example.japanese}</p>
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-jp text-foreground">{example.japanese}</p>
+                    <SpeakButton text={example.japanese} label="예문 듣기" />
+                  </div>
                   <p className="font-content text-sm text-foreground/60">{example.korean}</p>
                 </li>
               ))}

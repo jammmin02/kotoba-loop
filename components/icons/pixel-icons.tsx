@@ -348,6 +348,20 @@ export const PixelMic: PixelIconComponent = (props) => (
   />
 );
 
+/** 발음 듣기 버튼(components/ui/speak-button.tsx) 아이콘 — 스피커 본체 + 음파 두 줄. */
+export const PixelSpeaker: PixelIconComponent = (props) => (
+  <PixelGlyph
+    blocks={[
+      [2, 6, 3, 4],
+      [5, 5, 2, 6],
+      [7, 3, 2, 10],
+      [10, 6, 1, 4],
+      [12, 4, 1, 8],
+    ]}
+    {...props}
+  />
+);
+
 /** 한자 퀴즈 연습 모드(components/kanji/kanji-practice-view.tsx) "전체 랜덤" 탭 아이콘 — 주사위 눈 5. */
 export const PixelDice: PixelIconComponent = (props) => (
   <PixelGlyph
