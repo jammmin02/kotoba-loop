@@ -1,3 +1,4 @@
+import { AnnouncementBanner } from "@/components/announcements/announcement-banner";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { GameProfileHeader } from "@/components/game/game-profile-header";
 import { PetWidget } from "@/components/pet/pet-widget";
@@ -17,6 +18,7 @@ export default async function Home() {
        * `app/my/streak`와 학습 페이지 `app/study`에는 그대로 남아있다 — 홈 화면만의 결정). 빈
        * 사이드바 자리가 사라진 만큼 펫 위젯이 화면의 주인공으로 크게 보이게 됐다. */}
       <div className="mx-auto flex w-full max-w-md flex-col gap-6">
+        {session?.user && <AnnouncementBanner />}
         {session?.user && (
           <div className="flex w-full flex-col gap-4">
             <div className="flex items-center justify-between">
