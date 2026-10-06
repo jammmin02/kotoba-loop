@@ -77,6 +77,8 @@ export function WrongNotesView() {
       <QuizSession
         key={`wrong-notes-quiz-${period}`}
         targetIds={vocabularyIds}
+        resumeKey={`wrong-notes:${period}`}
+        resumeLabel={`오답노트 · ${PERIOD_LABELS[period]}`}
         returnLabel="오답노트로 돌아가기"
         onExit={handleExitRetest}
       />

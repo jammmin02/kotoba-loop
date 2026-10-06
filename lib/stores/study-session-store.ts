@@ -4,6 +4,7 @@ import { create } from "zustand";
 
 import type { ReviewGrade } from "@/lib/srs/types";
 import { MAX_SESSION_REQUEUE_PER_CARD } from "@/lib/study/constants";
+import type { FlashcardSnapshot } from "@/lib/study/saved-session";
 import type { SessionCard } from "@/types/study";
 
 export type StudySessionMode = "today" | "tag" | "custom";
@@ -28,12 +29,14 @@ interface StudySessionState {
   flip: () => void;
   setSubmitting: (value: boolean) => void;
   recordGrade: (grade: ReviewGrade) => void;
+  /** 저장해 둔 진행 상황으로 세션을 되살린다(이어서 하기). */
+  restoreSession: (snapshot: FlashcardSnapshot) => void;
 }
 
 /**
- * 의도적으로 persist 미들웨어를 쓰지 않는다(PROMPT 18 "추가 결정 필요" 항목 확정값):
- * 새로고침 시 메모리 상태가 사라지고 세션 페이지가 서버에서 큐를 다시 조회하므로,
- * 이미 채점된 카드는 자연히 빠진 "갱신된 오늘의 큐"로 다시 시작하게 된다.
+ * 의도적으로 persist 미들웨어를 쓰지 않는다(PROMPT 18 "추가 결정 필요" 항목 확정값).
+ * 이어서 하기는 FlashcardSession이 `lib/study/saved-session`에 명시적으로 저장/복원한다
+ * (세션마다 key와 7일 만료가 필요해 스토어 전체를 통째로 persist하는 것과 맞지 않는다).
  */
 export const useStudySessionStore = create<StudySessionState>()((set) => ({
   mode: null,
@@ -56,6 +59,18 @@ export const useStudySessionStore = create<StudySessionState>()((set) => ({
       tally: { ...EMPTY_TALLY },
       missedVocabularyIds: [],
       requeueCounts: {},
+    }),
+  restoreSession: (snapshot) =>
+    set({
+      mode: snapshot.mode,
+      tagName: snapshot.tagName,
+      queue: snapshot.queue,
+      currentIndex: snapshot.currentIndex,
+      isFlipped: false,
+      isSubmitting: false,
+      tally: { ...snapshot.tally },
+      missedVocabularyIds: snapshot.missedVocabularyIds,
+      requeueCounts: snapshot.requeueCounts,
     }),
   flip: () => set((state) => ({ isFlipped: !state.isFlipped })),
   setSubmitting: (value) => set({ isSubmitting: value }),

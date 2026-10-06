@@ -115,6 +115,8 @@ export function KanjiPracticeView() {
         key="kanji-practice"
         targetIds={practiceIds}
         targetType="kanji"
+        resumeKey="kanji-practice"
+        resumeLabel="한자 연습"
         returnHref="/kanji"
         returnLabel="한자 목록으로 돌아가기"
       />

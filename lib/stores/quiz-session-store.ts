@@ -4,6 +4,7 @@ import { create } from "zustand";
 
 import { MAX_SESSION_REQUEUE_PER_QUESTION } from "@/lib/quiz/constants";
 import type { QuizQuestion } from "@/lib/quiz/types";
+import type { QuizSnapshot } from "@/lib/study/saved-session";
 
 export interface QuizFeedback {
   isCorrect: boolean;
@@ -21,12 +22,13 @@ interface QuizSessionState {
   startSession: (questions: QuizQuestion[]) => void;
   recordAnswer: (question: QuizQuestion, isCorrect: boolean) => void;
   advance: () => void;
+  /** 저장해 둔 진행 상황으로 세션을 되살린다(이어서 하기). */
+  restoreSession: (snapshot: QuizSnapshot) => void;
 }
 
 /**
- * PROMPT 18 `useStudySessionStore`와 같은 이유로 persist 미들웨어를 쓰지 않는다: 새로고침하면
- * `/api/quiz/session`을 다시 호출하고, 이미 채점된 단어는 SRS 갱신으로 `next_review_at`이
- * 밀려 오늘 큐에서 자연히 빠지므로 클라이언트가 진행 상태를 따로 보존할 필요가 없다.
+ * PROMPT 18 `useStudySessionStore`와 같은 이유로 persist 미들웨어를 쓰지 않는다. 이어서 하기는
+ * QuizSession이 `lib/study/saved-session`에 명시적으로 저장/복원한다(세션마다 key와 7일 만료가 필요).
  */
 export const useQuizSessionStore = create<QuizSessionState>()((set) => ({
   questions: [],
@@ -73,4 +75,14 @@ export const useQuizSessionStore = create<QuizSessionState>()((set) => ({
       };
     }),
   advance: () => set((state) => ({ currentIndex: state.currentIndex + 1, feedback: null })),
+  restoreSession: (snapshot) =>
+    set({
+      questions: snapshot.questions,
+      currentIndex: snapshot.currentIndex,
+      feedback: null,
+      correctCount: snapshot.correctCount,
+      wrongCount: snapshot.wrongCount,
+      missedTargetIds: snapshot.missedTargetIds,
+      requeueCounts: snapshot.requeueCounts,
+    }),
 }));

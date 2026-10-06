@@ -7,6 +7,7 @@ import { QuizSession } from "@/components/study/quiz-session";
 import { buttonVariants } from "@/components/ui/button";
 import { cardVariants } from "@/components/ui/card";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
+import { toKstDateKey } from "@/lib/datetime";
 import { cn } from "@/lib/utils";
 import type { KanjiQuizQueueResponse } from "@/types/kanji";
 
@@ -56,6 +57,8 @@ export function KanjiQuizView() {
       key="kanji-quiz"
       targetIds={kanjiIds}
       targetType="kanji"
+      resumeKey={`kanji-quiz:${toKstDateKey(new Date())}`}
+      resumeLabel="오늘의 한자 퀴즈"
       returnHref="/"
       returnLabel="오늘의 학습으로 돌아가기"
     />

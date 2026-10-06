@@ -33,6 +33,8 @@ export interface StudySessionViewProps {
 
 export function StudySessionView({ tagId, tagName }: StudySessionViewProps) {
   const isTagMode = !!tagId;
+  // 오늘의 학습은 날짜가 바뀌면 큐도 바뀌므로, 저장본이 그날 것일 때만 이어하도록 날짜를 키에 넣는다.
+  const todayKey = toKstDateKey(new Date());
   // "새 단어(플래시카드) → 복습/오답(퀴즈)" 순서(계획서 3.1)를 이 화면이 오케스트레이션한다.
   // 새 단어가 없으면(아래 `showQuiz`) 바로 퀴즈로 시작하고, 있으면 플래시카드 완료 후 넘어간다.
   const [phase, setPhase] = useState<"flashcards" | "quiz">("flashcards");
@@ -97,7 +99,16 @@ export function StudySessionView({ tagId, tagName }: StudySessionViewProps) {
         </div>
       );
     }
-    return <FlashcardSession key={`tag-${tagId}`} mode="tag" queue={queue} tagName={tagName} />;
+    return (
+      <FlashcardSession
+        key={`tag-${tagId}`}
+        mode="tag"
+        queue={queue}
+        tagName={tagName}
+        resumeKey={`tag:${tagId}`}
+        resumeLabel={`『${tagName ?? "선택한 태그"}』 태그 학습`}
+      />
+    );
   }
 
   if (items.length === 0) {
@@ -124,10 +135,19 @@ export function StudySessionView({ tagId, tagName }: StudySessionViewProps) {
         key="today-flashcards"
         mode="today"
         queue={flashcardItems}
+        resumeKey={`today-flashcards:${todayKey}`}
+        resumeLabel="오늘의 학습 · 새 단어"
         onComplete={quizVocabularyIds.length > 0 ? () => setPhase("quiz") : undefined}
       />
     );
   }
 
-  return <QuizSession key="today-quiz" targetIds={quizVocabularyIds} />;
+  return (
+    <QuizSession
+      key="today-quiz"
+      targetIds={quizVocabularyIds}
+      resumeKey={`today-quiz:${todayKey}`}
+      resumeLabel="오늘의 학습 · 복습 퀴즈"
+    />
+  );
 }

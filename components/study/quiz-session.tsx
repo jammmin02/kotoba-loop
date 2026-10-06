@@ -2,9 +2,10 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { PixelCheck, PixelX } from "@/components/icons/pixel-icons";
+import { ResumePrompt } from "@/components/study/resume-prompt";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cardVariants } from "@/components/ui/card";
 import { ChipButton } from "@/components/ui/chip-button";
@@ -19,6 +20,8 @@ import { gradeQuizAnswer } from "@/lib/quiz/grading";
 import { QUIZ_TYPE_LABELS } from "@/lib/quiz/types";
 import type { QuizQuestion, QuizTargetType, QuizType } from "@/lib/quiz/types";
 import { useQuizSessionStore, type QuizFeedback } from "@/lib/stores/quiz-session-store";
+import { clearSavedSession, loadSavedSession, saveSession } from "@/lib/study/saved-session";
+import type { QuizSnapshot, SavedSession } from "@/lib/study/saved-session";
 import { cn } from "@/lib/utils";
 import type { QuizSessionResponse, QuizSubmitResponse } from "@/types/quiz";
 
@@ -220,6 +223,20 @@ export interface QuizSessionProps {
   returnLabel?: string;
   /** 지정하면 라우팅 대신 이 콜백으로 종료를 알린다(같은 화면에서 상태만 전환할 때 사용). */
   onExit?: () => void;
+  /**
+   * 진행 상황을 브라우저에 저장하는 슬롯 이름. 지정하면 문제를 풀 때마다 자동 저장하고(끝나면
+   * 삭제), `resume`에 따라 다음 진입 때 저장본을 되살린다. 생략하면 저장하지 않는다.
+   */
+  resumeKey?: string;
+  /**
+   * 저장본이 있을 때의 동작 — "prompt"(기본): 이어서/새로 시작을 묻는다, "auto": 묻지 않고 바로
+   * 이어간다, "none": 저장본을 버리고 새로 시작한다(방금 사용자가 직접 새로 시작을 고른 경우).
+   */
+  resume?: "prompt" | "auto" | "none";
+  /** 이어하기 카드에 보여줄 한 줄 설명. */
+  resumeLabel?: string;
+  /** 이어하기에 필요한 화면 설정(저장본에 함께 보관되어 호출한 화면이 되살린다). */
+  resumeMeta?: unknown;
 }
 
 export function QuizSession({
@@ -230,6 +247,10 @@ export function QuizSession({
   returnHref = "/",
   returnLabel,
   onExit,
+  resumeKey,
+  resume = "prompt",
+  resumeLabel,
+  resumeMeta,
 }: QuizSessionProps) {
   const queryClient = useQueryClient();
   const {
@@ -240,6 +261,7 @@ export function QuizSession({
     wrongCount,
     missedTargetIds,
     startSession,
+    restoreSession,
     recordAnswer,
     advance,
   } = useQuizSessionStore();
@@ -257,7 +279,70 @@ export function QuizSession({
   // "최선을 다해 보존"하는 수준 — 탭을 닫아버리면 그 답안의 SRS 갱신은 유실될 수 있다).
   const pendingFailuresRef = useRef<SubmitPayload[]>([]);
 
+  // deciding: 저장본 확인 전(브라우저 저장소는 마운트 뒤에야 읽을 수 있다), prompt: 이어서/새로
+  // 시작을 묻는 중, ready: 문제를 불러왔거나(fetchRequested) 저장본으로 되살린 상태.
+  const [phase, setPhase] = useState<"deciding" | "prompt" | "ready">("deciding");
+  const [promptSaved, setPromptSaved] = useState<SavedSession<QuizSnapshot> | null>(null);
+  // 저장본을 쓰지 않을 때만 서버에서 문제를 만든다.
+  const [fetchRequested, setFetchRequested] = useState(false);
+
+  function startFresh() {
+    if (resumeKey) clearSavedSession(resumeKey);
+    setFetchRequested(true);
+    setPhase("ready");
+  }
+
+  function resumeFrom(saved: SavedSession<QuizSnapshot>) {
+    restoreSession(saved.snapshot);
+    setIsLoadingQuestions(false);
+    setPhase("ready");
+  }
+
+  // 브라우저 저장소(외부 시스템)는 마운트 뒤에야 읽을 수 있어, 읽은 결과로 화면 단계를 정한다.
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useLayoutEffect(() => {
+    const saved = resumeKey && resume !== "none" ? loadSavedSession(resumeKey, "quiz") : null;
+    if (saved && resume === "auto") {
+      resumeFrom(saved);
+    } else if (saved) {
+      setPromptSaved(saved);
+      setPhase("prompt");
+    } else {
+      startFresh();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+  // 풀 때마다 저장하고, 끝나면 지운다. 정답/오답 표시 중에는 곧 다음 문제로 넘어가므로 다음
+  // 번호로 저장한다(그래야 이어할 때 이미 채점한 문제를 다시 내지 않는다).
   useEffect(() => {
+    if (phase !== "ready" || !resumeKey) return;
+    return useQuizSessionStore.subscribe((state) => {
+      if (state.questions.length === 0) return;
+      const index = state.feedback ? state.currentIndex + 1 : state.currentIndex;
+      if (index >= state.questions.length) {
+        clearSavedSession(resumeKey);
+      } else if (index > 0) {
+        saveSession(resumeKey, {
+          snapshot: {
+            kind: "quiz",
+            questions: state.questions,
+            currentIndex: index,
+            correctCount: state.correctCount,
+            wrongCount: state.wrongCount,
+            missedTargetIds: state.missedTargetIds,
+            requeueCounts: state.requeueCounts,
+          },
+          label: resumeLabel,
+          meta: resumeMeta,
+        });
+      }
+    });
+  }, [phase, resumeKey, resumeLabel, resumeMeta]);
+
+  useEffect(() => {
+    if (!fetchRequested) return;
     let cancelled = false;
     // "틀린 것만 다시 풀기"로 대상이 바뀐 뒤에는 문항 수 제한을 적용하지 않는다.
     const effectiveCount = activeIds === targetIds ? count : undefined;
@@ -292,10 +377,11 @@ export function QuizSession({
     // 넘기는 targetIds 자체의 변경에는 반응하지 않는다(FlashcardSession의 마운트 1회
     // 초기화 패턴과 같은 의도. 태그/기간이 바뀌는 경우는 부모가 `key`로 재마운트시킨다).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeIds]);
+  }, [activeIds, fetchRequested]);
 
   function retryMissed() {
     setIsLoadingQuestions(true);
+    setFetchRequested(true);
     setActiveIds(missedTargetIds);
   }
 
@@ -354,6 +440,18 @@ export function QuizSession({
         pendingFailuresRef.current.push(payload);
         toast.error("이번 문제의 학습 기록이 저장되지 못했어요. 세션이 끝나면 다시 시도할게요.");
       });
+  }
+
+  if (phase === "deciding") return null;
+
+  if (phase === "prompt" && promptSaved) {
+    return (
+      <ResumePrompt
+        saved={promptSaved}
+        onResume={() => resumeFrom(promptSaved)}
+        onDiscard={startFresh}
+      />
+    );
   }
 
   if (isLoadingQuestions) {
@@ -420,6 +518,14 @@ export function QuizSession({
 
   return (
     <div className="flex w-full max-w-md flex-col gap-4">
+      <div className="flex items-center justify-end">
+        <ReturnAction
+          href={returnHref}
+          label="나가기"
+          onExit={onExit}
+          className="text-xs font-bold text-foreground/60 hover:text-foreground"
+        />
+      </div>
       {shortfall && (
         <p className="text-xs font-bold text-foreground/50">
           선택한 유형으로 낼 수 있는 단어가 {shortfall.available}개뿐이라 {shortfall.available}

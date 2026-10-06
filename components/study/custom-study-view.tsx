@@ -1,10 +1,11 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { FlashcardSession } from "@/components/study/flashcard-session";
 import { QUIZ_TYPE_LABELS, QuizSession } from "@/components/study/quiz-session";
+import { ResumePrompt } from "@/components/study/resume-prompt";
 import { Button } from "@/components/ui/button";
 import { Card, cardVariants } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,6 +14,8 @@ import { ApiClientError, apiFetch } from "@/lib/api/client";
 import { shuffle } from "@/lib/quiz/random";
 import type { QuizType } from "@/lib/quiz/types";
 import { VOCAB_QUIZ_TYPES } from "@/lib/quiz/types";
+import { clearSavedSession, loadAnySavedSession } from "@/lib/study/saved-session";
+import type { SavedSession } from "@/lib/study/saved-session";
 import { cn } from "@/lib/utils";
 import type { SessionCard } from "@/types/study";
 import type { VocabularySummary } from "@/types/vocabulary";
@@ -50,8 +53,11 @@ function toggleQuizType(types: QuizType[], type: QuizType): QuizType[] {
   return types.includes(type) ? types.filter((existing) => existing !== type) : [...types, type];
 }
 
+/** 커스텀 학습은 한 번에 하나만 저장한다 — 플래시카드/퀴즈가 같은 슬롯을 쓴다. */
+const RESUME_KEY = "custom";
+
 /** 학습 세션이 시작된 뒤 선택 값이 바뀌어도 세션 도중 문제 구성이 흔들리지 않도록 얼린 스냅샷. */
-interface StartedSession {
+interface StartedConfig {
   bookIds: string[];
   gameMode: GameMode;
   quizTypes: QuizType[];
@@ -59,8 +65,49 @@ interface StartedSession {
   count: number | null;
 }
 
+interface StartedSession extends StartedConfig {
+  /** "auto": 저장해 둔 진행 상황을 바로 이어서, "none": 새로 시작. */
+  resume: "auto" | "none";
+}
+
+/** 이어하기 카드에 보여줄 한 줄 설명. */
+function describeConfig(config: StartedConfig): string {
+  if (config.gameMode === "flashcard") return "플래시카드";
+  return `퀴즈 · ${config.quizTypes.map((type) => QUIZ_TYPE_LABELS[type]).join(", ")}`;
+}
+
+/** 저장본의 meta를 읽어 시작 설정으로 되살린다. 형식이 맞지 않으면 null(이어하기를 제공하지 않는다). */
+function parseConfig(meta: unknown): StartedConfig | null {
+  if (typeof meta !== "object" || meta === null) return null;
+  const { bookIds, gameMode, quizTypes, count } = meta as Record<string, unknown>;
+  if (
+    !Array.isArray(bookIds) ||
+    !Array.isArray(quizTypes) ||
+    (gameMode !== "flashcard" && gameMode !== "quiz") ||
+    !(count === null || typeof count === "number")
+  ) {
+    return null;
+  }
+  return { bookIds: bookIds as string[], gameMode, quizTypes: quizTypes as QuizType[], count };
+}
+
 function SessionRunner({ session, onExit }: { session: StartedSession; onExit: () => void }) {
-  const vocabQuery = useQuery(customVocabQueryOptions(session.bookIds));
+  const isResuming = session.resume === "auto";
+  // 이어서 할 때는 저장본에 문제/카드가 다 들어 있어 단어를 다시 불러오지 않는다.
+  const vocabQuery = useQuery({
+    ...customVocabQueryOptions(session.bookIds),
+    enabled: !isResuming,
+  });
+  // 객체 정체성을 유지해 세션 컴포넌트의 저장 구독이 렌더마다 다시 걸리지 않게 한다.
+  const resumeProps = useMemo(() => {
+    const { resume, ...config } = session;
+    return {
+      resumeKey: RESUME_KEY,
+      resume,
+      resumeLabel: describeConfig(config),
+      resumeMeta: config,
+    };
+  }, [session]);
 
   // 플래시카드는 여기서 무작위로 count개를 뽑는다(퀴즈는 서버가 출제 가능한 단어만 골라 뽑는다).
   const flashcardQueue = useMemo(() => {
@@ -68,6 +115,28 @@ function SessionRunner({ session, onExit }: { session: StartedSession; onExit: (
     const picked = session.count === null ? words : shuffle(words).slice(0, session.count);
     return picked.map(toSessionCard);
   }, [vocabQuery.data, session.count]);
+
+  if (isResuming) {
+    return session.gameMode === "flashcard" ? (
+      <FlashcardSession
+        key="custom-flashcards"
+        mode="custom"
+        queue={[]}
+        onExit={onExit}
+        {...resumeProps}
+      />
+    ) : (
+      <QuizSession
+        key="custom-quiz"
+        targetIds={[]}
+        quizTypes={session.quizTypes}
+        returnHref="/study/custom"
+        returnLabel="커스텀 학습으로 돌아가기"
+        onExit={onExit}
+        {...resumeProps}
+      />
+    );
+  }
 
   if (vocabQuery.isLoading) {
     return <p className="text-sm text-foreground/60">불러오는 중...</p>;
@@ -108,6 +177,7 @@ function SessionRunner({ session, onExit }: { session: StartedSession; onExit: (
         mode="custom"
         queue={flashcardQueue}
         onExit={onExit}
+        {...resumeProps}
       />
     );
   }
@@ -121,6 +191,7 @@ function SessionRunner({ session, onExit }: { session: StartedSession; onExit: (
       returnHref="/study/custom"
       returnLabel="커스텀 학습으로 돌아가기"
       onExit={onExit}
+      {...resumeProps}
     />
   );
 }
@@ -140,6 +211,17 @@ export function CustomStudyView({ initialBookId }: CustomStudyViewProps = {}) {
   const [questionCount, setQuestionCount] = useState<number | null>(DEFAULT_QUESTION_COUNT);
   const [customCountInput, setCustomCountInput] = useState("");
   const [session, setSession] = useState<StartedSession | null>(null);
+  // 이전에 하다 만 학습(브라우저 저장본). 선택 화면에 있을 때만 읽는다.
+  const [saved, setSaved] = useState<SavedSession | null>(null);
+
+  // 브라우저 저장소(외부 시스템)는 마운트 뒤에야 읽을 수 있어, 선택 화면으로 돌아올 때마다 다시 읽는다.
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    setSaved(session ? null : loadAnySavedSession(RESUME_KEY));
+  }, [session]);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+  const savedConfig = saved ? parseConfig(saved.meta) : null;
 
   const booksQuery = useQuery({
     queryKey: ["vocabulary-books"],
@@ -163,16 +245,32 @@ export function CustomStudyView({ initialBookId }: CustomStudyViewProps = {}) {
 
   function handleStart() {
     if (!gameMode || !canStart) return;
+    // 새로 시작하면 하다 만 저장본은 버린다(저장은 한 번에 하나).
+    clearSavedSession(RESUME_KEY);
     setSession({
       bookIds: selectedBookIds,
       gameMode,
       quizTypes: selectedQuizTypes,
       count: questionCount,
+      resume: "none",
     });
   }
 
   return (
     <div className="flex w-full max-w-md flex-col gap-6">
+      {saved && savedConfig && (
+        <ResumePrompt
+          saved={saved}
+          title="하던 학습이 있어요"
+          discardLabel="버리기"
+          onResume={() => setSession({ ...savedConfig, resume: "auto" })}
+          onDiscard={() => {
+            clearSavedSession(RESUME_KEY);
+            setSaved(null);
+          }}
+        />
+      )}
+
       <Card variant="elevated" title="STEP 1" className="flex flex-col gap-3">
         <p className="text-sm font-bold text-foreground">
           학습할 단어장을 골라주세요 (복수 선택 가능)
