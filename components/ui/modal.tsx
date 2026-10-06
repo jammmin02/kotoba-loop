@@ -19,11 +19,21 @@ export interface ModalProps {
 export function Modal({ open, onClose, title, children, className }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
 
+  // onClose가 렌더마다 새 함수여도 효과가 다시 실행돼 포커스를 빼앗지 않도록 ref로 최신값만 들고 있는다.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
+
   useEffect(() => {
     if (!open) return;
 
+    // 모달을 연 요소를 기억해 두었다가 닫을 때 돌려준다 — 안 그러면 키보드 사용자는 포커스를 잃는다.
+    const previouslyFocused =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape") onCloseRef.current();
     }
 
     document.addEventListener("keydown", handleKeyDown);
@@ -33,8 +43,9 @@ export function Modal({ open, onClose, title, children, className }: ModalProps)
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "";
+      if (previouslyFocused?.isConnected) previouslyFocused.focus();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
 

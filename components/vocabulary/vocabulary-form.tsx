@@ -3,14 +3,13 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
 import { achievementToast } from "@/components/game/achievement-toast";
 import { PixelPlus } from "@/components/icons/pixel-icons";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ChipButton } from "@/components/ui/chip-button";
-import { Modal } from "@/components/ui/modal";
 import { toast } from "@/components/ui/toast";
 import { DuplicateReviewModal } from "@/components/vocabulary/duplicate-review-modal";
 import type {
@@ -19,6 +18,16 @@ import type {
 } from "@/components/vocabulary/duplicate-review-modal";
 import { createExtraWordEntry, ExtraWordCard } from "@/components/vocabulary/extra-word-card";
 import type { ExtraWordEntry } from "@/components/vocabulary/extra-word-card";
+import {
+  clearStoredNewWordDraft,
+  describeNewWordDraft,
+  getInitialStoredNewWordDraft,
+  nextExtraKeyIndex,
+  parseNewWordDraft,
+  resetInitialStoredNewWordDraft,
+  saveStoredNewWordDraft,
+  subscribeNever,
+} from "@/components/vocabulary/new-word-draft-storage";
 import {
   draftFromAnalysis,
   draftFromDetail,
@@ -132,8 +141,6 @@ export function VocabularyForm({
     queryFn: () => apiFetch<VocabularyBookSummary[]>("/api/vocabulary-books"),
   });
 
-  // AI가 "존재하지 않는 단어"로 판정하면 폼을 채우지 않고 이 메시지를 모달로 알린다.
-  const [notFoundMessage, setNotFoundMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [dupReview, setDupReview] = useState<{
     plan: SavePlan;
@@ -169,6 +176,51 @@ export function VocabularyForm({
     focusable?.focus({ preventScroll: true });
   }, [scrollRequest]);
 
+  // 작성 중이던 초안 복원 — 서버 렌더링에서는 항상 없는 것으로 보고, 화면에 처음 들어올 때 저장돼 있던
+  // 것만 복원 대상으로 삼는다(자동 저장 중인 값과 헷갈리지 않게).
+  const storedRaw = useSyncExternalStore(subscribeNever, getInitialStoredNewWordDraft, () => null);
+  const [restoreHandled, setRestoreHandled] = useState(false);
+  const storedDraft = useMemo(
+    () => (showContinue && !restoreHandled ? parseNewWordDraft(storedRaw) : null),
+    [showContinue, restoreHandled, storedRaw],
+  );
+  const hadDraftRef = useRef(false);
+
+  useEffect(() => () => resetInitialStoredNewWordDraft(), []);
+
+  useEffect(() => {
+    // 복원 여부를 고르기 전에는 저장돼 있던 초안을 덮어쓰지 않는다.
+    if (!showContinue || storedDraft) return;
+    if (!isDirty) {
+      if (hadDraftRef.current) {
+        hadDraftRef.current = false;
+        clearStoredNewWordDraft();
+      }
+      return;
+    }
+    hadDraftRef.current = true;
+    const timer = setTimeout(
+      () => saveStoredNewWordDraft({ main, extraWords, selectedBookIds }),
+      400,
+    );
+    return () => clearTimeout(timer);
+  }, [showContinue, storedDraft, isDirty, main, extraWords, selectedBookIds]);
+
+  function restoreDraft() {
+    if (!storedDraft) return;
+    setMain(storedDraft.main);
+    setMainKey((k) => k + 1);
+    setExtraWords(storedDraft.extraWords);
+    nextExtraKeyRef.current = nextExtraKeyIndex(storedDraft.extraWords);
+    if (storedDraft.selectedBookIds.length > 0) setSelectedBookIds(storedDraft.selectedBookIds);
+    setRestoreHandled(true);
+  }
+
+  function discardDraft() {
+    clearStoredNewWordDraft();
+    setRestoreHandled(true);
+  }
+
   function clearFieldError(field: FieldErrorKey) {
     setFieldErrors((prev) => {
       if (!prev[field]) return prev;
@@ -184,7 +236,17 @@ export function VocabularyForm({
 
   function addBlankExtraWord() {
     const key = `extra-${nextExtraKeyRef.current++}`;
-    setExtraWords((prev) => [...prev, createExtraWordEntry(key, "")]);
+    // 새 카드에 집중할 수 있게 앞선 카드는 접는다(접힌 카드에도 단어·뜻 요약과 오류 표시는 남는다).
+    setExtraWords((prev) => [
+      ...prev.map((entry) => ({ ...entry, expanded: false })),
+      createExtraWordEntry(key, ""),
+    ]);
+  }
+
+  const allExtrasExpanded = extraWords.every((entry) => entry.expanded);
+
+  function toggleAllExtras() {
+    setExtraWords((prev) => prev.map((entry) => ({ ...entry, expanded: !allExtrasExpanded })));
   }
 
   function toggleExtraWord(text: string) {
@@ -566,6 +628,8 @@ export function VocabularyForm({
       return;
     }
 
+    if (showContinue) clearStoredNewWordDraft();
+
     const target = mainSaved ?? savedWords[0];
     if (mode === "continue" || (showContinue && !target)) {
       if (showContinue) resetMainForm();
@@ -592,6 +656,27 @@ export function VocabularyForm({
       className="flex flex-col gap-6"
       noValidate
     >
+      {storedDraft && (
+        <div
+          role="region"
+          aria-label="임시 저장된 단어"
+          className="flex flex-col gap-2 border-2 border-pixel-ink bg-accent/10 p-3"
+        >
+          <p className="text-sm font-bold text-foreground">작성 중이던 단어가 있어요</p>
+          <p className="text-xs text-foreground/70">
+            {describeNewWordDraft(storedDraft)} 입력 내용을 이어서 작성할까요?
+          </p>
+          <div className="flex gap-2">
+            <Button type="button" size="sm" onClick={restoreDraft}>
+              이어서 작성
+            </Button>
+            <Button type="button" size="sm" variant="outline" onClick={discardDraft}>
+              버리기
+            </Button>
+          </div>
+        </div>
+      )}
+
       {registered.length > 0 && (
         <div
           role="status"
@@ -619,7 +704,6 @@ export function VocabularyForm({
         errors={fieldErrors}
         onEdit={clearFieldError}
         wordInputRef={wordInputRef}
-        onWordNotFound={setNotFoundMessage}
       />
 
       {main.aiExtras && (
@@ -629,12 +713,15 @@ export function VocabularyForm({
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs text-foreground/60">관련 한자</span>
               {main.aiExtras.relatedKanji.map((kanji) => (
-                <span
+                <Link
                   key={kanji}
-                  className="border-2 border-pixel-ink bg-surface px-2.5 py-0.5 text-xs font-bold"
+                  href={`/kanji/${encodeURIComponent(kanji)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="border-2 border-pixel-ink bg-surface px-2.5 py-0.5 text-xs font-bold hover:bg-background"
                 >
                   {kanji}
-                </span>
+                </Link>
               ))}
             </div>
           )}
@@ -687,11 +774,20 @@ export function VocabularyForm({
             </div>
           )}
           <p className="text-xs text-foreground/50">
-            유의어·연관 표현을 클릭하면 이 단어와는 별개로 새로 등록할 단어 폼이 아래에 추가돼요 (위
-            &ldquo;관련 표현&rdquo; 섹션과 달리 새 단어를 만들어요). 다시 누르면 취소돼요. 관련
-            한자는 추후 한자 학습 기능(Phase 9)과 연결될 예정이라 지금은 참고용 텍스트로만 표시돼요.
+            유의어·연관 표현을 누르면 별개의 새 단어 카드가 아래에 추가돼요. 다시 누르면 취소돼요.
+            관련 한자를 누르면 한자 정보가 새 탭에서 열려요.
           </p>
         </Card>
+      )}
+
+      {extraWords.length >= 2 && (
+        <button
+          type="button"
+          onClick={toggleAllExtras}
+          className="self-end text-xs font-bold text-primary hover:underline"
+        >
+          {allExtrasExpanded ? "카드 모두 접기" : "카드 모두 펼치기"}
+        </button>
       )}
 
       {extraWords.map((entry, index) => (
@@ -708,7 +804,6 @@ export function VocabularyForm({
             }
             onToggleExpanded={() => updateExtraWord(entry.key, { expanded: !entry.expanded })}
             onRemove={() => removeExtraWord(entry.key)}
-            onWordNotFound={setNotFoundMessage}
           />
         </div>
       ))}
@@ -815,22 +910,6 @@ export function VocabularyForm({
         onCancel={() => setDupReview(null)}
         onConfirm={() => void confirmDuplicates()}
       />
-
-      <Modal
-        open={notFoundMessage !== null}
-        onClose={() => setNotFoundMessage(null)}
-        title="존재하지 않는 단어예요"
-      >
-        <div className="flex flex-col gap-4">
-          <p className="text-sm text-foreground">{notFoundMessage}</p>
-          <p className="text-xs text-foreground/60">
-            단어를 고쳐 다시 분석하거나, 그대로 직접 입력해 등록할 수도 있어요.
-          </p>
-          <Button type="button" className="self-end" onClick={() => setNotFoundMessage(null)}>
-            확인
-          </Button>
-        </div>
-      </Modal>
     </form>
   );
 }

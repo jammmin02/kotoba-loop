@@ -27,7 +27,6 @@ interface ExtraWordCardProps {
   onChangeDraft: (updater: (prev: WordDraft) => WordDraft) => void;
   onToggleExpanded: () => void;
   onRemove: () => void;
-  onWordNotFound: (message: string) => void;
 }
 
 /** "함께 등록할 단어" 카드 — 접고 펼 수 있는 헤더 + 메인 단어와 같은 `WordFields`. */
@@ -37,7 +36,6 @@ export function ExtraWordCard({
   onChangeDraft,
   onToggleExpanded,
   onRemove,
-  onWordNotFound,
 }: ExtraWordCardProps) {
   const summaryMeaning = entry.meanings.find((m) => m.trim());
 
@@ -81,14 +79,7 @@ export function ExtraWordCard({
         </p>
       )}
 
-      {entry.expanded && (
-        <WordFields
-          draft={entry}
-          onChange={onChangeDraft}
-          variant="nested"
-          onWordNotFound={onWordNotFound}
-        />
-      )}
+      {entry.expanded && <WordFields draft={entry} onChange={onChangeDraft} variant="nested" />}
     </Card>
   );
 }

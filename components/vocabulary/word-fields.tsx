@@ -103,8 +103,6 @@ export interface WordFieldsProps {
   /** 필드를 고쳤을 때 호출 — 그 필드의 검증 오류를 지우는 데 쓴다. */
   onEdit?: (field: FieldErrorKey) => void;
   wordInputRef?: Ref<HTMLInputElement>;
-  /** AI가 존재하지 않는 단어로 판정했을 때 안내 모달을 띄우는 쪽(폼)에 알린다. */
-  onWordNotFound: (message: string) => void;
 }
 
 /**
@@ -119,12 +117,17 @@ export function WordFields({
   errors,
   onEdit,
   wordInputRef,
-  onWordNotFound,
 }: WordFieldsProps) {
   const isMain = variant === "main";
   const target = (name: string) => (isMain ? { "data-form-target": name } : {});
 
   const [overwriteTarget, setOverwriteTarget] = useState<AnalysisTarget | null>(null);
+  // AI가 존재하지 않는 단어로 판정하면 폼을 채우지 않고 이 안내를 모달로 보여준다.
+  const [notFound, setNotFound] = useState<{
+    message: string;
+    suggestion?: string;
+    target: AnalysisTarget;
+  } | null>(null);
   // 분석이 끝났을 때의 "지금" 단어와 비교하려고 최신 draft를 ref로 들고 있는다.
   const latestDraft = useRef(draft);
   useEffect(() => {
@@ -155,9 +158,14 @@ export function WordFields({
       }
       if (analyzedTarget === "all" || analyzedTarget === "meanings") onEdit?.("meanings");
     },
-    onError: (err) => {
+    onError: (err, { target: failedTarget }) => {
       if (isWordNotFound(err)) {
-        onWordNotFound(err.message);
+        const suggestion = err.details?.suggestion;
+        setNotFound({
+          message: err.message,
+          suggestion: typeof suggestion === "string" ? suggestion : undefined,
+          target: failedTarget,
+        });
         return;
       }
       toast.error(err instanceof ApiClientError ? err.message : "AI 분석에 실패했습니다.");
@@ -178,6 +186,16 @@ export function WordFields({
       return;
     }
     analyzeMutation.mutate({ target: t, word: draft.word });
+  }
+
+  /** 추천 단어로 바꾸고, 방금 실패한 것과 같은 범위로 다시 분석한다. */
+  function applySuggestion() {
+    if (!notFound?.suggestion) return;
+    const { suggestion, target: retryTarget } = notFound;
+    setNotFound(null);
+    onEdit?.("word");
+    onChange((prev) => resetAiState({ ...prev, word: suggestion }));
+    analyzeMutation.mutate({ target: retryTarget, word: suggestion });
   }
 
   function confirmOverwrite() {
@@ -569,6 +587,29 @@ export function WordFields({
           </p>
         )}
       </Section>
+
+      <Modal
+        open={notFound !== null}
+        onClose={() => setNotFound(null)}
+        title="존재하지 않는 단어예요"
+      >
+        <div className="flex flex-col gap-4">
+          <p className="text-sm text-foreground">{notFound?.message}</p>
+          <p className="text-xs text-foreground/60">
+            단어를 고쳐 다시 분석하거나, 그대로 직접 입력해 등록할 수도 있어요.
+          </p>
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button type="button" variant="outline" onClick={() => setNotFound(null)}>
+              확인
+            </Button>
+            {notFound?.suggestion && (
+              <Button type="button" onClick={applySuggestion}>
+                「{notFound.suggestion}」로 바꾸고 다시 분석
+              </Button>
+            )}
+          </div>
+        </div>
+      </Modal>
 
       <Modal
         open={overwriteTarget !== null}
