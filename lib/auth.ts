@@ -4,6 +4,8 @@ import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 
 import { isRegistrationAllowed } from "@/lib/auth-registration-policy";
+import { clearLoginFailures, isLoginBlocked, recordLoginFailure } from "@/lib/auth-throttle";
+import { pickClientIp } from "@/lib/auth-throttle-policy";
 import { db } from "@/lib/db";
 
 /**
@@ -29,6 +31,9 @@ export class AccountRejectedError extends CredentialsSignin {
 export class AccountSuspendedError extends CredentialsSignin {
   code = "account_suspended";
 }
+export class TooManyAttemptsError extends CredentialsSignin {
+  code = "too_many_attempts";
+}
 export class AccountDeletedError extends CredentialsSignin {
   code = "account_deleted";
 }
@@ -49,20 +54,34 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
         const rawEmail = credentials?.email;
         const password = credentials?.password;
         if (typeof rawEmail !== "string" || typeof password !== "string") {
           throw new AccountNotFoundError();
         }
         const email = rawEmail.trim().toLowerCase();
+        const ip = pickClientIp(request.headers);
+
+        // 잠금은 계정 존재 여부와 무관하게 먼저 판정한다(올바른 비밀번호여도 잠겨 있으면 거부).
+        if (await isLoginBlocked(email, ip)) throw new TooManyAttemptsError();
 
         const user = await db.user.findUnique({ where: { email } });
-        if (!user) throw new AccountNotFoundError();
-        if (!user.password_hash) throw new GoogleOnlyAccountError();
+        if (!user) {
+          await recordLoginFailure(email, ip);
+          throw new AccountNotFoundError();
+        }
+        if (!user.password_hash) {
+          await recordLoginFailure(email, ip);
+          throw new GoogleOnlyAccountError();
+        }
 
         const valid = await bcrypt.compare(password, user.password_hash);
-        if (!valid) throw new InvalidPasswordError();
+        if (!valid) {
+          await recordLoginFailure(email, ip);
+          throw new InvalidPasswordError();
+        }
+        await clearLoginFailures(email);
 
         // 비밀번호가 맞은 뒤에만 상태를 알려준다(상태를 알아내는 용도로 계정 존재를 탐색하지 못하게).
         if (user.deleted_at) throw new AccountDeletedError();

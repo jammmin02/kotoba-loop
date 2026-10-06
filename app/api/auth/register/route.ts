@@ -8,6 +8,8 @@ import {
   REGISTRATION_REJECTED_MESSAGE,
   registrationRestrictedMessage,
 } from "@/lib/auth-registration-policy";
+import { isRegisterBlocked, recordRegisterAttempt } from "@/lib/auth-throttle";
+import { pickClientIp } from "@/lib/auth-throttle-policy";
 import { db } from "@/lib/db";
 import { Prisma } from "@/lib/generated/prisma/client";
 import { getAllowedEmailDomains } from "@/lib/settings";
@@ -24,6 +26,11 @@ interface RegisterData {
 }
 
 export const POST = withApiHandler(async (req: NextRequest): Promise<RegisterData> => {
+  const ip = pickClientIp(req.headers);
+  if (await isRegisterBlocked(ip)) {
+    throw new ApiError("RATE_LIMITED", "가입 시도가 너무 많아요. 잠시 후 다시 시도해주세요.");
+  }
+
   const body = await req.json();
   const { nickname, email, password } = registerSchema.parse(body);
 
@@ -47,6 +54,7 @@ export const POST = withApiHandler(async (req: NextRequest): Promise<RegisterDat
     throw new ApiError("VALIDATION_ERROR", "이미 사용 중인 이메일입니다.");
   }
 
+  await recordRegisterAttempt(ip);
   const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
 
   try {

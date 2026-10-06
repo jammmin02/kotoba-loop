@@ -11,6 +11,7 @@ export const AUTH_ERROR_MESSAGES: Record<string, string> = {
   account_rejected: "가입이 거절된 계정입니다. 다시 신청할 수 없습니다.",
   account_suspended: "이용이 정지된 계정입니다.",
   account_deleted: "삭제된 계정입니다.",
+  too_many_attempts: "로그인 시도가 너무 많아요. 15분 뒤에 다시 시도해주세요.",
   credentials: "이메일 또는 비밀번호가 올바르지 않습니다.",
   OAuthAccountNotLinked: "이미 다른 방법으로 가입된 이메일입니다.",
   AccessDenied: "허용된 이메일 도메인으로만 가입할 수 있습니다.",
