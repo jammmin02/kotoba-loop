@@ -11,9 +11,24 @@ import { DeleteVocabularyBookModal } from "@/components/vocabulary/delete-vocabu
 import { VocabularyBookCard } from "@/components/vocabulary/vocabulary-book-card";
 import { VocabularyBookFormModal } from "@/components/vocabulary/vocabulary-book-form-modal";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
+import { cn } from "@/lib/utils";
 import type { VocabularyBookSummary } from "@/types/vocabulary-book";
 
+const FILTERS = [
+  { key: "all", label: "전체" },
+  { key: "public", label: "공개" },
+  { key: "private", label: "비공개" },
+] as const;
+
+type FilterKey = (typeof FILTERS)[number]["key"];
+
+const FILTER_EMPTY_MESSAGE: Record<Exclude<FilterKey, "all">, string> = {
+  public: "공개 단어장이 없어요",
+  private: "비공개 단어장이 없어요",
+};
+
 export function VocabularyBooksView() {
+  const [filter, setFilter] = useState<FilterKey>("all");
   const [createOpen, setCreateOpen] = useState(false);
   const [editingBook, setEditingBook] = useState<VocabularyBookSummary | null>(null);
   const [deletingBook, setDeletingBook] = useState<VocabularyBookSummary | null>(null);
@@ -27,6 +42,16 @@ export function VocabularyBooksView() {
     queryKey: ["vocabulary-books"],
     queryFn: () => apiFetch<VocabularyBookSummary[]>("/api/vocabulary-books"),
   });
+
+  // 관리자 숨김(isHidden) 책도 공개 여부는 그대로라 "공개" 탭에 남기고, 카드의 "관리자 숨김" 배지로 구분한다.
+  const counts: Record<FilterKey, number> = {
+    all: books?.length ?? 0,
+    public: books?.filter((b) => b.isPublic).length ?? 0,
+    private: books?.filter((b) => !b.isPublic).length ?? 0,
+  };
+  const visibleBooks = books?.filter((b) =>
+    filter === "all" ? true : filter === "public" ? b.isPublic : !b.isPublic,
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -70,8 +95,40 @@ export function VocabularyBooksView() {
       )}
 
       {books && books.length > 0 && (
+        <div className="flex gap-2" role="tablist" aria-label="단어장 공개 여부 필터">
+          {FILTERS.map((f) => (
+            <button
+              key={f.key}
+              type="button"
+              role="tab"
+              aria-selected={filter === f.key}
+              onClick={() => setFilter(f.key)}
+              className={cn(
+                "border-2 px-3 py-1.5 text-sm font-bold transition",
+                filter === f.key
+                  ? "border-pixel-ink bg-primary text-primary-foreground shadow-bevel-sunken"
+                  : "border-pixel-ink bg-surface text-foreground/70 hover:bg-background",
+              )}
+            >
+              {f.label} ({counts[f.key]})
+            </button>
+          ))}
+        </div>
+      )}
+
+      {books &&
+        books.length > 0 &&
+        visibleBooks &&
+        visibleBooks.length === 0 &&
+        filter !== "all" && (
+          <p className="py-8 text-center text-sm font-content text-foreground/60">
+            {FILTER_EMPTY_MESSAGE[filter]}
+          </p>
+        )}
+
+      {visibleBooks && visibleBooks.length > 0 && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {books.map((book, index) => (
+          {visibleBooks.map((book, index) => (
             <VocabularyBookCard
               key={book.id}
               book={book}
