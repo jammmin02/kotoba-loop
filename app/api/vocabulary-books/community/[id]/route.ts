@@ -3,6 +3,7 @@ import { withApiHandler } from "@/lib/api/handler";
 import { auth } from "@/lib/auth";
 import { formatKstISOString } from "@/lib/datetime";
 import { db } from "@/lib/db";
+import { canViewHiddenBook, HIDDEN_BOOK_NAME } from "@/lib/moderation/book-visibility";
 import type { CommunityBookDetail } from "@/types/community";
 
 import type { NextRequest } from "next/server";
@@ -48,6 +49,27 @@ export const GET = withApiHandler(
       throw new ApiError("NOT_FOUND", "단어장을 찾을 수 없습니다.");
     }
 
+    const isOwner = book.user_id === session.user.id;
+    const hidden = book.hidden_at !== null;
+    if (
+      hidden &&
+      !canViewHiddenBook({ id: session.user.id, role: session.user.role }, book.user_id)
+    ) {
+      return {
+        id: book.id,
+        name: HIDDEN_BOOK_NAME,
+        description: null,
+        ownerNickname: "",
+        wordCount: 0,
+        importCount: 0,
+        createdAt: formatKstISOString(book.created_at),
+        hidden: true,
+        hideReason: null,
+        isOwner: false,
+        words: [],
+      };
+    }
+
     return {
       id: book.id,
       name: book.name,
@@ -56,7 +78,9 @@ export const GET = withApiHandler(
       wordCount: book._count.items,
       importCount: book.import_count,
       createdAt: formatKstISOString(book.created_at),
-      isOwner: book.user_id === session.user.id,
+      hidden,
+      hideReason: book.hide_reason,
+      isOwner,
       words: book.items.map((item) => ({
         id: item.vocabulary.id,
         word: item.vocabulary.word,

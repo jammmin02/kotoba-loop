@@ -35,7 +35,14 @@ export function VocabularyBookCard({ book, index, onEdit, onDelete }: Vocabulary
   return (
     <div className={cn(cardVariants(), "flex flex-col", isMaster && "border-accent shadow-glow")}>
       <BookSlotTitleBar color={color}>
-        <VisibilityChip isPublic={book.isPublic} />
+        <div className="flex items-center gap-1">
+          {book.isHidden && (
+            <span className="flex shrink-0 items-center whitespace-nowrap border-2 border-pixel-ink bg-warning px-1.5 py-0.5 text-[11px] font-bold text-warning-foreground">
+              관리자 숨김
+            </span>
+          )}
+          <VisibilityChip isPublic={book.isPublic} />
+        </div>
       </BookSlotTitleBar>
 
       <div className="flex flex-1 flex-col gap-3 p-4">

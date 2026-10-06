@@ -23,7 +23,7 @@ export const GET = withApiHandler(async (): Promise<FriendSummary[]> => {
           id: true,
           nickname: true,
           email: true,
-          _count: { select: { vocabularyBooks: { where: { is_public: true } } } },
+          _count: { select: { vocabularyBooks: { where: { is_public: true, hidden_at: null } } } },
         },
       },
     },

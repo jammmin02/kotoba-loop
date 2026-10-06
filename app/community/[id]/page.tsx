@@ -1,13 +1,15 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
-import { PixelBookOpen, PixelDownload } from "@/components/icons/pixel-icons";
+import { PixelBookOpen, PixelDownload, PixelLock } from "@/components/icons/pixel-icons";
 import { ImportBookButton } from "@/components/social/import-book-button";
+import { ReportBookButton } from "@/components/social/report-book-button";
 import { Card } from "@/components/ui/card";
 import { BookEmblem, BookSlotTitleBar, StatChip } from "@/components/vocabulary/book-slot";
 import { auth } from "@/lib/auth";
 import { formatKstISOString } from "@/lib/datetime";
 import { db } from "@/lib/db";
+import { canViewHiddenBook, HIDDEN_BOOK_NAME } from "@/lib/moderation/book-visibility";
 
 export default async function CommunityBookDetailPage(props: PageProps<"/community/[id]">) {
   const session = await auth();
@@ -37,6 +39,26 @@ export default async function CommunityBookDetailPage(props: PageProps<"/communi
   }
 
   const isOwner = book.user_id === session.user.id;
+  const hidden = book.hidden_at !== null;
+  const viewer = { id: session.user.id, role: session.user.role };
+  // 숨김 처리된 단어장의 원문은 작성자·관리자만 볼 수 있다. 그 외에는 안내만 보여준다.
+  if (hidden && !canViewHiddenBook(viewer, book.user_id)) {
+    return (
+      <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
+        <Link
+          href="/community"
+          className="text-sm font-bold text-foreground/60 hover:text-foreground"
+        >
+          ← 커뮤니티 단어장
+        </Link>
+        <Card className="flex flex-col items-center gap-3 py-10 text-center">
+          <PixelLock className="size-12 text-foreground/30" aria-hidden="true" />
+          <p className="text-sm font-bold text-foreground">{HIDDEN_BOOK_NAME}</p>
+          <p className="text-xs text-foreground/50">이 단어장은 볼 수 없어요.</p>
+        </Card>
+      </main>
+    );
+  }
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
@@ -61,8 +83,23 @@ export default async function CommunityBookDetailPage(props: PageProps<"/communi
               <h1 className="truncate text-lg font-bold text-foreground">{book.name}</h1>
               <p className="text-xs text-foreground/50">{book.user.nickname}</p>
             </div>
-            {!isOwner && <ImportBookButton bookId={book.id} />}
+            {!isOwner && (
+              <div className="flex shrink-0 flex-wrap justify-end gap-2">
+                {!hidden && <ImportBookButton bookId={book.id} />}
+                <ReportBookButton bookId={book.id} />
+              </div>
+            )}
           </div>
+          {hidden && (
+            <p
+              role="status"
+              className="border-2 border-pixel-ink bg-warning p-2 text-xs font-bold text-warning-foreground"
+            >
+              관리자에 의해 숨김 처리된 단어장입니다
+              {book.hide_reason ? ` (사유: ${book.hide_reason})` : ""}. 작성자와 관리자만 볼 수
+              있어요.
+            </p>
+          )}
           {book.description && (
             <p className="font-content text-sm text-foreground/70">{book.description}</p>
           )}

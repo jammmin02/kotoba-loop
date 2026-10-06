@@ -3,6 +3,7 @@ import { withApiHandler } from "@/lib/api/handler";
 import { auth } from "@/lib/auth";
 import { formatKstISOString } from "@/lib/datetime";
 import { db } from "@/lib/db";
+import { assertCanWrite } from "@/lib/moderation/restriction";
 import { updateVocabularyBookSchema } from "@/lib/validations/vocabulary-book";
 import type { VocabularyBookSummary } from "@/types/vocabulary-book";
 
@@ -33,6 +34,7 @@ export const PATCH = withApiHandler(
 
     const { id } = await ctx.params;
     await requireOwnedBook(id, session.user.id);
+    await assertCanWrite(session.user.id);
 
     const body = await req.json();
     const { name, description, isPublic } = updateVocabularyBookSchema.parse(body);

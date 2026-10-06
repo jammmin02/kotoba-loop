@@ -35,6 +35,10 @@ export const POST = withApiHandler(
       throw new ApiError("NOT_FOUND", "단어장을 찾을 수 없습니다.");
     }
 
+    if (source.hidden_at) {
+      throw new ApiError("FORBIDDEN", "관리자에 의해 숨김 처리된 단어장은 가져올 수 없습니다.");
+    }
+
     const newBook = await db.$transaction(async (tx) => {
       const book = await tx.vocabularyBook.create({
         data: {

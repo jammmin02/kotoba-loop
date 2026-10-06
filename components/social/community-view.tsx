@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import { PixelDownload, PixelGlobe } from "@/components/icons/pixel-icons";
+import { PixelDownload, PixelGlobe, PixelLock } from "@/components/icons/pixel-icons";
 import { Button } from "@/components/ui/button";
 import { Card, cardVariants } from "@/components/ui/card";
 import { ChipButton } from "@/components/ui/chip-button";
@@ -113,12 +113,25 @@ export function CommunityView({ initialSort, initialUserId, initialNickname }: C
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {data.items.map((book, index) => (
               <Link key={book.id} href={`/community/${book.id}`} className="flex h-full">
-                <div className={cn(cardVariants(), "flex w-full flex-col")}>
+                <div
+                  className={cn(
+                    cardVariants(),
+                    "flex w-full flex-col",
+                    book.hidden && "opacity-80",
+                  )}
+                >
                   <BookSlotTitleBar color={slotColorForIndex(index)}>
-                    <StatChip
-                      icon={<PixelDownload className="size-3 shrink-0" aria-hidden="true" />}
-                      label={`가져감 ${book.importCount}회`}
-                    />
+                    {book.hidden ? (
+                      <StatChip
+                        icon={<PixelLock className="size-3 shrink-0" aria-hidden="true" />}
+                        label="숨김"
+                      />
+                    ) : (
+                      <StatChip
+                        icon={<PixelDownload className="size-3 shrink-0" aria-hidden="true" />}
+                        label={`가져감 ${book.importCount}회`}
+                      />
+                    )}
                   </BookSlotTitleBar>
                   <div className="flex flex-1 flex-col gap-3 p-4">
                     <div className="flex items-start gap-3">
@@ -133,10 +146,12 @@ export function CommunityView({ initialSort, initialUserId, initialNickname }: C
                         {book.description}
                       </p>
                     )}
-                    <div className="mt-auto flex items-center justify-between gap-2 text-xs text-foreground/50">
-                      <span>단어 {book.wordCount}개</span>
-                      <span>{formatDate(book.createdAt)}</span>
-                    </div>
+                    {!book.hidden && (
+                      <div className="mt-auto flex items-center justify-between gap-2 text-xs text-foreground/50">
+                        <span>단어 {book.wordCount}개</span>
+                        <span>{formatDate(book.createdAt)}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </Link>

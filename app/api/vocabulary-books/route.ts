@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { formatKstISOString } from "@/lib/datetime";
 import { db } from "@/lib/db";
 import { LearningStatus } from "@/lib/generated/prisma/client";
+import { assertCanWrite } from "@/lib/moderation/restriction";
 import { createVocabularyBookSchema } from "@/lib/validations/vocabulary-book";
 import type { VocabularyBookSummary } from "@/types/vocabulary-book";
 
@@ -40,6 +41,7 @@ export const GET = withApiHandler(async (): Promise<VocabularyBookSummary[]> => 
     name: book.name,
     description: book.description,
     isPublic: book.is_public,
+    isHidden: book.hidden_at !== null,
     createdAt: formatKstISOString(book.created_at),
     wordCount: book._count.items,
     masteredCount: book.items.filter(
@@ -53,6 +55,8 @@ export const POST = withApiHandler(async (req: NextRequest): Promise<VocabularyB
   if (!session?.user) {
     throw new ApiError("UNAUTHORIZED", "로그인이 필요합니다.");
   }
+
+  await assertCanWrite(session.user.id);
 
   const body = await req.json();
   const { name, description, isPublic } = createVocabularyBookSchema.parse(body);
