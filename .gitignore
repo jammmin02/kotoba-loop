@@ -51,3 +51,11 @@ next-env.d.ts
 
 # local tooling config
 /.claude/
+
+# png, jpg, and other image files
+*.png
+*.jpg
+
+# docs
+*.docx
+*.pdf
