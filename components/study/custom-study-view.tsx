@@ -85,7 +85,12 @@ function SessionRunner({ session, onExit }: { session: StartedSession; onExit: (
 
   if (session.gameMode === "flashcard") {
     return (
-      <FlashcardSession key="custom-flashcards" mode="custom" queue={words.map(toSessionCard)} />
+      <FlashcardSession
+        key="custom-flashcards"
+        mode="custom"
+        queue={words.map(toSessionCard)}
+        onExit={onExit}
+      />
     );
   }
 
@@ -96,6 +101,7 @@ function SessionRunner({ session, onExit }: { session: StartedSession; onExit: (
       quizTypes={session.quizTypes}
       returnHref="/study/custom"
       returnLabel="커스텀 학습으로 돌아가기"
+      onExit={onExit}
     />
   );
 }

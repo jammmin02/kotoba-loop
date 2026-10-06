@@ -34,9 +34,20 @@ export interface FlashcardSessionProps {
    * 대신 다음 단계로 넘어가는 버튼을 보여준다. 태그 모드나 콜백이 없을 때는 기존 동작 그대로.
    */
   onComplete?: () => void;
+  /**
+   * 완료 화면의 "돌아가기" 링크 대신 호출되는 콜백. 커스텀 학습처럼 같은 URL 안에서 상태로
+   * 화면을 전환하는 경우, 같은 경로로의 Link 이동은 상태를 초기화하지 못하므로 필요하다.
+   */
+  onExit?: () => void;
 }
 
-export function FlashcardSession({ mode, queue, tagName, onComplete }: FlashcardSessionProps) {
+export function FlashcardSession({
+  mode,
+  queue,
+  tagName,
+  onComplete,
+  onExit,
+}: FlashcardSessionProps) {
   const queryClient = useQueryClient();
   const {
     queue: storeQueue,
@@ -138,6 +149,10 @@ export function FlashcardSession({ mode, queue, tagName, onComplete }: Flashcard
         {mode === "today" && onComplete ? (
           <Button type="button" variant="quest" size="lg" className="w-full" onClick={onComplete}>
             복습 퀴즈로 이어가기
+          </Button>
+        ) : onExit ? (
+          <Button type="button" variant="quest" size="lg" className="w-full" onClick={onExit}>
+            {mode === "custom" ? "커스텀 학습으로 돌아가기" : "돌아가기"}
           </Button>
         ) : (
           <Link
