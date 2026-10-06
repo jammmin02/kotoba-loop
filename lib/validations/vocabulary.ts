@@ -166,6 +166,37 @@ export const bulkSaveSchema = z.object({
 
 export type BulkSaveInput = z.infer<typeof bulkSaveSchema>;
 
+/** 한 번의 `/api/vocabularies/batch` 요청에 담을 수 있는 최대 단어 수(새 단어 등록 화면의 카드 수). */
+export const BATCH_SAVE_MAX_ITEMS = 20;
+
+/** `/api/vocabularies/batch`의 항목 하나 — 단어장은 요청 전체가 공유하므로 항목에는 없다. 사진 검수용
+ * `bulkSaveItemSchema`와 달리 관련 표현을 받고, 항목마다 따로 검증해 일부만 실패할 수 있다. */
+export const batchItemSchema = z.discriminatedUnion("resolution", [
+  vocabularySchema.omit({ vocabularyBookIds: true }).extend({
+    resolution: z.literal("create"),
+    aiAnalysisId: z.string().min(1).optional(),
+    aiFieldsEdited: z.boolean().optional(),
+  }),
+  z.object({
+    resolution: z.literal("link"),
+    word: z.string().trim().min(1).max(VOCABULARY_WORD_MAX),
+    reading: z.string().trim().min(1).max(VOCABULARY_READING_MAX),
+    existingVocabularyId: z.string().min(1),
+  }),
+  z.object({
+    resolution: z.literal("skip"),
+    word: z.string().trim().min(1).max(VOCABULARY_WORD_MAX),
+  }),
+]);
+
+export type BatchItemInput = z.infer<typeof batchItemSchema>;
+
+export const batchSaveSchema = z.object({
+  vocabularyBookIds: z.array(z.string().min(1)).min(1, "단어장을 1개 이상 선택해주세요."),
+  // 항목은 서버에서 하나씩 검증한다 — 하나가 잘못됐다고 요청 전체를 400으로 거부하지 않는다.
+  items: z.array(z.unknown()).min(1).max(BATCH_SAVE_MAX_ITEMS),
+});
+
 export const vocabularyListQuerySchema = z.object({
   bookId: z.string().min(1).optional(),
   /** 쉼표로 구분한 여러 단어장 id(커스텀 학습의 다중 선택용). bookId와 동시에 와도 둘 다 반영된다. */

@@ -1,12 +1,11 @@
 import { checkWordRegisterAchievements } from "@/lib/achievement/service";
-import { WORD_ANALYSIS_TYPE } from "@/lib/ai/word-analysis";
 import { ApiError } from "@/lib/api/error";
 import { withApiHandler } from "@/lib/api/handler";
 import { auth } from "@/lib/auth";
 import { formatKstISOString } from "@/lib/datetime";
 import { db } from "@/lib/db";
 import { vocabularyCreateSchema, vocabularyListQuerySchema } from "@/lib/validations/vocabulary";
-import { syncVocabularyKanji } from "@/lib/vocabulary-kanji";
+import { createVocabularyRecord } from "@/lib/vocabulary-create";
 import type { VocabularySummary } from "@/types/vocabulary";
 
 import type { NextRequest } from "next/server";
@@ -74,19 +73,8 @@ export const POST = withApiHandler(async (req: NextRequest): Promise<VocabularyS
     throw new ApiError("UNAUTHORIZED", "로그인이 필요합니다.");
   }
 
-  const body = await req.json();
-  const {
-    word,
-    reading,
-    partOfSpeech,
-    jlptLevel,
-    meanings,
-    examples,
-    relatedExpressions,
-    vocabularyBookIds,
-    aiAnalysisId,
-    aiFieldsEdited,
-  } = vocabularyCreateSchema.parse(body);
+  const input = vocabularyCreateSchema.parse(await req.json());
+  const { vocabularyBookIds, meanings } = input;
 
   const ownedBookCount = await db.vocabularyBook.count({
     where: { id: { in: vocabularyBookIds }, user_id: session.user.id },
@@ -96,41 +84,7 @@ export const POST = withApiHandler(async (req: NextRequest): Promise<VocabularyS
   }
 
   const { vocabulary, unlockedAchievements } = await db.$transaction(async (tx) => {
-    const created = await tx.vocabulary.create({
-      data: {
-        word,
-        reading,
-        part_of_speech: partOfSpeech,
-        jlpt_level: jlptLevel,
-        meanings: { create: meanings.map((meaning) => ({ meaning })) },
-        examples: {
-          create: examples.map((example) => ({
-            japanese: example.japanese,
-            korean: example.korean,
-          })),
-        },
-        relatedExpressions: {
-          create: relatedExpressions.map((related, index) => ({
-            relation_type: related.relationType,
-            expression: related.expression,
-            meaning: related.meaning,
-            order: index,
-          })),
-        },
-        bookItems: { create: vocabularyBookIds.map((bookId) => ({ vocabulary_book_id: bookId })) },
-      },
-    });
-    await tx.userVocabulary.create({
-      data: { user_id: session.user.id, vocabulary_id: created.id, learning_status: "NEW" },
-    });
-    await syncVocabularyKanji(tx, created.id, word);
-    if (aiAnalysisId) {
-      // Best-effort: an unknown/foreign id just updates 0 rows, never fails the save.
-      await tx.aIAnalysis.updateMany({
-        where: { id: aiAnalysisId, user_id: session.user.id, analysis_type: WORD_ANALYSIS_TYPE },
-        data: { status: aiFieldsEdited ? "edited" : "confirmed" },
-      });
-    }
+    const created = await createVocabularyRecord(tx, session.user.id, input);
     // 업적(PROMPT 27): "첫 단어 등록"은 학습이 아니라 등록 시점 조건이라 EXP 지급 경로
     // (grantActionExp)가 아니라 여기서 직접 체크한다.
     const unlockedAchievements = await checkWordRegisterAchievements(tx, session.user.id);

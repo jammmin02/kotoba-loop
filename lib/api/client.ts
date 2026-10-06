@@ -11,12 +11,19 @@ export type ApiClientErrorCode = ApiErrorCode | "NETWORK_ERROR" | "TIMEOUT";
 export class ApiClientError extends Error {
   readonly code: ApiClientErrorCode;
   readonly status?: number;
+  readonly details?: Record<string, unknown>;
 
-  constructor(code: ApiClientErrorCode, message: string, status?: number) {
+  constructor(
+    code: ApiClientErrorCode,
+    message: string,
+    status?: number,
+    details?: Record<string, unknown>,
+  ) {
     super(message);
     this.name = "ApiClientError";
     this.code = code;
     this.status = status;
+    this.details = details;
   }
 }
 
@@ -67,7 +74,7 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
   }
 
   if (!json.success) {
-    throw new ApiClientError(json.error.code, json.error.message, res.status);
+    throw new ApiClientError(json.error.code, json.error.message, res.status, json.error.details);
   }
 
   return json.data;

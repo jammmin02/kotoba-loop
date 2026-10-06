@@ -24,6 +24,8 @@ export type ApiErrorCode = (typeof API_ERROR_CODES)[number];
 export interface ApiErrorBody {
   code: ApiErrorCode;
   message: string;
+  /** 오류 코드별 부가 정보(예: WORD_NOT_FOUND의 `suggestion`). 없는 경우가 대부분이다. */
+  details?: Record<string, unknown>;
 }
 
 export interface ApiSuccessResponse<T> {

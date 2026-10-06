@@ -15,6 +15,11 @@ import { Modal } from "@/components/ui/modal";
 import { Select } from "@/components/ui/select";
 import { toast } from "@/components/ui/toast";
 import { VoiceInputButton } from "@/components/ui/voice-input-button";
+import { DuplicateReviewModal } from "@/components/vocabulary/duplicate-review-modal";
+import type {
+  DuplicateResolution,
+  DuplicateReviewItem,
+} from "@/components/vocabulary/duplicate-review-modal";
 import { createExtraWordEntry, ExtraWordCard } from "@/components/vocabulary/extra-word-card";
 import type { ExtraWordEntry } from "@/components/vocabulary/extra-word-card";
 import type { AnalyzeWordResult, WordAnalysisResult } from "@/lib/ai/word-analysis";
@@ -30,7 +35,13 @@ import {
 } from "@/lib/validations/vocabulary";
 import type { VocabularyInput } from "@/lib/validations/vocabulary";
 import { RELATED_EXPRESSION_TYPE_SELECT_OPTIONS } from "@/lib/vocabulary/related-expression";
-import type { RelatedExpressionType, VocabularyDetail } from "@/types/vocabulary";
+import type {
+  BatchSaveItemResult,
+  BatchSaveResponse,
+  DuplicateCheckResult,
+  RelatedExpressionType,
+  VocabularyDetail,
+} from "@/types/vocabulary";
 import type { VocabularyBookSummary } from "@/types/vocabulary-book";
 
 import type { FormEvent } from "react";
@@ -77,6 +88,26 @@ const MAIN_FIELD_ORDER: FieldErrorKey[] = [
   "relatedExpressions",
 ];
 const FIELD_ERROR_KEYS: string[] = [...MAIN_FIELD_ORDER, "vocabularyBookIds"];
+
+type SaveMode = "stay" | "continue";
+
+/** 검증을 통과한, 저장할 내용 전체 — 중복 확인 모달을 거쳐도 같은 내용을 그대로 저장한다. */
+interface SavePlan {
+  /** 메인 폼이 비어 카드만 등록하는 경우 null. */
+  main: VocabularyInput | null;
+  extras: {
+    key: string;
+    data: VocabularyInput;
+    aiAnalysisId?: string;
+    aiFieldsEdited: boolean;
+  }[];
+}
+
+/** 중복 확인 모달에서 고른 항목별 처리 방식 — 저장할 항목(main?, ...extras)과 같은 순서. */
+interface BatchResolution {
+  resolution: DuplicateResolution;
+  existingId?: string;
+}
 
 interface RelatedExpressionRow {
   relationType: RelatedExpressionType;
@@ -190,6 +221,11 @@ export function VocabularyForm({
   // AI가 "존재하지 않는 단어"로 판정하면 폼을 채우지 않고 이 메시지를 모달로 알린다.
   const [notFoundMessage, setNotFoundMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [dupReview, setDupReview] = useState<{
+    plan: SavePlan;
+    mode: SaveMode;
+    items: DuplicateReviewItem[];
+  } | null>(null);
   // 이번 화면에서 이미 저장된 단어들 — "등록하고 계속 추가"로 폼이 비워져도 진행 상황을 보여준다.
   const [registered, setRegistered] = useState<{ id: string; word: string }[]>([]);
   const wordInputRef = useRef<HTMLInputElement>(null);
@@ -479,7 +515,7 @@ export function VocabularyForm({
   const skipMain = !isEdit && !word.trim() && extraWords.length > 0;
   const saveCount = (skipMain ? 0 : 1) + extraWords.length;
 
-  async function submit(mode: "stay" | "continue") {
+  async function submit(mode: SaveMode) {
     if (submitting) return;
     setError(undefined);
 
@@ -599,98 +635,247 @@ export function VocabularyForm({
       return;
     }
 
+    const plan: SavePlan = {
+      main: mainData,
+      extras: extraInputs.map(({ key, data }) => {
+        const entry = extraWords.find((e) => e.key === key);
+        return {
+          key,
+          data,
+          aiAnalysisId: entry?.aiAnalysisId,
+          aiFieldsEdited: entry?.aiFieldsEdited ?? false,
+        };
+      }),
+    };
+
     setSubmitting(true);
     try {
-      let mainSaved: VocabularyDetail | null = null;
-      if (mainData) {
+      if (showContinue) {
+        // 이미 가진 단어를 또 만들지 않도록 저장 전에 중복을 확인하고, 있으면 처리 방식을 고르게 한다.
+        const entries = [...(plan.main ? [plan.main] : []), ...plan.extras.map((e) => e.data)];
+        let checks: DuplicateCheckResult[];
         try {
-          mainSaved = isEdit
-            ? await apiFetch<VocabularyDetail>(`/api/vocabularies/${initialData.id}`, {
-                method: "PATCH",
-                body: mainData,
-              })
-            : await apiFetch<VocabularyDetail>("/api/vocabularies", {
-                method: "POST",
-                body: { ...mainData, ...(aiAnalysisId ? { aiAnalysisId, aiFieldsEdited } : {}) },
-              });
+          checks = await apiFetch<DuplicateCheckResult[]>("/api/vocabularies/check-duplicates", {
+            method: "POST",
+            body: { items: entries.map(({ word: w, reading: r }) => ({ word: w, reading: r })) },
+          });
         } catch (err) {
-          setError(err instanceof ApiClientError ? err.message : "저장 중 오류가 발생했습니다.");
+          setError(
+            err instanceof ApiClientError ? err.message : "중복 확인 중 오류가 발생했습니다.",
+          );
           requestScroll("form-error");
           return;
         }
-      }
-
-      const savedWords: VocabularyDetail[] = mainSaved ? [mainSaved] : [];
-      const unlocked = [...(mainSaved?.unlockedAchievements ?? [])];
-      const savedKeys = new Set<string>();
-      const failures = new Map<string, string>();
-
-      for (const { key, data } of extraInputs) {
-        try {
-          const savedExtra = await apiFetch<VocabularyDetail>("/api/vocabularies", {
-            method: "POST",
-            body: data,
+        if (checks.some((check) => check.isDuplicate)) {
+          setDupReview({
+            plan,
+            mode,
+            items: entries.map((data, index) => {
+              const existing = checks[index].existing;
+              // 이미 선택한 단어장에 모두 들어 있으면 할 일이 없으니 기존 유지, 아니면 단어장 연결을 기본으로 둔다.
+              const alreadyInAllBooks =
+                !!existing && selectedBookIds.every((id) => existing.bookIds.includes(id));
+              return {
+                index,
+                word: data.word,
+                reading: data.reading,
+                meanings: data.meanings,
+                isDuplicate: checks[index].isDuplicate,
+                existing,
+                resolution: alreadyInAllBooks ? "skip" : "link",
+              };
+            }),
           });
-          savedWords.push(savedExtra);
-          savedKeys.add(key);
-          if (savedExtra.unlockedAchievements) unlocked.push(...savedExtra.unlockedAchievements);
-        } catch (err) {
-          const message = err instanceof ApiClientError ? err.message : "오류가 발생했습니다.";
-          failures.set(key, message);
-          toast.error(`"${data.word}" 등록에 실패했어요: ${message}`);
+          return;
         }
       }
-
-      queryClient.invalidateQueries({ queryKey: ["vocabularies"] });
-      queryClient.invalidateQueries({ queryKey: ["vocabulary-books"] });
-      if (savedWords.length > 0) {
-        toast.success(
-          savedWords.length > 1
-            ? `단어 ${savedWords.length}개를 ${isEdit ? "저장" : "등록"}했습니다.`
-            : isEdit
-              ? "단어를 수정했습니다."
-              : `「${savedWords[0].word}」를 등록했어요.`,
-        );
-      }
-
-      const uniqueAchievements = Array.from(new Map(unlocked.map((a) => [a.title, a])).values());
-      if (uniqueAchievements.length > 0) {
-        uniqueAchievements.forEach((achievement) => achievementToast.show(achievement.title));
-        queryClient.invalidateQueries({ queryKey: ["game", "achievements"] });
-      }
-
-      if (!isEdit) {
-        setRegistered((prev) => [
-          ...prev,
-          ...savedWords.map((saved) => ({ id: saved.id, word: saved.word })),
-        ]);
-      }
-      // 저장된 카드는 제거하고, 실패한 카드는 사유와 함께 남겨 바로 고쳐서 다시 시도할 수 있게 한다.
-      setExtraWords((prev) =>
-        prev
-          .filter((e) => !savedKeys.has(e.key))
-          .map((e) =>
-            failures.has(e.key) ? { ...e, error: failures.get(e.key), expanded: true } : e,
-          ),
-      );
-
-      if (failures.size > 0) {
-        // 메인 단어는 이미 저장됐으니 다시 제출되지 않도록 비운다(수정 모드는 그대로 둔다).
-        if (mainSaved && !isEdit) resetMainForm();
-        return;
-      }
-
-      if (mode === "continue" && showContinue) {
-        resetMainForm();
-        return;
-      }
-
-      const target = mainSaved ?? savedWords[0];
-      if (mainSaved && onSaved) onSaved(mainSaved);
-      else if (target) router.push(`/words/${target.id}`);
+      await executeSave(mode, plan);
     } finally {
       setSubmitting(false);
     }
+  }
+
+  async function confirmDuplicates() {
+    if (!dupReview) return;
+    const { plan, mode, items } = dupReview;
+    setSubmitting(true);
+    try {
+      await executeSave(
+        mode,
+        plan,
+        items.map((item) => ({
+          resolution: item.isDuplicate ? item.resolution : "create",
+          existingId: item.existing?.id,
+        })),
+      );
+    } finally {
+      setSubmitting(false);
+      setDupReview(null);
+    }
+  }
+
+  async function executeSave(mode: SaveMode, plan: SavePlan, resolutions?: BatchResolution[]) {
+    // 새 단어 등록 화면이 아니면(수정·모달 등) 메인 단어는 기존대로 단건 API로 저장해
+    // VocabularyDetail을 돌려받는다 — onSaved 호출부가 그 값을 쓴다.
+    let mainSaved: VocabularyDetail | null = null;
+    if (plan.main && !showContinue) {
+      try {
+        mainSaved = isEdit
+          ? await apiFetch<VocabularyDetail>(`/api/vocabularies/${initialData.id}`, {
+              method: "PATCH",
+              body: plan.main,
+            })
+          : await apiFetch<VocabularyDetail>("/api/vocabularies", {
+              method: "POST",
+              body: { ...plan.main, ...(aiAnalysisId ? { aiAnalysisId, aiFieldsEdited } : {}) },
+            });
+      } catch (err) {
+        setError(err instanceof ApiClientError ? err.message : "저장 중 오류가 발생했습니다.");
+        requestScroll("form-error");
+        return;
+      }
+    }
+
+    // 나머지(새 단어 등록 화면에서는 메인 포함)는 일괄 API 한 번으로 저장한다.
+    const entries: {
+      key: string | null;
+      data: VocabularyInput;
+      aiId?: string;
+      aiEdited: boolean;
+    }[] = [];
+    if (plan.main && showContinue) {
+      entries.push({ key: null, data: plan.main, aiId: aiAnalysisId, aiEdited: aiFieldsEdited });
+    }
+    plan.extras.forEach((e) =>
+      entries.push({ key: e.key, data: e.data, aiId: e.aiAnalysisId, aiEdited: e.aiFieldsEdited }),
+    );
+
+    const items = entries.map((entry, index) => {
+      const choice = resolutions?.[index];
+      if (choice?.resolution === "skip") {
+        return { resolution: "skip", word: entry.data.word };
+      }
+      if (choice?.resolution === "link" && choice.existingId) {
+        return {
+          resolution: "link",
+          word: entry.data.word,
+          reading: entry.data.reading,
+          existingVocabularyId: choice.existingId,
+        };
+      }
+      return {
+        resolution: "create",
+        ...entry.data,
+        ...(entry.aiId ? { aiAnalysisId: entry.aiId, aiFieldsEdited: entry.aiEdited } : {}),
+      };
+    });
+
+    const unlocked = [...(mainSaved?.unlockedAchievements ?? [])];
+    let results: BatchSaveItemResult[] = [];
+    if (entries.length > 0) {
+      try {
+        const response = await apiFetch<BatchSaveResponse>("/api/vocabularies/batch", {
+          method: "POST",
+          body: { vocabularyBookIds: selectedBookIds, items },
+          timeoutMs: 30_000,
+        });
+        results = response.results;
+        unlocked.push(...response.unlockedAchievements);
+      } catch (err) {
+        // 요청 자체가 실패하면 어느 것도 저장되지 않았으니 모든 항목을 같은 사유로 실패 처리한다.
+        const message =
+          err instanceof ApiClientError ? err.message : "저장 중 오류가 발생했습니다.";
+        results = entries.map(() => ({ status: "failed", message }));
+      }
+    }
+
+    const savedWords: { id: string; word: string }[] = mainSaved
+      ? [{ id: mainSaved.id, word: mainSaved.word }]
+      : [];
+    let createdCount = mainSaved && !isEdit ? 1 : 0;
+    let linkedCount = 0;
+    let skippedCount = 0;
+    const doneKeys = new Set<string>();
+    const failures = new Map<string, string>();
+    let mainFailMessage: string | undefined;
+
+    results.forEach((result, index) => {
+      const key = entries[index].key;
+      if (result.status === "failed") {
+        if (key === null) mainFailMessage = result.message;
+        else failures.set(key, result.message);
+        return;
+      }
+      if (key !== null) doneKeys.add(key);
+      if (result.status === "skipped") {
+        skippedCount += 1;
+        return;
+      }
+      if (result.status === "created") createdCount += 1;
+      else linkedCount += 1;
+      savedWords.push({ id: result.vocabularyId, word: result.word });
+    });
+
+    queryClient.invalidateQueries({ queryKey: ["vocabularies"] });
+    queryClient.invalidateQueries({ queryKey: ["vocabulary-books"] });
+
+    const failedCount = failures.size + (mainFailMessage ? 1 : 0);
+    if (isEdit) {
+      if (mainSaved) {
+        toast.success(
+          createdCount > 0
+            ? `단어를 수정하고 ${createdCount}개를 새로 등록했어요.`
+            : "단어를 수정했습니다.",
+        );
+      }
+    } else if (createdCount + linkedCount + skippedCount > 0) {
+      const parts = [
+        createdCount > 0 && `${createdCount}개 등록`,
+        linkedCount > 0 && `${linkedCount}개 단어장에 연결`,
+        skippedCount > 0 && `${skippedCount}개 건너뜀`,
+      ].filter(Boolean);
+      toast.success(
+        createdCount === 1 && linkedCount === 0 && skippedCount === 0
+          ? `「${savedWords[0].word}」를 등록했어요.`
+          : parts.join(" · "),
+      );
+    }
+    if (failedCount > 0) toast.error(`${failedCount}개 단어를 저장하지 못했어요.`);
+
+    const uniqueAchievements = Array.from(new Map(unlocked.map((a) => [a.title, a])).values());
+    if (uniqueAchievements.length > 0) {
+      uniqueAchievements.forEach((achievement) => achievementToast.show(achievement.title));
+      queryClient.invalidateQueries({ queryKey: ["game", "achievements"] });
+    }
+
+    if (!isEdit) setRegistered((prev) => [...prev, ...savedWords]);
+    // 처리된 카드는 제거하고, 실패한 카드는 사유와 함께 남겨 바로 고쳐서 다시 시도할 수 있게 한다.
+    setExtraWords((prev) =>
+      prev
+        .filter((e) => !doneKeys.has(e.key))
+        .map((e) =>
+          failures.has(e.key) ? { ...e, error: failures.get(e.key), expanded: true } : e,
+        ),
+    );
+
+    if (mainFailMessage) {
+      setError(mainFailMessage);
+      requestScroll("form-error");
+      return;
+    }
+    if (failures.size > 0) {
+      // 메인 단어는 이미 처리됐으니 다시 제출되지 않도록 비운다(수정 모드는 그대로 둔다).
+      if (plan.main && !isEdit) resetMainForm();
+      return;
+    }
+
+    const target = mainSaved ?? savedWords[0];
+    if (mode === "continue" || (showContinue && !target)) {
+      if (showContinue) resetMainForm();
+      return;
+    }
+    if (mainSaved && onSaved) onSaved(mainSaved);
+    else if (target) router.push(`/words/${target.id}`);
   }
 
   function handleSubmit(e: FormEvent) {
@@ -1210,6 +1395,26 @@ export function VocabularyForm({
           </Button>
         )}
       </div>
+      <DuplicateReviewModal
+        open={dupReview !== null}
+        items={dupReview?.items ?? []}
+        saving={submitting}
+        onChangeResolution={(index, resolution) =>
+          setDupReview((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  items: prev.items.map((item) =>
+                    item.index === index ? { ...item, resolution } : item,
+                  ),
+                }
+              : prev,
+          )
+        }
+        onCancel={() => setDupReview(null)}
+        onConfirm={() => void confirmDuplicates()}
+      />
+
       <Modal
         open={notFoundMessage !== null}
         onClose={() => setNotFoundMessage(null)}

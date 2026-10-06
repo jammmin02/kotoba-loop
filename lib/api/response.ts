@@ -10,6 +10,10 @@ export function apiError(
   code: ApiErrorCode,
   message: string,
   status: number,
+  details?: Record<string, unknown>,
 ): NextResponse<ApiResponse<never>> {
-  return NextResponse.json({ success: false, error: { code, message } }, { status });
+  return NextResponse.json(
+    { success: false, error: { code, message, ...(details && { details }) } },
+    { status },
+  );
 }

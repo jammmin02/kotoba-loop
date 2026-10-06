@@ -87,3 +87,15 @@ export interface BulkSaveSummary {
   results: BulkSaveItemResult[];
   unlockedAchievements: UnlockedAchievementView[];
 }
+
+/** `POST /api/vocabularies/batch` 항목 결과 — 요청한 `items`와 같은 순서로 온다. */
+export type BatchSaveItemResult =
+  | { status: "created"; vocabularyId: string; word: string }
+  | { status: "linked"; vocabularyId: string; word: string }
+  | { status: "skipped"; word: string }
+  | { status: "failed"; message: string };
+
+export interface BatchSaveResponse {
+  results: BatchSaveItemResult[];
+  unlockedAchievements: UnlockedAchievementView[];
+}

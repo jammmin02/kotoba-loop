@@ -25,11 +25,13 @@ const ERROR_STATUS: Record<ApiErrorCode, number> = {
 export class ApiError extends Error {
   readonly code: ApiErrorCode;
   readonly status: number;
+  readonly details?: Record<string, unknown>;
 
-  constructor(code: ApiErrorCode, message: string) {
+  constructor(code: ApiErrorCode, message: string, details?: Record<string, unknown>) {
     super(message);
     this.name = "ApiError";
     this.code = code;
     this.status = ERROR_STATUS[code];
+    this.details = details;
   }
 }

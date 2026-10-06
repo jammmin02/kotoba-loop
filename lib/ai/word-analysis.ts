@@ -138,6 +138,7 @@ export async function analyzeWord(word: string, userId: string): Promise<Analyze
       suggestion
         ? `「${inputRef}」은(는) 존재하지 않는 단어로 보여요. 혹시 「${suggestion}」를 찾으셨나요?`
         : `「${inputRef}」은(는) 존재하지 않는 단어로 보여요. 입력한 단어를 다시 확인해주세요.`,
+      suggestion ? { suggestion } : undefined,
     );
   }
 

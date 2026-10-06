@@ -24,7 +24,7 @@ export function withApiHandler<Args extends unknown[] = []>(handler: Handler<Arg
       return apiSuccess(data);
     } catch (err) {
       if (err instanceof ApiError) {
-        return apiError(err.code, err.message, err.status);
+        return apiError(err.code, err.message, err.status, err.details);
       }
       if (err instanceof ZodError) {
         const message = err.issues.map((issue) => issue.message).join(", ");
