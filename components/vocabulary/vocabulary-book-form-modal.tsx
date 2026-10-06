@@ -9,13 +9,17 @@ import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/toast";
+import { titleBarClasses } from "@/components/vocabulary/book-slot";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
+import { cn } from "@/lib/utils";
 import {
   VOCABULARY_BOOK_DESCRIPTION_MAX,
   VOCABULARY_BOOK_NAME_MAX,
   createVocabularyBookSchema,
 } from "@/lib/validations/vocabulary-book";
 import type { CreateVocabularyBookInput } from "@/lib/validations/vocabulary-book";
+import { BOOK_COLORS, BOOK_COLOR_LABELS } from "@/lib/vocabulary-book-color";
+import type { BookColor } from "@/lib/vocabulary-book-color";
 import type { VocabularyBookSummary } from "@/types/vocabulary-book";
 
 import type { FormEvent } from "react";
@@ -33,6 +37,7 @@ export function VocabularyBookFormModal({ onClose, book }: VocabularyBookFormMod
   const [name, setName] = useState(book?.name ?? "");
   const [description, setDescription] = useState(book?.description ?? "");
   const [isPublic, setIsPublic] = useState(book?.isPublic ?? false);
+  const [color, setColor] = useState<BookColor | null>(book?.color ?? null);
   const [error, setError] = useState<string>();
 
   const mutation = useMutation({
@@ -60,7 +65,7 @@ export function VocabularyBookFormModal({ onClose, book }: VocabularyBookFormMod
     e.preventDefault();
     setError(undefined);
 
-    const parsed = createVocabularyBookSchema.safeParse({ name, description, isPublic });
+    const parsed = createVocabularyBookSchema.safeParse({ name, description, isPublic, color });
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message);
       return;
@@ -96,6 +101,54 @@ export function VocabularyBookFormModal({ onClose, book }: VocabularyBookFormMod
               공개
             </ChipButton>
           </div>
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <span id="book-color-label" className="text-sm font-medium text-foreground">
+            색상
+          </span>
+          <div
+            role="radiogroup"
+            aria-labelledby="book-color-label"
+            className="flex flex-wrap gap-2"
+          >
+            <button
+              type="button"
+              role="radio"
+              aria-checked={color === null}
+              onClick={() => setColor(null)}
+              className={cn(
+                "border-2 border-pixel-ink px-2.5 py-1.5 text-xs font-bold transition",
+                color === null
+                  ? "bg-primary text-primary-foreground shadow-bevel-sunken"
+                  : "bg-surface text-foreground shadow-bevel-raised hover:bg-background",
+              )}
+            >
+              자동
+            </button>
+            {BOOK_COLORS.map((c) => (
+              <button
+                key={c}
+                type="button"
+                role="radio"
+                aria-checked={color === c}
+                aria-label={BOOK_COLOR_LABELS[c]}
+                title={BOOK_COLOR_LABELS[c]}
+                onClick={() => setColor(c)}
+                className={cn(
+                  "size-8 border-2 border-pixel-ink transition",
+                  titleBarClasses[c],
+                  color === c
+                    ? "shadow-bevel-sunken ring-2 ring-pixel-ink ring-offset-2 ring-offset-surface"
+                    : "shadow-bevel-raised hover:brightness-105",
+                )}
+              />
+            ))}
+          </div>
+          <p className="text-xs font-content text-foreground/60">
+            {color === null
+              ? "자동은 목록 순서에 따라 색이 정해져요."
+              : `${BOOK_COLOR_LABELS[color]} 색으로 표시돼요.`}
+          </p>
         </div>
         {error && (
           <p role="alert" className="text-sm text-error">

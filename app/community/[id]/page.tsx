@@ -10,6 +10,7 @@ import { auth } from "@/lib/auth";
 import { formatKstISOString } from "@/lib/datetime";
 import { db } from "@/lib/db";
 import { canViewHiddenBook, HIDDEN_BOOK_NAME } from "@/lib/moderation/book-visibility";
+import { toBookColor } from "@/lib/vocabulary-book-color";
 
 export default async function CommunityBookDetailPage(props: PageProps<"/community/[id]">) {
   const session = await auth();
@@ -70,7 +71,7 @@ export default async function CommunityBookDetailPage(props: PageProps<"/communi
       </Link>
 
       <div className="overflow-hidden rounded-none border-2 border-pixel-ink bg-surface shadow-pixel-lg">
-        <BookSlotTitleBar color="mint">
+        <BookSlotTitleBar color={toBookColor(book.color) ?? "mint"}>
           <StatChip
             icon={<PixelDownload className="size-3 shrink-0" aria-hidden="true" />}
             label={`가져감 ${book.import_count}회`}
@@ -78,7 +79,7 @@ export default async function CommunityBookDetailPage(props: PageProps<"/communi
         </BookSlotTitleBar>
         <div className="flex flex-col gap-3 p-4">
           <div className="flex items-start gap-3">
-            <BookEmblem color="mint" />
+            <BookEmblem color={toBookColor(book.color) ?? "mint"} />
             <div className="min-w-0 flex-1">
               <h1 className="truncate text-lg font-bold text-foreground">{book.name}</h1>
               <p className="text-xs text-foreground/50">{book.user.nickname}</p>

@@ -14,6 +14,7 @@ import { BookWordList } from "@/components/vocabulary/book-word-list";
 import { auth } from "@/lib/auth";
 import { formatKstISOString } from "@/lib/datetime";
 import { db } from "@/lib/db";
+import { toBookColor } from "@/lib/vocabulary-book-color";
 import type { VocabularySummary } from "@/types/vocabulary";
 
 export default async function VocabularyBookDetailPage(props: PageProps<"/vocabulary/[id]">) {
@@ -76,12 +77,12 @@ export default async function VocabularyBookDetailPage(props: PageProps<"/vocabu
       </Link>
 
       <div className="overflow-hidden rounded-none border-2 border-pixel-ink bg-surface shadow-pixel-lg">
-        <BookSlotTitleBar color="mint">
+        <BookSlotTitleBar color={toBookColor(book.color) ?? "mint"}>
           <VisibilityChip isPublic={book.is_public} />
         </BookSlotTitleBar>
         <div className="flex flex-col gap-3 p-4">
           <div className="flex items-start gap-3">
-            <BookEmblem color="mint" />
+            <BookEmblem color={toBookColor(book.color) ?? "mint"} />
             <div className="min-w-0 flex-1">
               <h1 className="truncate text-lg font-bold text-foreground">{book.name}</h1>
               {book.description && (

@@ -1,7 +1,11 @@
+import type { BookColor } from "@/lib/vocabulary-book-color";
+
 export interface CommunityBookSummary {
   id: string;
   name: string;
   description: string | null;
+  /** 작성자가 고른 슬롯 색. 없거나 가려진(숨김) 단어장이면 null. */
+  color: BookColor | null;
   ownerNickname: string;
   wordCount: number;
   importCount: number;

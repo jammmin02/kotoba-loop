@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { LearningStatus } from "@/lib/generated/prisma/client";
 import { assertCanWrite } from "@/lib/moderation/restriction";
 import { createVocabularyBookSchema } from "@/lib/validations/vocabulary-book";
+import { toBookColor } from "@/lib/vocabulary-book-color";
 import type { VocabularyBookSummary } from "@/types/vocabulary-book";
 
 import type { NextRequest } from "next/server";
@@ -41,6 +42,7 @@ export const GET = withApiHandler(async (): Promise<VocabularyBookSummary[]> => 
     name: book.name,
     description: book.description,
     isPublic: book.is_public,
+    color: toBookColor(book.color),
     isHidden: book.hidden_at !== null,
     createdAt: formatKstISOString(book.created_at),
     wordCount: book._count.items,
@@ -59,7 +61,7 @@ export const POST = withApiHandler(async (req: NextRequest): Promise<VocabularyB
   await assertCanWrite(session.user.id);
 
   const body = await req.json();
-  const { name, description, isPublic } = createVocabularyBookSchema.parse(body);
+  const { name, description, isPublic, color } = createVocabularyBookSchema.parse(body);
 
   const book = await db.vocabularyBook.create({
     data: {
@@ -67,6 +69,7 @@ export const POST = withApiHandler(async (req: NextRequest): Promise<VocabularyB
       name,
       description: description || null,
       is_public: isPublic ?? false,
+      color: color ?? null,
     },
   });
 
@@ -75,6 +78,7 @@ export const POST = withApiHandler(async (req: NextRequest): Promise<VocabularyB
     name: book.name,
     description: book.description,
     isPublic: book.is_public,
+    color: toBookColor(book.color),
     createdAt: formatKstISOString(book.created_at),
     wordCount: 0,
     masteredCount: 0,

@@ -12,7 +12,7 @@ import {
   BookEmblem,
   BookSlotTitleBar,
   StatChip,
-  slotColorForIndex,
+  slotColorForBook,
 } from "@/components/vocabulary/book-slot";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
@@ -120,7 +120,7 @@ export function CommunityView({ initialSort, initialUserId, initialNickname }: C
                     book.hidden && "opacity-80",
                   )}
                 >
-                  <BookSlotTitleBar color={slotColorForIndex(index)}>
+                  <BookSlotTitleBar color={slotColorForBook(book.color, index)}>
                     {book.hidden ? (
                       <StatChip
                         icon={<PixelLock className="size-3 shrink-0" aria-hidden="true" />}
@@ -135,7 +135,7 @@ export function CommunityView({ initialSort, initialUserId, initialNickname }: C
                   </BookSlotTitleBar>
                   <div className="flex flex-1 flex-col gap-3 p-4">
                     <div className="flex items-start gap-3">
-                      <BookEmblem color={slotColorForIndex(index)} />
+                      <BookEmblem color={slotColorForBook(book.color, index)} />
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-base font-bold text-foreground">{book.name}</p>
                         <p className="text-xs text-foreground/50">{book.ownerNickname}</p>

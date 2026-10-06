@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { formatKstISOString } from "@/lib/datetime";
 import { db } from "@/lib/db";
 import { canViewHiddenBook, HIDDEN_BOOK_NAME } from "@/lib/moderation/book-visibility";
+import { toBookColor } from "@/lib/vocabulary-book-color";
 import type { CommunityBookDetail } from "@/types/community";
 
 import type { NextRequest } from "next/server";
@@ -59,6 +60,7 @@ export const GET = withApiHandler(
         id: book.id,
         name: HIDDEN_BOOK_NAME,
         description: null,
+        color: null,
         ownerNickname: "",
         wordCount: 0,
         importCount: 0,
@@ -74,6 +76,7 @@ export const GET = withApiHandler(
       id: book.id,
       name: book.name,
       description: book.description,
+      color: toBookColor(book.color),
       ownerNickname: book.user.nickname,
       wordCount: book._count.items,
       importCount: book.import_count,

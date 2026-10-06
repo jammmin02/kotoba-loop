@@ -40,6 +40,10 @@ const colorTokens = [
   { name: "Pixel Ink", hex: "#171018", bg: "bg-pixel-ink", fg: "text-white" },
   { name: "Titlebar Pink", hex: "#FF8FB1", bg: "bg-titlebar-pink", fg: "text-pixel-ink" },
   { name: "Titlebar Mint", hex: "#7FE0C0", bg: "bg-titlebar-mint", fg: "text-pixel-ink" },
+  { name: "Titlebar Sky", hex: "#6EC6FF", bg: "bg-titlebar-sky", fg: "text-pixel-ink" },
+  { name: "Titlebar Lime", hex: "#B5E655", bg: "bg-titlebar-lime", fg: "text-pixel-ink" },
+  { name: "Titlebar Coral", hex: "#FF8A6B", bg: "bg-titlebar-coral", fg: "text-pixel-ink" },
+  { name: "Titlebar Grape", hex: "#C08CF5", bg: "bg-titlebar-grape", fg: "text-pixel-ink" },
 ] as const;
 
 const fontPlan = [

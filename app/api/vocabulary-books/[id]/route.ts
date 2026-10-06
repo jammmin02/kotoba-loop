@@ -5,6 +5,7 @@ import { formatKstISOString } from "@/lib/datetime";
 import { db } from "@/lib/db";
 import { assertCanWrite } from "@/lib/moderation/restriction";
 import { updateVocabularyBookSchema } from "@/lib/validations/vocabulary-book";
+import { toBookColor } from "@/lib/vocabulary-book-color";
 import type { VocabularyBookSummary } from "@/types/vocabulary-book";
 
 import type { NextRequest } from "next/server";
@@ -37,7 +38,7 @@ export const PATCH = withApiHandler(
     await assertCanWrite(session.user.id);
 
     const body = await req.json();
-    const { name, description, isPublic } = updateVocabularyBookSchema.parse(body);
+    const { name, description, isPublic, color } = updateVocabularyBookSchema.parse(body);
 
     const book = await db.vocabularyBook.update({
       where: { id },
@@ -45,6 +46,7 @@ export const PATCH = withApiHandler(
         ...(name !== undefined && { name }),
         ...(description !== undefined && { description: description || null }),
         ...(isPublic !== undefined && { is_public: isPublic }),
+        ...(color !== undefined && { color }),
       },
       include: { _count: { select: { items: true } } },
     });
@@ -62,6 +64,7 @@ export const PATCH = withApiHandler(
       name: book.name,
       description: book.description,
       isPublic: book.is_public,
+      color: toBookColor(book.color),
       createdAt: formatKstISOString(book.created_at),
       wordCount: book._count.items,
       masteredCount,

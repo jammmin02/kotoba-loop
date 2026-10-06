@@ -313,6 +313,8 @@ model VocabularyBook {
   name         String
   description  String?
   is_public    Boolean  @default(false)
+  // 슬롯 색(lib/vocabulary-book-color.ts의 BOOK_COLORS 중 하나). null이면 목록 순번 색을 쓴다.
+  color        String?
   // 커뮤니티 탐색(PROMPT 58)의 "인기순" 정렬 지표 — 좋아요/랭킹 테이블은 범위 밖이라, 다른
   // 사용자가 이 책을 가져오기(복제)한 횟수를 유일한 인기 신호로 쓴다. 가져오기 성공 시에만
   // (app/api/vocabulary-books/community/[id]/import) 원자적으로 증가시킨다.

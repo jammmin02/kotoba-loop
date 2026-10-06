@@ -1,6 +1,8 @@
 import { PixelBookOpen, PixelGlobe, PixelLock, PixelStar } from "@/components/icons/pixel-icons";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { cn } from "@/lib/utils";
+import { BOOK_COLORS, FALLBACK_BOOK_COLOR_COUNT } from "@/lib/vocabulary-book-color";
+import type { BookColor } from "@/lib/vocabulary-book-color";
 
 import type { ReactNode } from "react";
 
@@ -8,18 +10,23 @@ import type { ReactNode } from "react";
  * 단어장을 게임 "세이브 슬롯"처럼 보여주는 공통 조각들 — 목록 카드(VocabularyBookCard),
  * 단어장 상세, 커뮤니티 단어장 목록/상세가 모두 이 조각들을 공유한다.
  */
-export const SLOT_COLORS = ["mint", "pink", "primary", "accent"] as const;
-export type SlotColor = (typeof SLOT_COLORS)[number];
+export type SlotColor = BookColor;
 
-export function slotColorForIndex(index: number): SlotColor {
-  return SLOT_COLORS[index % SLOT_COLORS.length];
+/** 사용자가 고른 색이 있으면 그 색, 없으면 목록 순번으로 앞의 4색을 돌려 쓴다. */
+export function slotColorForBook(color: BookColor | null | undefined, index: number): SlotColor {
+  return color ?? BOOK_COLORS[index % FALLBACK_BOOK_COLOR_COUNT];
 }
 
-const titleBarClasses: Record<SlotColor, string> = {
+// Tailwind가 클래스를 정적으로 찾을 수 있도록 전체 클래스명을 그대로 적는다.
+export const titleBarClasses: Record<SlotColor, string> = {
   mint: "bg-titlebar-mint text-pixel-ink",
   pink: "bg-titlebar-pink text-pixel-ink",
   primary: "bg-primary text-primary-foreground",
   accent: "bg-accent text-accent-foreground",
+  sky: "bg-titlebar-sky text-pixel-ink",
+  lime: "bg-titlebar-lime text-pixel-ink",
+  coral: "bg-titlebar-coral text-pixel-ink",
+  grape: "bg-titlebar-grape text-pixel-ink",
 };
 
 const emblemClasses: Record<SlotColor, string> = {
@@ -27,6 +34,10 @@ const emblemClasses: Record<SlotColor, string> = {
   pink: "bg-titlebar-pink/40",
   primary: "bg-primary/25",
   accent: "bg-accent/25",
+  sky: "bg-titlebar-sky/40",
+  lime: "bg-titlebar-lime/40",
+  coral: "bg-titlebar-coral/40",
+  grape: "bg-titlebar-grape/40",
 };
 
 /** 좌측 창 컨트롤 점 3개 + 우측에 배지(공개 여부, 통계 등)를 얹는 타이틀바. */

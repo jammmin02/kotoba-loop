@@ -33,6 +33,10 @@
   --pixel-ink: #171018;
   --titlebar-pink: #ff8fb1;
   --titlebar-mint: #7fe0c0;
+  --titlebar-sky: #6ec6ff;
+  --titlebar-lime: #b5e655;
+  --titlebar-coral: #ff8a6b;
+  --titlebar-grape: #c08cf5;
 }
 
 .dark {
@@ -50,6 +54,10 @@
   --pixel-ink: #000000;
   --titlebar-pink: #e85d8a;
   --titlebar-mint: #34c7a0;
+  --titlebar-sky: #3fa9e8;
+  --titlebar-lime: #8cc63f;
+  --titlebar-coral: #e8663f;
+  --titlebar-grape: #a066e0;
 }
 
 @theme inline {
@@ -71,6 +79,10 @@
   --color-pixel-ink: var(--pixel-ink);
   --color-titlebar-pink: var(--titlebar-pink);
   --color-titlebar-mint: var(--titlebar-mint);
+  --color-titlebar-sky: var(--titlebar-sky);
+  --color-titlebar-lime: var(--titlebar-lime);
+  --color-titlebar-coral: var(--titlebar-coral);
+  --color-titlebar-grape: var(--titlebar-grape);
 
   /* `font-sans` (the site-wide default) is now the pixel typeface — see D.2.
      `.font-content` opts back into Pretendard for long-form Korean reading

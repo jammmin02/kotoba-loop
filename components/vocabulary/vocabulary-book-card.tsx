@@ -9,7 +9,7 @@ import {
   BookSlotTitleBar,
   VisibilityChip,
   getMasteryLevel,
-  slotColorForIndex,
+  slotColorForBook,
 } from "@/components/vocabulary/book-slot";
 import { cn } from "@/lib/utils";
 import type { VocabularyBookSummary } from "@/types/vocabulary-book";
@@ -30,7 +30,7 @@ export function VocabularyBookCard({ book, index, onEdit, onDelete }: Vocabulary
   const ratio = book.wordCount > 0 ? book.masteredCount / book.wordCount : 0;
   const isMaster = getMasteryLevel(ratio) === "MASTER";
   const remaining = book.wordCount - book.masteredCount;
-  const color = slotColorForIndex(index);
+  const color = slotColorForBook(book.color, index);
 
   return (
     <div className={cn(cardVariants(), "flex flex-col", isMaster && "border-accent shadow-glow")}>
