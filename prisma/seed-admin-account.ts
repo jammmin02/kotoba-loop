@@ -1,3 +1,5 @@
+import { randomInt } from "node:crypto";
+
 import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";
 import { config } from "dotenv";
@@ -12,25 +14,44 @@ const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const db = new PrismaClient({ adapter });
 
 // 커뮤니티 공개 단어장(app/api/vocabulary-books/community)을 소유하기 위한 계정 —
-// 별도 관리자 role은 스키마에 없으므로(User에 is_admin 같은 필드가 없음), 그냥
-// 이 계정 소유의 단어장을 is_public: true로 만들어 다른 유저의 "탐색"에 노출시키는 방식이다.
+// 이 계정은 role=ADMIN, status=APPROVED로 만들어진다(관리자 페이지 접근용). 다른 계정을 관리자로
+// 지정하려면 prisma/set-admin-role.ts <email> 을 쓴다.
+//
+// 사용법: tsx prisma/seed-admin-account.ts
+// 이메일은 고정이고, 실행할 때마다 새 비밀번호를 무작위로 만들어 한 번만 출력한다(다시 볼 수 없으니
+// 바로 기록해 둘 것). 쉘 특수문자 문제가 없도록 영문 대소문자와 숫자만 쓴다.
 const ADMIN_EMAIL = "admin@kotoba-loop.app";
-const ADMIN_PASSWORD = process.argv[2];
 const ADMIN_NICKNAME = "Kotoba Loop 운영진";
+const PASSWORD_LENGTH = 20;
+const PASSWORD_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+
+function generatePassword(): string {
+  // randomInt는 모듈로 편향 없이 균등하게 뽑는다.
+  return Array.from(
+    { length: PASSWORD_LENGTH },
+    () => PASSWORD_ALPHABET[randomInt(PASSWORD_ALPHABET.length)],
+  ).join("");
+}
+
+function printCredentials(password: string) {
+  console.log("  email:   ", ADMIN_EMAIL);
+  console.log("  password:", password);
+  console.log("비밀번호는 지금만 확인할 수 있습니다. 바로 안전한 곳에 기록하세요.");
+}
 
 async function main() {
-  if (!ADMIN_PASSWORD) {
-    throw new Error("사용법: tsx prisma/seed-admin-account.ts <password>");
-  }
-
-  const password_hash = await bcrypt.hash(ADMIN_PASSWORD, 10);
+  const password = generatePassword();
+  const password_hash = await bcrypt.hash(password, 10);
 
   const existing = await db.user.findUnique({ where: { email: ADMIN_EMAIL } });
   if (existing) {
-    // 쉘에서 비밀번호에 특수문자(예: &)가 들어가면 따옴표 없이 실행 시 잘려서 저장될 수 있어,
-    // 재실행 시 비밀번호를 그냥 덮어쓰도록 한다(계정을 두 번 만들지 않기 위해 create는 안 함).
-    await db.user.update({ where: { id: existing.id }, data: { password_hash } });
+    // 재실행하면 비밀번호만 새로 덮어쓴다(계정을 두 번 만들지 않기 위해 create는 안 함).
+    await db.user.update({
+      where: { id: existing.id },
+      data: { password_hash, role: "ADMIN", status: "APPROVED" },
+    });
     console.log("기존 관리자 계정의 비밀번호를 갱신했습니다 (user id:", existing.id, ")");
+    printCredentials(password);
     return;
   }
 
@@ -40,12 +61,14 @@ async function main() {
       password_hash,
       nickname: ADMIN_NICKNAME,
       purpose: ["공식 단어장 관리"],
+      role: "ADMIN",
+      status: "APPROVED",
     },
   });
 
   console.log("관리자 계정 생성 완료");
   console.log("  user id:", user.id);
-  console.log("  email:", ADMIN_EMAIL);
+  printCredentials(password);
 }
 
 main()

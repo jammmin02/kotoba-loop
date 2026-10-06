@@ -17,6 +17,7 @@
     "postinstall": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
+    "db:set-admin": "tsx prisma/set-admin-role.ts",
     "db:seed:kanji": "tsx prisma/seed-kanji.ts",
     "db:backfill:vocabulary-kanji": "tsx prisma/backfill-vocabulary-kanji.ts",
     "db:backfill:imported-book-user-vocabulary": "tsx prisma/backfill-imported-book-user-vocabulary.ts",

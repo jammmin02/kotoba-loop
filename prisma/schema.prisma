@@ -21,6 +21,27 @@ enum JlptLevel {
   N1
 }
 
+// 가입 승인제(2026-10): 새 계정은 PENDING으로 시작하고 관리자가 승인해야 로그인할 수 있다.
+// REJECTED는 재신청 불가(영구 차단)라 계정 행을 삭제하지 않고 남겨 같은 이메일의 재가입을 막는다.
+enum UserStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum AdminAuditAction {
+  APPROVE
+  REJECT
+  SUSPEND
+  RESTORE
+}
+
 enum LearningStatus {
   NEW
   LEARNING
@@ -83,6 +104,16 @@ model User {
   purpose           String[]   @default([])
   created_at        DateTime   @default(now())
 
+  status         UserStatus @default(PENDING)
+  role           UserRole   @default(USER)
+  reviewed_at    DateTime?
+  reviewed_by    String?
+  reject_reason  String?
+  last_active_at DateTime?
+
+  adminAuditLogsAsAdmin  AdminAuditLog[] @relation("AdminAuditAdmin")
+  adminAuditLogsAsTarget AdminAuditLog[] @relation("AdminAuditTarget")
+
   vocabularyBooks      VocabularyBook[]
   userVocabularies     UserVocabulary[]
   reviewHistories      ReviewHistory[]
@@ -102,6 +133,26 @@ model User {
   battleAnswers        BattleAnswer[]
   following            Friend[]            @relation("FriendFollower")
   followedBy           Friend[]            @relation("FriendFollowee")
+
+  @@index([status])
+}
+
+// 관리자 액션 감사 로그 — 승인/거절/정지/복구는 상태 변경과 같은 트랜잭션에서 기록한다.
+// 관리자·대상 계정이 나중에 삭제돼도 로그는 남도록 SetNull + 이메일 스냅샷을 둔다.
+model AdminAuditLog {
+  id                String           @id @default(uuid())
+  admin_id          String?
+  target_user_id    String?
+  target_user_email String
+  action            AdminAuditAction
+  reason            String?
+  created_at        DateTime         @default(now())
+
+  admin      User? @relation("AdminAuditAdmin", fields: [admin_id], references: [id], onDelete: SetNull)
+  targetUser User? @relation("AdminAuditTarget", fields: [target_user_id], references: [id], onDelete: SetNull)
+
+  @@index([created_at])
+  @@index([target_user_id])
 }
 
 // 친구(팔로우) 기능(PROMPT 58) — 인스타그램형 상호 승인이 아니라 "관심 단어장 구독"에 가까운
