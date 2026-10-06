@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { withAnalysisCache } from "@/lib/ai/cache";
 import { runStructuredAnalysis } from "@/lib/ai/orchestrator";
+import { ApiError } from "@/lib/api/error";
 import { normalizeSearchQuery } from "@/lib/search";
 import {
   EXAMPLE_MAX,
@@ -63,6 +64,16 @@ export const wordAnalysisSchema = z.object({
 
 export type WordAnalysisResult = z.infer<typeof wordAnalysisSchema>;
 
+/** AI에게 실제로 요청하는 스키마 — 공개 결과(`wordAnalysisSchema`)에 존재 여부 판정 필드를 더한다.
+ * 이 필드들은 `analyzeWord` 안에서만 쓰이고 반환 결과·폼에는 넘기지 않는다. */
+const wordAnalysisModelSchema = wordAnalysisSchema.extend({
+  // 입력이 실제 일본어 단어로 확신되면 true. false면 나머지 필드는 스키마를 맞추기 위한 자리표시자일 뿐
+  // 이라 `analyzeWord`가 결과를 돌려주지 않고 WORD_NOT_FOUND로 거절한다.
+  isRealWord: z.boolean(),
+  // isRealWord가 false일 때 오타로 보이는 올바른 단어가 분명하면 그 단어(예: ありゆる → あらゆる).
+  suggestion: z.string().min(1).max(VOCABULARY_WORD_MAX).nullable(),
+});
+
 const SYSTEM_PROMPT = `당신은 일본어 학습 앱 kotoba-loop의 단어 분석 도우미입니다.
 사용자가 입력한 일본어 단어 하나를 분석해 한국어 학습자에게 필요한 정보를 구조화된 형식으로 반환하세요.
 
@@ -79,11 +90,14 @@ const SYSTEM_PROMPT = `당신은 일본어 학습 앱 kotoba-loop의 단어 분�
   각 항목은 relationType(SIMILAR=비슷한 뜻의 유사어, OPPOSITE=반대되는 뜻의 반대말,
   DERIVED=활용형·파생어 등 형태적으로 연관된 표현), expression(일본어 표현), meaning(그 표현의
   한국어 뜻)을 모두 채우세요. 확실한 관계만 제안하고, 없으면 빈 배열로 반환하세요.
-- 근거 없는 정보를 지어내지 마세요. 입력이 실제 존재하는 일본어 단어인지 확신할 수 없는 경우,
-  meanings의 첫 항목에 "실제 존재하는 단어인지 확인이 필요합니다"라고 명시하고 jlptLevel은 null,
-  relatedKanji/synonyms/relatedExpressions/relatedExpressionSuggestions는 빈 배열로 반환하되,
-  examples는 입력 문자열을 그대로 사용한 예문 1개를 만들어 반환하세요(예문 필드는 항상 비어
-  있으면 안 됩니다).`;
+- 근거 없는 정보를 지어내지 마세요. 입력이 실제 존재하는 일본어 단어(고유명사·외래어·속어·
+  방언 포함)이면 isRealWord를 true로, 오타이거나 일본어 단어로 확신할 수 없으면 false로
+  반환하세요. 드물거나 낯선 단어라는 이유만으로 false로 하지 마세요.
+- isRealWord가 true이면 suggestion은 null입니다.
+- isRealWord가 false이면, 오타로 보이고 의도한 올바른 단어가 분명할 때만 suggestion에 그 단어를
+  넣고 아니면 null로 두세요. 이때 나머지 필드는 스키마를 맞추는 자리표시자로만 채우세요:
+  reading은 입력 문자열, partOfSpeech는 "기타", jlptLevel은 null, meanings는 ["-"],
+  examples는 입력 문자열을 그대로 쓴 일본어/한국어 쌍 1개, 나머지 배열은 빈 배열.`;
 
 function buildUserPrompt(word: string): string {
   return `다음 일본어 단어를 분석해주세요: ${word}`;
@@ -108,11 +122,24 @@ export async function analyzeWord(word: string, userId: string): Promise<Analyze
         analysisType: WORD_ANALYSIS_TYPE,
         system: SYSTEM_PROMPT,
         user: buildUserPrompt(inputRef),
-        schema: wordAnalysisSchema,
+        schema: wordAnalysisModelSchema,
       });
       return data;
     },
   });
 
-  return { id, status, cached, result: data };
+  // 예전에 캐시된 결과에는 isRealWord가 없다 — 그때는 "확인이 필요합니다"라는 문구를 뜻 첫 항목에
+  // 넣어 존재 여부를 표시했으므로 그 문구도 같은 신호로 취급한다.
+  const { isRealWord, suggestion, ...result } = data;
+  const legacyUnverified = result.meanings[0]?.includes("실제 존재하는 단어인지 확인이 필요합니다");
+  if (isRealWord === false || legacyUnverified) {
+    throw new ApiError(
+      "WORD_NOT_FOUND",
+      suggestion
+        ? `「${inputRef}」은(는) 존재하지 않는 단어로 보여요. 혹시 「${suggestion}」를 찾으셨나요?`
+        : `「${inputRef}」은(는) 존재하지 않는 단어로 보여요. 입력한 단어를 다시 확인해주세요.`,
+    );
+  }
+
+  return { id, status, cached, result };
 }

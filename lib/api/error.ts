@@ -18,6 +18,7 @@ const ERROR_STATUS: Record<ApiErrorCode, number> = {
   OCR_NO_TEXT_FOUND: 400,
   OCR_TIMEOUT: 504,
   RATE_LIMITED: 429,
+  WORD_NOT_FOUND: 422,
 };
 
 /** Throw this from within a `withApiHandler`-wrapped route to produce a standard error response. */

@@ -16,6 +16,7 @@ export const API_ERROR_CODES = [
   "OCR_NO_TEXT_FOUND",
   "OCR_TIMEOUT",
   "RATE_LIMITED",
+  "WORD_NOT_FOUND",
 ] as const;
 
 export type ApiErrorCode = (typeof API_ERROR_CODES)[number];
