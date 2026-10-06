@@ -169,7 +169,7 @@ flowchart LR
 
 ## 10. 기준 자료
 
-- [개발 계획서](../%23%20AI%20기반%20일본어%20단어·한자%20학습%20웹%20서비스%20개발%20계획서.txt)
+- [개발 계획서](development-plan.txt)
 - [패키지와 실행 스크립트](../package.json)
 - [DB 스키마](../prisma/schema.prisma)
 - [환경변수 예시](../.env.example)

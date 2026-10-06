@@ -48,6 +48,7 @@ next-env.d.ts
 /AGENTS.md
 /kotoba-loop-roadmap.md
 /tutoring/
+/Claude outputs/
 
 # local tooling config
 /.claude/
