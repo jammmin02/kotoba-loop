@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 import {
   PixelBarChart,
@@ -52,21 +52,42 @@ function isActivePath(pathname: string, href: string) {
 }
 
 const SIDEBAR_COLLAPSED_KEY = "kotoba-loop:sidebar-collapsed";
+// 같은 탭에서는 storage 이벤트가 발생하지 않아, 토글 때 직접 알려 구독자를 갱신한다.
+const SIDEBAR_COLLAPSED_EVENT = "kotoba-loop:sidebar-collapsed-change";
+
+function subscribeSidebarCollapsed(onChange: () => void) {
+  window.addEventListener("storage", onChange);
+  window.addEventListener(SIDEBAR_COLLAPSED_EVENT, onChange);
+  return () => {
+    window.removeEventListener("storage", onChange);
+    window.removeEventListener(SIDEBAR_COLLAPSED_EVENT, onChange);
+  };
+}
+
+function getSidebarCollapsedSnapshot() {
+  try {
+    return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
 
 export function Sidebar({ className }: { className?: string }) {
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
-
-  useEffect(() => {
-    setCollapsed(localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "1");
-  }, []);
+  // 서버에서는 항상 펼친 상태로 그리고, 하이드레이션 뒤 저장된 값으로 바뀐다.
+  const collapsed = useSyncExternalStore(
+    subscribeSidebarCollapsed,
+    getSidebarCollapsedSnapshot,
+    () => false,
+  );
 
   const toggleCollapsed = () => {
-    setCollapsed((prev) => {
-      const next = !prev;
-      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, next ? "1" : "0");
-      return next;
-    });
+    try {
+      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, collapsed ? "0" : "1");
+    } catch {
+      // 저장소를 쓸 수 없으면 접힘 상태를 바꿀 수 없다.
+    }
+    window.dispatchEvent(new Event(SIDEBAR_COLLAPSED_EVENT));
   };
 
   return (
