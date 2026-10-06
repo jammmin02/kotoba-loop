@@ -16,7 +16,11 @@ interface KanjiFavoriteToggleProps {
 
 /** `components/vocabulary/favorite-button.tsx`의 한자판 — 대상 id 대신 한자 문자로 호출한다
  *  (`GET /api/kanji`류가 전부 `character`를 공개 식별자로 쓰는 것과 같은 이유). */
-export function KanjiFavoriteToggle({ character, isFavorite, className }: KanjiFavoriteToggleProps) {
+export function KanjiFavoriteToggle({
+  character,
+  isFavorite,
+  className,
+}: KanjiFavoriteToggleProps) {
   const [favorite, setFavorite] = useState(isFavorite);
   const [prevIsFavorite, setPrevIsFavorite] = useState(isFavorite);
   if (isFavorite !== prevIsFavorite) {

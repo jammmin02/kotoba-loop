@@ -102,7 +102,9 @@ export function KanjiPracticeView() {
     ],
     queryFn: () => {
       const search = params.toString();
-      return apiFetch<KanjiPracticePoolResponse>(`/api/kanji/practice-pool${search ? `?${search}` : ""}`);
+      return apiFetch<KanjiPracticePoolResponse>(
+        `/api/kanji/practice-pool${search ? `?${search}` : ""}`,
+      );
     },
     enabled: poolEnabled,
   });
@@ -221,7 +223,11 @@ export function KanjiPracticeView() {
               {axis === "grade" ? (
                 <div className="flex flex-wrap gap-1.5">
                   {KANJI_SCHOOL_GRADES.map((g) => (
-                    <ChipButton key={g} selected={gradeValue === g} onClick={() => setGradeValue(g)}>
+                    <ChipButton
+                      key={g}
+                      selected={gradeValue === g}
+                      onClick={() => setGradeValue(g)}
+                    >
                       {gradeLabel(g)}
                     </ChipButton>
                   ))}
@@ -274,7 +280,9 @@ export function KanjiPracticeView() {
               </div>
 
               <div className="flex items-center justify-between gap-2">
-                <span className="text-xs text-foreground/60">직접 고르거나 즐겨찾기에서 골라보세요</span>
+                <span className="text-xs text-foreground/60">
+                  직접 고르거나 즐겨찾기에서 골라보세요
+                </span>
                 <ChipButton
                   selected={favoritesOnly}
                   onClick={() => setFavoritesOnly((v) => !v)}
@@ -294,7 +302,9 @@ export function KanjiPracticeView() {
                 <p className="text-sm text-foreground/60">불러오는 중...</p>
               )}
               {poolEnabled && !poolQuery.isLoading && poolItems.length === 0 && (
-                <p className="py-4 text-center text-sm text-foreground/50">조건에 맞는 한자가 없어요.</p>
+                <p className="py-4 text-center text-sm text-foreground/50">
+                  조건에 맞는 한자가 없어요.
+                </p>
               )}
 
               {poolItems.length > 0 && (
@@ -340,7 +350,9 @@ export function KanjiPracticeView() {
 
               {selected.length > 0 && (
                 <div className="flex flex-wrap items-center gap-1.5 border-t-2 border-dashed border-pixel-ink/25 pt-3">
-                  <span className="text-xs font-bold text-foreground">선택됨 {selected.length}개</span>
+                  <span className="text-xs font-bold text-foreground">
+                    선택됨 {selected.length}개
+                  </span>
                   {selected.map((item) => (
                     <button
                       key={item.id}
@@ -397,7 +409,13 @@ export function KanjiPracticeView() {
             </p>
           </div>
 
-          <Button type="button" variant="quest" size="lg" disabled={!canStart} onClick={handleStart}>
+          <Button
+            type="button"
+            variant="quest"
+            size="lg"
+            disabled={!canStart}
+            onClick={handleStart}
+          >
             퀴즈 시작
           </Button>
         </div>

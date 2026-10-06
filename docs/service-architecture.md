@@ -74,20 +74,20 @@ flowchart TB
 
 ## 3. 구성 요소와 책임
 
-| 계층 | 기술·코드 | 책임 |
-|---|---|---|
-| 사용자 화면 | `app/`, `components/`, React 19, Tailwind CSS 4 | 단어장, 학습, 한자, 통계, 커뮤니티, 대결 및 펫 화면 |
-| 서버 렌더링 | Next.js App Router 서버 페이지 | 세션 확인·초기 데이터 조회·페이지 구성; 모든 조회가 HTTP API를 경유하는 구조는 아니다. |
-| 클라이언트 상태 | TanStack Query 5, Zustand 5 | API 응답 캐시·갱신과 학습 세션·선택값·알림 등 UI 상태 |
-| API·입력 검증 | `app/api/`, `lib/api/`, `lib/validations/`, Zod 4 | 요청 파싱, 인증·소유권 검사, 업무 처리와 표준 오류 응답 |
-| 인증 | `lib/auth.ts`, Auth.js/next-auth 5 beta, bcryptjs | 이메일·Google 로그인, JWT 세션, 비밀번호 검증 |
-| 학습 도메인 | `lib/srs/`, `lib/quiz/`, `lib/study/`, `lib/kanji/` | 복습일·상태 전이, 출제·채점, 큐·리포트·시험 계획 계산 |
-| 동기 부여·대결 | `lib/game/`, `lib/quest/`, `lib/achievement/`, `lib/pet/`, `lib/battle/` | 보상·성장·연속 학습, 방·라운드·승자 관리 |
-| AI 연동 | `lib/ai/`, Anthropic SDK | 분석·검색·문장 교정·설명, 출력 검증·재시도·결과 캐시 |
-| 사진·OCR | `lib/storage/`, `lib/ocr/`, AWS S3 SDK, Tesseract.js 7 | 서명 URL·업로드 검증, 서버 일본어 OCR, 후보 단어 배치 분석 |
-| 영속 데이터 | Prisma 7, pg adapter, PostgreSQL | 사용자·콘텐츠·진도·학습 이력·AI 결과·대결 상태 |
-| 실시간 이벤트 | `lib/pusher/`, Pusher Channels | 서버 상태 변경 통지와 참가자 presence; 점수의 원본 저장소는 DB |
-| 보조 외부 연동 | Google Input Tools, jsDelivr, 브라우저 음성 인식 | 필기 인식, 획순 데이터, 지원 브라우저의 음성 입력 |
+| 계층            | 기술·코드                                                                | 책임                                                                                   |
+| --------------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| 사용자 화면     | `app/`, `components/`, React 19, Tailwind CSS 4                          | 단어장, 학습, 한자, 통계, 커뮤니티, 대결 및 펫 화면                                    |
+| 서버 렌더링     | Next.js App Router 서버 페이지                                           | 세션 확인·초기 데이터 조회·페이지 구성; 모든 조회가 HTTP API를 경유하는 구조는 아니다. |
+| 클라이언트 상태 | TanStack Query 5, Zustand 5                                              | API 응답 캐시·갱신과 학습 세션·선택값·알림 등 UI 상태                                  |
+| API·입력 검증   | `app/api/`, `lib/api/`, `lib/validations/`, Zod 4                        | 요청 파싱, 인증·소유권 검사, 업무 처리와 표준 오류 응답                                |
+| 인증            | `lib/auth.ts`, Auth.js/next-auth 5 beta, bcryptjs                        | 이메일·Google 로그인, JWT 세션, 비밀번호 검증                                          |
+| 학습 도메인     | `lib/srs/`, `lib/quiz/`, `lib/study/`, `lib/kanji/`                      | 복습일·상태 전이, 출제·채점, 큐·리포트·시험 계획 계산                                  |
+| 동기 부여·대결  | `lib/game/`, `lib/quest/`, `lib/achievement/`, `lib/pet/`, `lib/battle/` | 보상·성장·연속 학습, 방·라운드·승자 관리                                               |
+| AI 연동         | `lib/ai/`, Anthropic SDK                                                 | 분석·검색·문장 교정·설명, 출력 검증·재시도·결과 캐시                                   |
+| 사진·OCR        | `lib/storage/`, `lib/ocr/`, AWS S3 SDK, Tesseract.js 7                   | 서명 URL·업로드 검증, 서버 일본어 OCR, 후보 단어 배치 분석                             |
+| 영속 데이터     | Prisma 7, pg adapter, PostgreSQL                                         | 사용자·콘텐츠·진도·학습 이력·AI 결과·대결 상태                                         |
+| 실시간 이벤트   | `lib/pusher/`, Pusher Channels                                           | 서버 상태 변경 통지와 참가자 presence; 점수의 원본 저장소는 DB                         |
+| 보조 외부 연동  | Google Input Tools, jsDelivr, 브라우저 음성 인식                         | 필기 인식, 획순 데이터, 지원 브라우저의 음성 입력                                      |
 
 기술 버전은 저장소 `package.json`의 선언을 요약한 값이다. 실제 설치 버전·외부 서비스 상품 사양을 검증한 자료는 아니다.
 
@@ -234,16 +234,16 @@ erDiagram
 
 ## 6. 배포·외부 의존성과 경계
 
-| 항목 | 저장소에서 확인한 설정 | 운영 확인 필요 사항 |
-|---|---|---|
-| 애플리케이션 | Next.js, `vercel.json`의 `sin1` | 실제 프로젝트·도메인·배포 상태, 함수 시간·메모리 한도 |
-| DB | `DATABASE_URL`, Prisma PostgreSQL adapter; 예시 주석은 Neon | 실제 제공자·리전·연결 풀·백업·복원 |
-| AI | `LLM_API_KEY`, `AI_MODEL`, `AI_TIMEOUT_MS`, `AI_MAX_RETRIES` | 계정에서 사용 가능한 모델명·호출 한도·비용. 코드의 모델 문자열은 외부 제공 여부를 보증하지 않는다. |
-| 저장소 | `STORAGE_*`, B2 S3 호환 endpoint | 브라우저 업로드 CORS, 버킷 권한·수명주기·실제 크기 제한 |
-| 인증 | `AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` | OAuth 리디렉션 URI·가입 도메인 정책·로그 정책 |
-| 실시간 | `PUSHER_*`, `NEXT_PUBLIC_PUSHER_KEY/CLUSTER` | 채널 인증·연결 수·이벤트 한도·재접속 동작 |
-| 획순·손글씨 | jsDelivr JSON, Google Input Tools 호출 | 데이터 커버리지·비공식 인터페이스 변경·장애 대응 |
-| PWA | manifest, Service Worker | 설치 지원과 오프라인 안내. 개인 학습 API·페이지 데이터 캐시 및 오프라인 동기화는 미구현 범위다. |
+| 항목         | 저장소에서 확인한 설정                                       | 운영 확인 필요 사항                                                                                |
+| ------------ | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| 애플리케이션 | Next.js, `vercel.json`의 `sin1`                              | 실제 프로젝트·도메인·배포 상태, 함수 시간·메모리 한도                                              |
+| DB           | `DATABASE_URL`, Prisma PostgreSQL adapter; 예시 주석은 Neon  | 실제 제공자·리전·연결 풀·백업·복원                                                                 |
+| AI           | `LLM_API_KEY`, `AI_MODEL`, `AI_TIMEOUT_MS`, `AI_MAX_RETRIES` | 계정에서 사용 가능한 모델명·호출 한도·비용. 코드의 모델 문자열은 외부 제공 여부를 보증하지 않는다. |
+| 저장소       | `STORAGE_*`, B2 S3 호환 endpoint                             | 브라우저 업로드 CORS, 버킷 권한·수명주기·실제 크기 제한                                            |
+| 인증         | `AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`        | OAuth 리디렉션 URI·가입 도메인 정책·로그 정책                                                      |
+| 실시간       | `PUSHER_*`, `NEXT_PUBLIC_PUSHER_KEY/CLUSTER`                 | 채널 인증·연결 수·이벤트 한도·재접속 동작                                                          |
+| 획순·손글씨  | jsDelivr JSON, Google Input Tools 호출                       | 데이터 커버리지·비공식 인터페이스 변경·장애 대응                                                   |
+| PWA          | manifest, Service Worker                                     | 설치 지원과 오프라인 안내. 개인 학습 API·페이지 데이터 캐시 및 오프라인 동기화는 미구현 범위다.    |
 
 브라우저 공개 설정인 Pusher key/cluster와 서버 전용 secret을 구분한다. DB·LLM·스토리지 자격 증명을 클라이언트에 포함하면 안 된다. 이번 문서에서는 실제 비밀값을 읽거나 기록하지 않았다.
 

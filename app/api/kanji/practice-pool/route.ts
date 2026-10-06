@@ -20,69 +20,67 @@ import type { NextRequest } from "next/server";
  * 뽑혀 `DAILY_KANJI_TARGET` 페이싱을 건너뛰고 SRS 추적을 시작해버리는 것만 막는다 — 커스텀
  * 모드는 사용자가 의도적으로 고르는 것이라 이 제한 없이 전체에서 검색/선택할 수 있다.
  */
-export const GET = withApiHandler(
-  async (req: NextRequest): Promise<KanjiPracticePoolResponse> => {
-    const session = await auth();
-    if (!session?.user) {
-      throw new ApiError("UNAUTHORIZED", "로그인이 필요합니다.");
-    }
+export const GET = withApiHandler(async (req: NextRequest): Promise<KanjiPracticePoolResponse> => {
+  const session = await auth();
+  if (!session?.user) {
+    throw new ApiError("UNAUTHORIZED", "로그인이 필요합니다.");
+  }
 
-    const { q, grade, jlpt, favoritesOnly, seenOnly } = kanjiPracticePoolQuerySchema.parse({
-      q: req.nextUrl.searchParams.get("q") ?? undefined,
-      grade: req.nextUrl.searchParams.get("grade") ?? undefined,
-      jlpt: req.nextUrl.searchParams.get("jlpt") ?? undefined,
-      favoritesOnly: req.nextUrl.searchParams.get("favoritesOnly") ?? undefined,
-      seenOnly: req.nextUrl.searchParams.get("seenOnly") ?? undefined,
-    });
+  const { q, grade, jlpt, favoritesOnly, seenOnly } = kanjiPracticePoolQuerySchema.parse({
+    q: req.nextUrl.searchParams.get("q") ?? undefined,
+    grade: req.nextUrl.searchParams.get("grade") ?? undefined,
+    jlpt: req.nextUrl.searchParams.get("jlpt") ?? undefined,
+    favoritesOnly: req.nextUrl.searchParams.get("favoritesOnly") ?? undefined,
+    seenOnly: req.nextUrl.searchParams.get("seenOnly") ?? undefined,
+  });
 
-    const [rows, userKanjiRows] = await Promise.all([
-      db.kanji.findMany({
-        where: {
-          ...(grade !== undefined && { school_grade: grade }),
-          ...(jlpt !== undefined && { jlpt_level_ref: jlpt }),
-        },
-        orderBy: [{ school_grade: "asc" }, { stroke_count: "asc" }, { character: "asc" }],
-        select: {
-          id: true,
-          character: true,
-          onyomi: true,
-          kunyomi: true,
-          korean_reading: true,
-          meaning: true,
-          school_grade: true,
-          jlpt_level_ref: true,
-        },
-      }),
-      db.userKanji.findMany({
-        where: { user_id: session.user.id },
-        select: { kanji_id: true, is_favorite: true, learning_status: true },
-      }),
-    ]);
+  const [rows, userKanjiRows] = await Promise.all([
+    db.kanji.findMany({
+      where: {
+        ...(grade !== undefined && { school_grade: grade }),
+        ...(jlpt !== undefined && { jlpt_level_ref: jlpt }),
+      },
+      orderBy: [{ school_grade: "asc" }, { stroke_count: "asc" }, { character: "asc" }],
+      select: {
+        id: true,
+        character: true,
+        onyomi: true,
+        kunyomi: true,
+        korean_reading: true,
+        meaning: true,
+        school_grade: true,
+        jlpt_level_ref: true,
+      },
+    }),
+    db.userKanji.findMany({
+      where: { user_id: session.user.id },
+      select: { kanji_id: true, is_favorite: true, learning_status: true },
+    }),
+  ]);
 
-    const favoriteIds = new Set(
-      userKanjiRows.filter((row) => row.is_favorite).map((row) => row.kanji_id),
-    );
-    // 즐겨찾기만 해두고 아직 리뷰하지 않은 한자(learning_status "NEW")는 `seenOnly` 기준으로
-    // "이미 등장한 적 있는 한자"가 아니다 — 실제로 한 번이라도 채점된 적 있어야 포함한다.
-    const seenIds = new Set(
-      userKanjiRows.filter((row) => row.learning_status !== "NEW").map((row) => row.kanji_id),
-    );
-    const normalizedQuery = q ? normalizeSearchQuery(q) : "";
+  const favoriteIds = new Set(
+    userKanjiRows.filter((row) => row.is_favorite).map((row) => row.kanji_id),
+  );
+  // 즐겨찾기만 해두고 아직 리뷰하지 않은 한자(learning_status "NEW")는 `seenOnly` 기준으로
+  // "이미 등장한 적 있는 한자"가 아니다 — 실제로 한 번이라도 채점된 적 있어야 포함한다.
+  const seenIds = new Set(
+    userKanjiRows.filter((row) => row.learning_status !== "NEW").map((row) => row.kanji_id),
+  );
+  const normalizedQuery = q ? normalizeSearchQuery(q) : "";
 
-    const items = rows
-      .filter((row) => !seenOnly || seenIds.has(row.id))
-      .filter((row) => !favoritesOnly || favoriteIds.has(row.id))
-      .filter((row) => !normalizedQuery || matchesKanjiQuery(row, normalizedQuery))
-      .map((row) => ({
-        id: row.id,
-        character: row.character,
-        koreanReading: row.korean_reading,
-        meaning: row.meaning,
-        schoolGrade: row.school_grade,
-        jlptLevelRef: row.jlpt_level_ref,
-        isFavorite: favoriteIds.has(row.id),
-      }));
+  const items = rows
+    .filter((row) => !seenOnly || seenIds.has(row.id))
+    .filter((row) => !favoritesOnly || favoriteIds.has(row.id))
+    .filter((row) => !normalizedQuery || matchesKanjiQuery(row, normalizedQuery))
+    .map((row) => ({
+      id: row.id,
+      character: row.character,
+      koreanReading: row.korean_reading,
+      meaning: row.meaning,
+      schoolGrade: row.school_grade,
+      jlptLevelRef: row.jlpt_level_ref,
+      isFavorite: favoriteIds.has(row.id),
+    }));
 
-    return { items };
-  },
-);
+  return { items };
+});
