@@ -10,8 +10,14 @@ export const GET = withApiHandler(async (): Promise<AdminSummary> => {
   startOfToday.setHours(0, 0, 0, 0);
 
   const [grouped, signupsToday, openReportGroups] = await Promise.all([
-    db.user.groupBy({ by: ["status"], _count: { _all: true }, where: { role: "USER" } }),
-    db.user.count({ where: { role: "USER", created_at: { gte: startOfToday } } }),
+    db.user.groupBy({
+      by: ["status"],
+      _count: { _all: true },
+      where: { role: "USER", deleted_at: null },
+    }),
+    db.user.count({
+      where: { role: "USER", deleted_at: null, created_at: { gte: startOfToday } },
+    }),
     db.report
       .groupBy({ by: ["target_type", "target_id"], where: { status: "OPEN" } })
       .then((groups) => groups.length),

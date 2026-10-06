@@ -8,10 +8,26 @@ import type { AdminAuditList } from "@/types/admin";
 import type { NextRequest } from "next/server";
 
 const GROUP_ACTIONS: Record<string, AdminAuditAction[] | undefined> = {
-  member: ["APPROVE", "REJECT", "SUSPEND", "RESTORE"],
+  member: [
+    "APPROVE",
+    "REJECT",
+    "SUSPEND",
+    "RESTORE",
+    "SOFT_DELETE_USER",
+    "RESTORE_USER",
+    "EXPORT_MEMBERS",
+  ],
   content: ["HIDE_CONTENT", "RESTORE_CONTENT", "DELETE_CONTENT"],
   sanction: ["WARN", "RESTRICT_WRITE"],
   report: ["RESOLVE_REPORT", "DISMISS_REPORT"],
+  operation: [
+    "CREATE_ANNOUNCEMENT",
+    "UPDATE_ANNOUNCEMENT",
+    "DELETE_ANNOUNCEMENT",
+    "UPDATE_SETTING",
+    "UPDATE_CONTENT",
+    "BLOCK_AI_RESULT",
+  ],
 };
 
 export const GET = withApiHandler(async (req: NextRequest): Promise<AdminAuditList> => {

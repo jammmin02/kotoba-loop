@@ -21,6 +21,15 @@ export const AUDIT_ACTION_LABELS: Record<AdminAuditAction, string> = {
   RESTRICT_WRITE: "작성 제한",
   RESOLVE_REPORT: "신고 처리",
   DISMISS_REPORT: "신고 기각",
+  CREATE_ANNOUNCEMENT: "공지 등록",
+  UPDATE_ANNOUNCEMENT: "공지 수정",
+  DELETE_ANNOUNCEMENT: "공지 삭제",
+  UPDATE_SETTING: "설정 변경",
+  UPDATE_CONTENT: "학습 데이터 수정",
+  SOFT_DELETE_USER: "회원 삭제",
+  RESTORE_USER: "회원 복구",
+  EXPORT_MEMBERS: "회원 내보내기",
+  BLOCK_AI_RESULT: "AI 결과 차단",
 };
 
 const GROUPS: { group: AdminAuditGroup; label: string }[] = [
@@ -28,7 +37,8 @@ const GROUPS: { group: AdminAuditGroup; label: string }[] = [
   { group: "report", label: "신고 처리" },
   { group: "content", label: "콘텐츠" },
   { group: "sanction", label: "제재" },
-  { group: "member", label: "가입·정지" },
+  { group: "member", label: "회원" },
+  { group: "operation", label: "운영" },
 ];
 
 function formatDateTime(iso: string): string {

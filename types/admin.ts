@@ -10,12 +10,27 @@ export type AdminAuditAction =
   | "WARN"
   | "RESTRICT_WRITE"
   | "RESOLVE_REPORT"
-  | "DISMISS_REPORT";
+  | "DISMISS_REPORT"
+  | "CREATE_ANNOUNCEMENT"
+  | "UPDATE_ANNOUNCEMENT"
+  | "DELETE_ANNOUNCEMENT"
+  | "UPDATE_SETTING"
+  | "UPDATE_CONTENT"
+  | "SOFT_DELETE_USER"
+  | "RESTORE_USER"
+  | "EXPORT_MEMBERS"
+  | "BLOCK_AI_RESULT";
 /** 회원 상태를 바꾸는 액션(승인·거절·정지·복구) */
 export type AdminMemberAction = "APPROVE" | "REJECT" | "SUSPEND" | "RESTORE";
-export type AdminAuditGroup = "all" | "member" | "content" | "sanction" | "report";
+export type AdminAuditGroup = "all" | "member" | "content" | "sanction" | "report" | "operation";
 export type ReportReason = "SPAM" | "ABUSE" | "INAPPROPRIATE" | "OTHER";
 export type ReportStatus = "OPEN" | "RESOLVED" | "DISMISSED";
+
+export interface AdminSettings {
+  maintenanceEnabled: boolean;
+  maintenanceMessage: string;
+  allowedEmailDomains: string[];
+}
 
 export interface AdminSummary {
   counts: Record<AdminUserStatus, number>;
@@ -33,6 +48,7 @@ export interface AdminMemberRow {
   signupMethod: "GOOGLE" | "EMAIL";
   createdAt: string;
   lastActiveAt: string | null;
+  deleted: boolean;
 }
 
 export interface AdminMemberList {
@@ -146,4 +162,79 @@ export interface AdminContentList {
   total: number;
   page: number;
   pageSize: number;
+}
+
+export type AdminJlptLevel = "N5" | "N4" | "N3" | "N2" | "N1";
+
+export interface AdminVocabularyRow {
+  id: string;
+  word: string;
+  reading: string;
+  partOfSpeech: string;
+  jlptLevel: AdminJlptLevel | null;
+  meanings: string[];
+}
+
+export interface AdminKanjiRow {
+  id: string;
+  character: string;
+  onyomi: string[];
+  kunyomi: string[];
+  koreanReading: string;
+  meaning: string;
+  strokeCount: number;
+  radical: string;
+  schoolGrade: number | null;
+  jlptLevelRef: AdminJlptLevel | null;
+}
+
+export interface AdminDataList<T> {
+  rows: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface DayCount {
+  date: string;
+  count: number;
+}
+
+export interface AdminStats {
+  signupsDaily: DayCount[];
+  signupsWeekly: { weekStart: string; count: number }[];
+  activeDaily: DayCount[];
+  active: { today: number; last7: number; last30: number };
+}
+
+export interface AdminAiTokenTotals {
+  calls: number;
+  inputTokens: number;
+  outputTokens: number;
+}
+
+export interface AdminAiUsage {
+  days: number;
+  totals: AdminAiTokenTotals;
+  daily: (AdminAiTokenTotals & { date: string })[];
+  byFeature: (AdminAiTokenTotals & { feature: string })[];
+  topUsers: (AdminAiTokenTotals & { userId: string; nickname: string; email: string })[];
+}
+
+export interface AdminAiAnalysisRow {
+  id: string;
+  analysisType: string;
+  inputRef: string;
+  status: string;
+  createdAt: string;
+  user: { nickname: string; email: string };
+  preview: string;
+}
+
+export interface AdminAiAnalysisList {
+  rows: AdminAiAnalysisRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+  types: string[];
 }

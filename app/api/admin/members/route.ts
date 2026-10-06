@@ -14,9 +14,10 @@ export const GET = withApiHandler(async (req: NextRequest): Promise<AdminMemberL
     Object.fromEntries(req.nextUrl.searchParams),
   );
 
+  // 삭제된 회원은 상태 탭에서 빼고 "삭제됨" 탭에서만 보여준다.
   const where: Prisma.UserWhereInput = {
     role: "USER",
-    status,
+    ...(status === "DELETED" ? { deleted_at: { not: null } } : { status, deleted_at: null }),
     ...(q && {
       OR: [
         { email: { contains: q, mode: "insensitive" } },
@@ -40,6 +41,7 @@ export const GET = withApiHandler(async (req: NextRequest): Promise<AdminMemberL
         password_hash: true,
         created_at: true,
         last_active_at: true,
+        deleted_at: true,
       },
     }),
     db.user.count({ where }),
@@ -55,6 +57,7 @@ export const GET = withApiHandler(async (req: NextRequest): Promise<AdminMemberL
       signupMethod: u.password_hash ? "EMAIL" : "GOOGLE",
       createdAt: u.created_at.toISOString(),
       lastActiveAt: u.last_active_at?.toISOString() ?? null,
+      deleted: u.deleted_at !== null,
     })),
     total,
     page,

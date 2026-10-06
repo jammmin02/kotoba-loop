@@ -51,6 +51,7 @@ export const GET = withApiHandler(
       signupMethod: user.password_hash ? "EMAIL" : "GOOGLE",
       createdAt: user.created_at.toISOString(),
       lastActiveAt: user.last_active_at?.toISOString() ?? null,
+      deleted: user.deleted_at !== null,
       jlptLevel: user.jlpt_level,
       targetJlpt: user.target_jlpt,
       dailyWordTarget: user.daily_word_target,
