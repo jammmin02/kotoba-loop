@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { achievementToast } from "@/components/game/achievement-toast";
 import { PixelPlus, PixelSparkles, PixelX } from "@/components/icons/pixel-icons";
@@ -11,9 +11,12 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ChipButton } from "@/components/ui/chip-button";
 import { Input } from "@/components/ui/input";
+import { Modal } from "@/components/ui/modal";
 import { Select } from "@/components/ui/select";
 import { toast } from "@/components/ui/toast";
 import { VoiceInputButton } from "@/components/ui/voice-input-button";
+import { createExtraWordEntry, ExtraWordCard } from "@/components/vocabulary/extra-word-card";
+import type { ExtraWordEntry } from "@/components/vocabulary/extra-word-card";
 import type { AnalyzeWordResult, WordAnalysisResult } from "@/lib/ai/word-analysis";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
@@ -25,7 +28,7 @@ import {
   PART_OF_SPEECH_OPTIONS,
   vocabularySchema,
 } from "@/lib/validations/vocabulary";
-import type { VocabularyCreateInput, VocabularyInput } from "@/lib/validations/vocabulary";
+import type { VocabularyInput } from "@/lib/validations/vocabulary";
 import { RELATED_EXPRESSION_TYPE_SELECT_OPTIONS } from "@/lib/vocabulary/related-expression";
 import type { RelatedExpressionType, VocabularyDetail } from "@/types/vocabulary";
 import type { VocabularyBookSummary } from "@/types/vocabulary-book";
@@ -54,23 +57,26 @@ interface VocabularyFormProps {
   onCancel?: () => void;
 }
 
-interface ExtraWordEntry {
-  key: string;
-  /** The synonym/related-expression chip text that spawned this entry — used to detect toggle-off. */
-  sourceText: string;
-  word: string;
-  reading: string;
-  partOfSpeech: string;
-  jlptLevel: string;
-  meanings: string[];
-  examples: { japanese: string; korean: string }[];
-  aiAnalysisId?: string;
-  aiFieldsEdited: boolean;
-  aiHighlight: { reading: boolean; partOfSpeech: boolean; jlptLevel: boolean };
-  aiMeaningHighlight: boolean[];
-  aiExampleHighlight: boolean[];
-  analyzing: boolean;
-}
+type FieldErrorKey =
+  | "word"
+  | "reading"
+  | "partOfSpeech"
+  | "meanings"
+  | "examples"
+  | "relatedExpressions"
+  | "vocabularyBookIds";
+type FieldErrors = Partial<Record<FieldErrorKey, string>>;
+
+/** 화면에서 위에서 아래로 놓인 순서 — 여러 오류가 한꺼번에 있을 때 가장 위의 것으로 이동한다. */
+const MAIN_FIELD_ORDER: FieldErrorKey[] = [
+  "word",
+  "reading",
+  "partOfSpeech",
+  "meanings",
+  "examples",
+  "relatedExpressions",
+];
+const FIELD_ERROR_KEYS: string[] = [...MAIN_FIELD_ORDER, "vocabularyBookIds"];
 
 interface RelatedExpressionRow {
   relationType: RelatedExpressionType;
@@ -81,6 +87,10 @@ interface RelatedExpressionRow {
 /** "AI로 전체 자동 완성"(전체) 대비 섹션별 "이 항목만 채우기" 버튼이 어디에만 적용할지 고른다 —
  * 둘 다 같은 `/api/ai/analyze-word` 응답을 재사용하고, 이 값에 따라 그중 일부만 폼에 반영한다. */
 type AnalysisTarget = "all" | "basic" | "meanings" | "examples" | "related";
+
+function isWordNotFound(err: unknown): err is ApiClientError {
+  return err instanceof ApiClientError && err.code === "WORD_NOT_FOUND";
+}
 
 const JLPT_SELECT_OPTIONS = [
   { value: "", label: "선택 안 함" },
@@ -135,6 +145,9 @@ export function VocabularyForm({
     initialData?.bookIds ?? (initialBookId ? [initialBookId] : []),
   );
   const [error, setError] = useState<string>();
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  // 오류 위치로 스크롤·포커스하라는 요청. 같은 대상을 연속으로 요청해도 다시 동작하도록 n을 올린다.
+  const [scrollRequest, setScrollRequest] = useState<{ target: string; n: number } | null>(null);
 
   const [aiAnalysisId, setAiAnalysisId] = useState<string | undefined>(initialAnalysis?.id);
   const [aiFieldsEdited, setAiFieldsEdited] = useState(false);
@@ -167,7 +180,6 @@ export function VocabularyForm({
   );
 
   const [extraWords, setExtraWords] = useState<ExtraWordEntry[]>([]);
-  const [extraSubmitting, setExtraSubmitting] = useState(false);
   const nextExtraKeyRef = useRef(0);
 
   const { data: books } = useQuery({
@@ -175,32 +187,37 @@ export function VocabularyForm({
     queryFn: () => apiFetch<VocabularyBookSummary[]>("/api/vocabulary-books"),
   });
 
-  const mutation = useMutation({
-    mutationFn: (payload: VocabularyCreateInput) =>
-      isEdit
-        ? apiFetch<VocabularyDetail>(`/api/vocabularies/${initialData.id}`, {
-            method: "PATCH",
-            body: payload,
-          })
-        : apiFetch<VocabularyDetail>("/api/vocabularies", { method: "POST", body: payload }),
-    onSuccess: (saved) => {
-      queryClient.invalidateQueries({ queryKey: ["vocabularies"] });
-      queryClient.invalidateQueries({ queryKey: ["vocabulary-books"] });
-      toast.success(isEdit ? "단어를 수정했습니다." : "단어를 등록했습니다.");
-      if (saved.unlockedAchievements && saved.unlockedAchievements.length > 0) {
-        saved.unlockedAchievements.forEach((achievement) =>
-          achievementToast.show(achievement.title),
-        );
-        queryClient.invalidateQueries({ queryKey: ["game", "achievements"] });
-      }
-      if (onSaved) onSaved(saved);
-      else router.push(`/words/${saved.id}`);
-    },
-    onError: (err) => {
-      setError(err instanceof ApiClientError ? err.message : "저장 중 오류가 발생했습니다.");
-    },
-  });
+  // AI가 "존재하지 않는 단어"로 판정하면 폼을 채우지 않고 이 메시지를 모달로 알린다.
+  const [notFoundMessage, setNotFoundMessage] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  // 이번 화면에서 이미 저장된 단어들 — "등록하고 계속 추가"로 폼이 비워져도 진행 상황을 보여준다.
+  const [registered, setRegistered] = useState<{ id: string; word: string }[]>([]);
+  const wordInputRef = useRef<HTMLInputElement>(null);
 
+  // 새 단어 등록 페이지(onSaved 없는 create 모드)에서만 연속 등록을 지원한다. 모달·사진 검수 등
+  // onSaved로 저장 후 흐름을 직접 제어하는 호출부는 기존 동작을 그대로 유지한다.
+  const showContinue = !isEdit && !onSaved;
+  const isDirty = showContinue && (word.trim() !== "" || extraWords.length > 0);
+
+  useEffect(() => {
+    if (!isDirty) return;
+    const handler = (e: BeforeUnloadEvent) => e.preventDefault();
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isDirty]);
+
+  useEffect(() => {
+    if (!scrollRequest) return;
+    const el = document.querySelector<HTMLElement>(
+      `[data-form-target="${CSS.escape(scrollRequest.target)}"]`,
+    );
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    // 헤더의 "이 항목만 채우기" 같은 버튼보다 입력칸을 우선하고, 입력칸이 없으면(단어장 칩) 버튼에 둔다.
+    const focusable =
+      el.querySelector<HTMLElement>("input, select") ?? el.querySelector<HTMLElement>("button");
+    focusable?.focus({ preventScroll: true });
+  }, [scrollRequest]);
   // 상단 "AI로 전체 자동 완성" 배너와 섹션별 "이 항목만 채우기" 버튼은 같은 분석 응답을
   // 재사용한다 — target이 어느 섹션에만 반영할지를 고를 뿐, 호출 자체는 항상 전체 분석이다.
   const analyzeMutation = useMutation<AnalyzeWordResult, Error, AnalysisTarget>({
@@ -250,6 +267,10 @@ export function VocabularyForm({
       setError(undefined);
     },
     onError: (err) => {
+      if (isWordNotFound(err)) {
+        setNotFoundMessage(err.message);
+        return;
+      }
       toast.error(err instanceof ApiClientError ? err.message : "AI 분석에 실패했습니다.");
     },
   });
@@ -272,18 +293,34 @@ export function VocabularyForm({
     setAiExtras(null);
   }
 
+  function clearFieldError(field: FieldErrorKey) {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  }
+
+  function requestScroll(target: string) {
+    setScrollRequest({ target, n: Date.now() });
+  }
+
   function handleWordChange(value: string) {
+    clearFieldError("word");
     setWord(value);
     if (aiAnalysisId) resetAiState();
   }
 
   function handleReadingChange(value: string) {
+    clearFieldError("reading");
     setReading(value);
     setAiHighlight((prev) => ({ ...prev, reading: false }));
     markEdited();
   }
 
   function handlePartOfSpeechChange(value: string) {
+    clearFieldError("partOfSpeech");
     setPartOfSpeech(value);
     setAiHighlight((prev) => ({ ...prev, partOfSpeech: false }));
     markEdited();
@@ -296,27 +333,32 @@ export function VocabularyForm({
   }
 
   function updateMeaning(index: number, value: string) {
+    clearFieldError("meanings");
     setMeanings((prev) => prev.map((m, i) => (i === index ? value : m)));
     setAiMeaningHighlight((prev) => prev.map((h, i) => (i === index ? false : h)));
     markEdited();
   }
   function addMeaning() {
+    clearFieldError("meanings");
     setMeanings((prev) => (prev.length >= MAX_MEANINGS ? prev : [...prev, ""]));
     setAiMeaningHighlight((prev) => [...prev, false]);
     markEdited();
   }
   function removeMeaning(index: number) {
+    clearFieldError("meanings");
     setMeanings((prev) => (prev.length <= 1 ? prev : prev.filter((_, i) => i !== index)));
     setAiMeaningHighlight((prev) => prev.filter((_, i) => i !== index));
     markEdited();
   }
 
   function updateExample(index: number, field: "japanese" | "korean", value: string) {
+    clearFieldError("examples");
     setExamples((prev) => prev.map((e, i) => (i === index ? { ...e, [field]: value } : e)));
     setAiExampleHighlight((prev) => prev.map((h, i) => (i === index ? false : h)));
     markEdited();
   }
   function addExample() {
+    clearFieldError("examples");
     setExamples((prev) =>
       prev.length >= MAX_EXAMPLES ? prev : [...prev, { japanese: "", korean: "" }],
     );
@@ -324,17 +366,20 @@ export function VocabularyForm({
     markEdited();
   }
   function removeExample(index: number) {
+    clearFieldError("examples");
     setExamples((prev) => prev.filter((_, i) => i !== index));
     setAiExampleHighlight((prev) => prev.filter((_, i) => i !== index));
     markEdited();
   }
 
   function updateRelatedExpression(index: number, patch: Partial<RelatedExpressionRow>) {
+    clearFieldError("relatedExpressions");
     setRelatedExpressions((prev) => prev.map((r, i) => (i === index ? { ...r, ...patch } : r)));
     setAiRelatedHighlight((prev) => prev.map((h, i) => (i === index ? false : h)));
     markEdited();
   }
   function addRelatedExpression() {
+    clearFieldError("relatedExpressions");
     setRelatedExpressions((prev) =>
       prev.length >= MAX_RELATED_EXPRESSIONS
         ? prev
@@ -344,9 +389,15 @@ export function VocabularyForm({
     markEdited();
   }
   function removeRelatedExpression(index: number) {
+    clearFieldError("relatedExpressions");
     setRelatedExpressions((prev) => prev.filter((_, i) => i !== index));
     setAiRelatedHighlight((prev) => prev.filter((_, i) => i !== index));
     markEdited();
+  }
+
+  function addBlankExtraWord() {
+    const key = `extra-${nextExtraKeyRef.current++}`;
+    setExtraWords((prev) => [...prev, createExtraWordEntry(key, "")]);
   }
 
   function toggleExtraWord(text: string) {
@@ -356,25 +407,7 @@ export function VocabularyForm({
         return prev.filter((_, i) => i !== existingIndex);
       }
       const key = `extra-${nextExtraKeyRef.current++}`;
-      return [
-        ...prev,
-        {
-          key,
-          sourceText: text,
-          word: text,
-          reading: "",
-          partOfSpeech: "",
-          jlptLevel: "",
-          meanings: [""],
-          examples: [],
-          aiAnalysisId: undefined,
-          aiFieldsEdited: false,
-          aiHighlight: { reading: false, partOfSpeech: false, jlptLevel: false },
-          aiMeaningHighlight: [],
-          aiExampleHighlight: [],
-          analyzing: false,
-        },
-      ];
+      return [...prev, createExtraWordEntry(key, text)];
     });
   }
 
@@ -385,107 +418,6 @@ export function VocabularyForm({
   function updateExtraWord(key: string, patch: Partial<ExtraWordEntry>) {
     setExtraWords((prev) =>
       prev.map((entry) => (entry.key === key ? { ...entry, ...patch } : entry)),
-    );
-  }
-
-  function markExtraEdited(key: string) {
-    setExtraWords((prev) =>
-      prev.map((entry) =>
-        entry.key === key && entry.aiAnalysisId ? { ...entry, aiFieldsEdited: true } : entry,
-      ),
-    );
-  }
-
-  function updateExtraMeaning(key: string, index: number, value: string) {
-    setExtraWords((prev) =>
-      prev.map((entry) =>
-        entry.key !== key
-          ? entry
-          : {
-              ...entry,
-              meanings: entry.meanings.map((m, i) => (i === index ? value : m)),
-              aiMeaningHighlight: entry.aiMeaningHighlight.map((h, i) => (i === index ? false : h)),
-              aiFieldsEdited: entry.aiAnalysisId ? true : entry.aiFieldsEdited,
-            },
-      ),
-    );
-  }
-
-  function addExtraMeaning(key: string) {
-    setExtraWords((prev) =>
-      prev.map((entry) =>
-        entry.key !== key || entry.meanings.length >= MAX_MEANINGS
-          ? entry
-          : {
-              ...entry,
-              meanings: [...entry.meanings, ""],
-              aiMeaningHighlight: [...entry.aiMeaningHighlight, false],
-            },
-      ),
-    );
-  }
-
-  function removeExtraMeaning(key: string, index: number) {
-    setExtraWords((prev) =>
-      prev.map((entry) =>
-        entry.key !== key || entry.meanings.length <= 1
-          ? entry
-          : {
-              ...entry,
-              meanings: entry.meanings.filter((_, i) => i !== index),
-              aiMeaningHighlight: entry.aiMeaningHighlight.filter((_, i) => i !== index),
-            },
-      ),
-    );
-  }
-
-  function updateExtraExample(
-    key: string,
-    index: number,
-    field: "japanese" | "korean",
-    value: string,
-  ) {
-    setExtraWords((prev) =>
-      prev.map((entry) =>
-        entry.key !== key
-          ? entry
-          : {
-              ...entry,
-              examples: entry.examples.map((ex, i) =>
-                i === index ? { ...ex, [field]: value } : ex,
-              ),
-              aiExampleHighlight: entry.aiExampleHighlight.map((h, i) => (i === index ? false : h)),
-              aiFieldsEdited: entry.aiAnalysisId ? true : entry.aiFieldsEdited,
-            },
-      ),
-    );
-  }
-
-  function addExtraExample(key: string) {
-    setExtraWords((prev) =>
-      prev.map((entry) =>
-        entry.key !== key || entry.examples.length >= MAX_EXAMPLES
-          ? entry
-          : {
-              ...entry,
-              examples: [...entry.examples, { japanese: "", korean: "" }],
-              aiExampleHighlight: [...entry.aiExampleHighlight, false],
-            },
-      ),
-    );
-  }
-
-  function removeExtraExample(key: string, index: number) {
-    setExtraWords((prev) =>
-      prev.map((entry) =>
-        entry.key !== key
-          ? entry
-          : {
-              ...entry,
-              examples: entry.examples.filter((_, i) => i !== index),
-              aiExampleHighlight: entry.aiExampleHighlight.filter((_, i) => i !== index),
-            },
-      ),
     );
   }
 
@@ -511,48 +443,87 @@ export function VocabularyForm({
         aiMeaningHighlight: result.meanings.map(() => true),
         aiExampleHighlight: result.examples.map(() => true),
         analyzing: false,
+        error: undefined,
       });
     } catch (err) {
-      toast.error(err instanceof ApiClientError ? err.message : "AI 분석에 실패했습니다.");
+      if (isWordNotFound(err)) setNotFoundMessage(err.message);
+      else toast.error(err instanceof ApiClientError ? err.message : "AI 분석에 실패했습니다.");
       updateExtraWord(key, { analyzing: false });
     }
   }
 
   function toggleBook(id: string) {
+    clearFieldError("vocabularyBookIds");
     setSelectedBookIds((prev) =>
       prev.includes(id) ? prev.filter((b) => b !== id) : [...prev, id],
     );
   }
 
-  function handleSubmit(e: FormEvent) {
-    e.preventDefault();
+  function resetMainForm() {
+    setWord("");
+    setReading("");
+    setPartOfSpeech("");
+    setJlptLevel("");
+    setMeanings([""]);
+    setExamples([]);
+    setRelatedExpressions([]);
+    resetAiState();
+    analyzeMutation.reset();
+    setError(undefined);
+    setFieldErrors({});
+    wordInputRef.current?.focus();
+  }
+
+  // 메인 폼이 완전히 비어 있고 추가 카드가 남아 있으면 카드만 등록한다 — 일부 카드가 실패해
+  // 메인 단어는 이미 저장된 뒤 실패한 카드를 다시 시도하는 경우다.
+  const skipMain = !isEdit && !word.trim() && extraWords.length > 0;
+  const saveCount = (skipMain ? 0 : 1) + extraWords.length;
+
+  async function submit(mode: "stay" | "continue") {
+    if (submitting) return;
     setError(undefined);
 
-    const parsed = vocabularySchema.safeParse({
-      word,
-      reading,
-      partOfSpeech,
-      jlptLevel: jlptLevel || null,
-      meanings: meanings.map((m) => m.trim()).filter(Boolean),
-      examples: examples
-        .filter((ex) => ex.japanese.trim() || ex.korean.trim())
-        .map((ex) => ({ japanese: ex.japanese.trim(), korean: ex.korean.trim() })),
-      relatedExpressions: relatedExpressions
-        .filter((r) => r.expression.trim() || r.meaning.trim())
-        .map((r) => ({
-          relationType: r.relationType,
-          expression: r.expression.trim(),
-          meaning: r.meaning.trim(),
-        })),
-      vocabularyBookIds: selectedBookIds,
-    });
+    setFieldErrors({});
 
-    if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message);
-      return;
+    const nextFieldErrors: FieldErrors = {};
+    let otherError: string | undefined;
+    const addFieldError = (key: string, message: string) => {
+      if (FIELD_ERROR_KEYS.includes(key)) {
+        const field = key as FieldErrorKey;
+        nextFieldErrors[field] ??= message;
+      } else {
+        otherError ??= message;
+      }
+    };
+
+    let mainData: VocabularyInput | null = null;
+    if (!skipMain) {
+      const parsed = vocabularySchema.safeParse({
+        word,
+        reading,
+        partOfSpeech,
+        jlptLevel: jlptLevel || null,
+        meanings: meanings.map((m) => m.trim()).filter(Boolean),
+        examples: examples
+          .filter((ex) => ex.japanese.trim() || ex.korean.trim())
+          .map((ex) => ({ japanese: ex.japanese.trim(), korean: ex.korean.trim() })),
+        relatedExpressions: relatedExpressions
+          .filter((r) => r.expression.trim() || r.meaning.trim())
+          .map((r) => ({
+            relationType: r.relationType,
+            expression: r.expression.trim(),
+            meaning: r.meaning.trim(),
+          })),
+        vocabularyBookIds: selectedBookIds,
+      });
+      if (parsed.success) mainData = parsed.data;
+      else {
+        parsed.error.issues.forEach((issue) => addFieldError(String(issue.path[0]), issue.message));
+      }
     }
 
-    const parsedExtras: VocabularyInput[] = [];
+    const extraInputs: { key: string; data: VocabularyInput }[] = [];
+    const invalid = new Map<string, string>();
     for (const entry of extraWords) {
       const parsedExtra = vocabularySchema.safeParse({
         word: entry.word,
@@ -565,63 +536,122 @@ export function VocabularyForm({
           .map((ex) => ({ japanese: ex.japanese.trim(), korean: ex.korean.trim() })),
         vocabularyBookIds: selectedBookIds,
       });
-      if (!parsedExtra.success) {
-        setError(`"${entry.word || "새 단어"}": ${parsedExtra.error.issues[0]?.message}`);
-        return;
+      if (parsedExtra.success) {
+        extraInputs.push({ key: entry.key, data: parsedExtra.data });
+        continue;
       }
-      parsedExtras.push(parsedExtra.data);
+      // 단어장 선택은 모든 카드가 공유하므로 카드마다 같은 오류를 반복하지 않고 단어장 영역에만 표시한다.
+      const cardIssues = parsedExtra.error.issues.filter(
+        (issue) => issue.path[0] !== "vocabularyBookIds",
+      );
+      if (cardIssues.length === 0) {
+        addFieldError("vocabularyBookIds", parsedExtra.error.issues[0].message);
+      } else {
+        invalid.set(entry.key, cardIssues[0].message);
+      }
     }
 
-    if (parsedExtras.length === 0) {
-      mutation.mutate({
-        ...parsed.data,
-        ...(!isEdit && aiAnalysisId ? { aiAnalysisId, aiFieldsEdited } : {}),
-      });
+    // 같은 단어(읽기가 같거나 한쪽이 비어 있는 경우)를 한 번에 두 번 등록하지 않도록 뒤쪽 항목에 표시한다.
+    const seen: { label: string; word: string; reading: string }[] = [];
+    const normalize = (value: string) => value.trim().normalize("NFKC");
+    const checkDuplicate = (label: string, rawWord: string, rawReading: string) => {
+      const item = { label, word: normalize(rawWord), reading: normalize(rawReading) };
+      if (!item.word) return undefined;
+      const earlier = seen.find(
+        (other) =>
+          other.word === item.word &&
+          (!other.reading || !item.reading || other.reading === item.reading),
+      );
+      seen.push(item);
+      return earlier;
+    };
+    if (!skipMain) checkDuplicate("메인 단어", word, reading);
+    extraWords.forEach((entry, index) => {
+      const earlier = checkDuplicate(`단어 ${index + 2}`, entry.word, entry.reading);
+      if (earlier && !invalid.has(entry.key)) {
+        invalid.set(
+          entry.key,
+          `「${entry.word.trim()}」은(는) ${earlier.label}과(와) 같은 단어예요. 하나만 남겨주세요.`,
+        );
+      }
+    });
+
+    const fieldErrorCount = Object.keys(nextFieldErrors).length;
+    if (fieldErrorCount > 0 || invalid.size > 0 || otherError) {
+      setFieldErrors(nextFieldErrors);
+      setExtraWords((prev) =>
+        prev.map((e) =>
+          invalid.has(e.key)
+            ? { ...e, error: invalid.get(e.key), expanded: true }
+            : { ...e, error: undefined },
+        ),
+      );
+      setError(otherError);
+      const firstExtra = extraWords.find((e) => invalid.has(e.key));
+      requestScroll(
+        MAIN_FIELD_ORDER.find((key) => nextFieldErrors[key]) ??
+          firstExtra?.key ??
+          (nextFieldErrors.vocabularyBookIds ? "vocabularyBookIds" : "form-error"),
+      );
+      toast.error(
+        `입력을 확인해주세요 (${fieldErrorCount + invalid.size + (otherError ? 1 : 0)}곳)`,
+      );
       return;
     }
 
-    void submitWithExtras(parsed.data, parsedExtras);
-  }
-
-  async function submitWithExtras(mainData: VocabularyInput, extrasData: VocabularyInput[]) {
-    setExtraSubmitting(true);
-    setError(undefined);
+    setSubmitting(true);
     try {
-      const saved = isEdit
-        ? await apiFetch<VocabularyDetail>(`/api/vocabularies/${initialData!.id}`, {
-            method: "PATCH",
-            body: mainData,
-          })
-        : await apiFetch<VocabularyDetail>("/api/vocabularies", {
-            method: "POST",
-            body: { ...mainData, ...(aiAnalysisId ? { aiAnalysisId, aiFieldsEdited } : {}) },
-          });
+      let mainSaved: VocabularyDetail | null = null;
+      if (mainData) {
+        try {
+          mainSaved = isEdit
+            ? await apiFetch<VocabularyDetail>(`/api/vocabularies/${initialData.id}`, {
+                method: "PATCH",
+                body: mainData,
+              })
+            : await apiFetch<VocabularyDetail>("/api/vocabularies", {
+                method: "POST",
+                body: { ...mainData, ...(aiAnalysisId ? { aiAnalysisId, aiFieldsEdited } : {}) },
+              });
+        } catch (err) {
+          setError(err instanceof ApiClientError ? err.message : "저장 중 오류가 발생했습니다.");
+          requestScroll("form-error");
+          return;
+        }
+      }
 
-      let successCount = 1;
-      const unlocked = [...(saved.unlockedAchievements ?? [])];
+      const savedWords: VocabularyDetail[] = mainSaved ? [mainSaved] : [];
+      const unlocked = [...(mainSaved?.unlockedAchievements ?? [])];
+      const savedKeys = new Set<string>();
+      const failures = new Map<string, string>();
 
-      for (const extra of extrasData) {
+      for (const { key, data } of extraInputs) {
         try {
           const savedExtra = await apiFetch<VocabularyDetail>("/api/vocabularies", {
             method: "POST",
-            body: extra,
+            body: data,
           });
-          successCount += 1;
+          savedWords.push(savedExtra);
+          savedKeys.add(key);
           if (savedExtra.unlockedAchievements) unlocked.push(...savedExtra.unlockedAchievements);
         } catch (err) {
-          toast.error(
-            `"${extra.word}" 등록에 실패했어요: ${
-              err instanceof ApiClientError ? err.message : "오류가 발생했습니다."
-            }`,
-          );
+          const message = err instanceof ApiClientError ? err.message : "오류가 발생했습니다.";
+          failures.set(key, message);
+          toast.error(`"${data.word}" 등록에 실패했어요: ${message}`);
         }
       }
 
       queryClient.invalidateQueries({ queryKey: ["vocabularies"] });
       queryClient.invalidateQueries({ queryKey: ["vocabulary-books"] });
-      toast.success(
-        successCount > 1 ? `단어 ${successCount}개를 등록했습니다.` : "단어를 등록했습니다.",
-      );
+      if (savedWords.length > 0) {
+        toast.success(
+          savedWords.length > 1
+            ? `단어 ${savedWords.length}개를 ${isEdit ? "저장" : "등록"}했습니다.`
+            : isEdit
+              ? "단어를 수정했습니다."
+              : `「${savedWords[0].word}」를 등록했어요.`,
+        );
+      }
 
       const uniqueAchievements = Array.from(new Map(unlocked.map((a) => [a.title, a])).values());
       if (uniqueAchievements.length > 0) {
@@ -629,24 +659,85 @@ export function VocabularyForm({
         queryClient.invalidateQueries({ queryKey: ["game", "achievements"] });
       }
 
-      if (onSaved) onSaved(saved);
-      else router.push(`/words/${saved.id}`);
-    } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : "저장 중 오류가 발생했습니다.");
+      if (!isEdit) {
+        setRegistered((prev) => [
+          ...prev,
+          ...savedWords.map((saved) => ({ id: saved.id, word: saved.word })),
+        ]);
+      }
+      // 저장된 카드는 제거하고, 실패한 카드는 사유와 함께 남겨 바로 고쳐서 다시 시도할 수 있게 한다.
+      setExtraWords((prev) =>
+        prev
+          .filter((e) => !savedKeys.has(e.key))
+          .map((e) =>
+            failures.has(e.key) ? { ...e, error: failures.get(e.key), expanded: true } : e,
+          ),
+      );
+
+      if (failures.size > 0) {
+        // 메인 단어는 이미 저장됐으니 다시 제출되지 않도록 비운다(수정 모드는 그대로 둔다).
+        if (mainSaved && !isEdit) resetMainForm();
+        return;
+      }
+
+      if (mode === "continue" && showContinue) {
+        resetMainForm();
+        return;
+      }
+
+      const target = mainSaved ?? savedWords[0];
+      if (mainSaved && onSaved) onSaved(mainSaved);
+      else if (target) router.push(`/words/${target.id}`);
     } finally {
-      setExtraSubmitting(false);
+      setSubmitting(false);
     }
   }
 
+  function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    void submit("stay");
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-6" noValidate>
+    <form
+      onSubmit={handleSubmit}
+      onKeyDown={(e) => {
+        if (showContinue && (e.ctrlKey || e.metaKey) && e.key === "Enter") {
+          e.preventDefault();
+          void submit("continue");
+        }
+      }}
+      className="flex flex-col gap-6"
+      noValidate
+    >
+      {registered.length > 0 && (
+        <div
+          role="status"
+          className="flex flex-col gap-2 border-2 border-success bg-success/10 p-3"
+        >
+          <p className="text-xs font-bold text-success">✓ 이번에 {registered.length}개 등록</p>
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {registered.map((item) => (
+              <Link
+                key={item.id}
+                href={`/words/${item.id}`}
+                className="shrink-0 border-2 border-pixel-ink bg-surface px-2.5 py-1 text-sm font-bold hover:bg-background"
+              >
+                {item.word}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
       <Card className="flex flex-col gap-4">
-        <div className="flex items-end gap-2">
+        <div className="flex items-end gap-2" data-form-target="word">
           <div className="min-w-0 flex-1">
             <Input
+              ref={wordInputRef}
               label="단어"
               value={word}
               onChange={(e) => handleWordChange(e.target.value)}
+              error={fieldErrors.word}
               required
             />
           </div>
@@ -678,7 +769,7 @@ export function VocabularyForm({
               AI가 분석하고 있어요. 최대 30초 정도 걸릴 수 있어요.
             </p>
           )}
-          {analyzeMutation.isError && (
+          {analyzeMutation.isError && !isWordNotFound(analyzeMutation.error) && (
             <p className="text-xs text-error">
               AI 분석에 실패했어요. 직접 입력해도 괜찮아요.{" "}
               <button
@@ -705,12 +796,13 @@ export function VocabularyForm({
           </button>
         </div>
 
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1" data-form-target="reading">
           <Input
             label="후리가나"
             value={reading}
             onChange={(e) => handleReadingChange(e.target.value)}
             className={cn(aiHighlight.reading && "ring-2 ring-accent/60 bg-accent/5")}
+            error={fieldErrors.reading}
             required
           />
           {aiHighlight.reading && (
@@ -718,13 +810,14 @@ export function VocabularyForm({
           )}
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1" data-form-target="partOfSpeech">
             <Select
               label="품사"
               value={partOfSpeech}
               onChange={(e) => handlePartOfSpeechChange(e.target.value)}
               options={PART_OF_SPEECH_SELECT_OPTIONS}
               className={cn(aiHighlight.partOfSpeech && "ring-2 ring-accent/60 bg-accent/5")}
+              error={fieldErrors.partOfSpeech}
               required
             />
             {aiHighlight.partOfSpeech && (
@@ -746,7 +839,7 @@ export function VocabularyForm({
         </div>
       </Card>
 
-      <Card className="flex flex-col gap-3">
+      <Card className="flex flex-col gap-3" data-form-target="meanings">
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium text-foreground">
             뜻<span className="text-error"> *</span>
@@ -797,9 +890,14 @@ export function VocabularyForm({
             )}
           </div>
         ))}
+        {fieldErrors.meanings && (
+          <p role="alert" className="text-xs text-error">
+            {fieldErrors.meanings}
+          </p>
+        )}
       </Card>
 
-      <Card className="flex flex-col gap-3">
+      <Card className="flex flex-col gap-3" data-form-target="examples">
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium text-foreground">예문</span>
           <div className="flex items-center gap-3">
@@ -859,9 +957,14 @@ export function VocabularyForm({
             )}
           </div>
         ))}
+        {fieldErrors.examples && (
+          <p role="alert" className="text-xs text-error">
+            {fieldErrors.examples}
+          </p>
+        )}
       </Card>
 
-      <Card className="flex flex-col gap-3">
+      <Card className="flex flex-col gap-3" data-form-target="relatedExpressions">
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium text-foreground">관련 표현</span>
           <div className="flex items-center gap-3">
@@ -933,6 +1036,11 @@ export function VocabularyForm({
             )}
           </div>
         ))}
+        {fieldErrors.relatedExpressions && (
+          <p role="alert" className="text-xs text-error">
+            {fieldErrors.relatedExpressions}
+          </p>
+        )}
       </Card>
 
       {aiExtras && (
@@ -1007,207 +1115,30 @@ export function VocabularyForm({
         </Card>
       )}
 
-      {extraWords.map((entry) => (
-        <Card key={entry.key} className="flex flex-col gap-4 border-accent/60">
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-sm font-medium text-foreground">
-              함께 등록할 단어<span className="text-error"> *</span>
-            </span>
-            <button
-              type="button"
-              onClick={() => removeExtraWord(entry.key)}
-              aria-label="추가 단어 삭제"
-              className="flex size-9 shrink-0 items-center justify-center border-2 border-pixel-ink bg-surface text-foreground/60 shadow-bevel-raised transition hover:bg-background"
-            >
-              <PixelX className="size-3.5" aria-hidden="true" />
-            </button>
-          </div>
-
-          <Input
-            label="단어"
-            value={entry.word}
-            onChange={(e) => {
-              updateExtraWord(entry.key, { word: e.target.value, aiAnalysisId: undefined });
-            }}
-            required
+      {extraWords.map((entry, index) => (
+        <div key={entry.key} data-form-target={entry.key}>
+          <ExtraWordCard
+            entry={entry}
+            index={index}
+            onChange={(patch) => updateExtraWord(entry.key, patch)}
+            onRemove={() => removeExtraWord(entry.key)}
+            onAnalyze={() => analyzeExtraWord(entry.key)}
           />
-
-          <div className="flex flex-col gap-1.5">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="self-start"
-              loading={entry.analyzing}
-              disabled={!entry.word.trim() || entry.analyzing}
-              onClick={() => analyzeExtraWord(entry.key)}
-            >
-              <PixelSparkles className="size-3.5" aria-hidden="true" />
-              AI로 자동 분석
-            </Button>
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <Input
-              label="후리가나"
-              value={entry.reading}
-              onChange={(e) => {
-                updateExtraWord(entry.key, {
-                  reading: e.target.value,
-                  aiHighlight: { ...entry.aiHighlight, reading: false },
-                });
-                markExtraEdited(entry.key);
-              }}
-              className={cn(entry.aiHighlight.reading && "ring-2 ring-accent/60 bg-accent/5")}
-              required
-            />
-            {entry.aiHighlight.reading && (
-              <span className="text-[11px] font-bold text-accent">✨ AI가 채운 값</span>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="flex flex-col gap-1">
-              <Select
-                label="품사"
-                value={entry.partOfSpeech}
-                onChange={(e) => {
-                  updateExtraWord(entry.key, {
-                    partOfSpeech: e.target.value,
-                    aiHighlight: { ...entry.aiHighlight, partOfSpeech: false },
-                  });
-                  markExtraEdited(entry.key);
-                }}
-                options={PART_OF_SPEECH_SELECT_OPTIONS}
-                className={cn(
-                  entry.aiHighlight.partOfSpeech && "ring-2 ring-accent/60 bg-accent/5",
-                )}
-                required
-              />
-              {entry.aiHighlight.partOfSpeech && (
-                <span className="text-[11px] font-bold text-accent">✨ AI가 채운 값</span>
-              )}
-            </div>
-            <div className="flex flex-col gap-1">
-              <Select
-                label="JLPT 난이도"
-                value={entry.jlptLevel}
-                onChange={(e) => {
-                  updateExtraWord(entry.key, {
-                    jlptLevel: e.target.value,
-                    aiHighlight: { ...entry.aiHighlight, jlptLevel: false },
-                  });
-                  markExtraEdited(entry.key);
-                }}
-                options={JLPT_SELECT_OPTIONS}
-                className={cn(entry.aiHighlight.jlptLevel && "ring-2 ring-accent/60 bg-accent/5")}
-              />
-              {entry.aiHighlight.jlptLevel && (
-                <span className="text-[11px] font-bold text-accent">✨ AI가 채운 값</span>
-              )}
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-foreground">
-                뜻<span className="text-error"> *</span>
-              </span>
-              <button
-                type="button"
-                onClick={() => addExtraMeaning(entry.key)}
-                className="flex items-center gap-1 text-xs font-bold text-primary hover:underline"
-              >
-                <PixelPlus className="size-3" aria-hidden="true" />뜻 추가
-              </button>
-            </div>
-            {entry.meanings.map((meaning, index) => (
-              <div key={index} className="flex flex-col gap-1">
-                <div className="flex items-center gap-2">
-                  <Input
-                    value={meaning}
-                    onChange={(e) => updateExtraMeaning(entry.key, index, e.target.value)}
-                    placeholder={`뜻 ${index + 1}`}
-                    className={cn(
-                      "flex-1",
-                      entry.aiMeaningHighlight[index] && "ring-2 ring-accent/60 bg-accent/5",
-                    )}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeExtraMeaning(entry.key, index)}
-                    disabled={entry.meanings.length <= 1}
-                    aria-label="뜻 삭제"
-                    className="flex size-9 shrink-0 items-center justify-center border-2 border-pixel-ink bg-surface text-foreground/60 shadow-bevel-raised transition hover:bg-background disabled:pointer-events-none disabled:opacity-40"
-                  >
-                    <PixelX className="size-3.5" aria-hidden="true" />
-                  </button>
-                </div>
-                {entry.aiMeaningHighlight[index] && (
-                  <span className="text-[11px] font-bold text-accent">✨ AI가 채운 값</span>
-                )}
-              </div>
-            ))}
-          </div>
-
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-foreground">예문</span>
-              <button
-                type="button"
-                onClick={() => addExtraExample(entry.key)}
-                className="flex items-center gap-1 text-xs font-bold text-primary hover:underline"
-              >
-                <PixelPlus className="size-3" aria-hidden="true" />
-                예문 추가
-              </button>
-            </div>
-            {entry.examples.length === 0 && (
-              <p className="text-xs text-foreground/50">선택 사항이에요. 필요하면 추가해보세요.</p>
-            )}
-            {entry.examples.map((example, index) => (
-              <div key={index} className="flex flex-col gap-1">
-                <div
-                  className={cn(
-                    "flex items-start gap-2 border-2 border-pixel-ink bg-background p-3",
-                    entry.aiExampleHighlight[index] && "ring-2 ring-accent/60 bg-accent/5",
-                  )}
-                >
-                  <div className="flex flex-1 flex-col gap-2">
-                    <Input
-                      value={example.japanese}
-                      onChange={(e) =>
-                        updateExtraExample(entry.key, index, "japanese", e.target.value)
-                      }
-                      placeholder="일본어 예문"
-                    />
-                    <Input
-                      value={example.korean}
-                      onChange={(e) =>
-                        updateExtraExample(entry.key, index, "korean", e.target.value)
-                      }
-                      placeholder="한국어 해석"
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeExtraExample(entry.key, index)}
-                    aria-label="예문 삭제"
-                    className="flex size-9 shrink-0 items-center justify-center border-2 border-pixel-ink bg-surface text-foreground/60 shadow-bevel-raised transition hover:bg-background"
-                  >
-                    <PixelX className="size-3.5" aria-hidden="true" />
-                  </button>
-                </div>
-                {entry.aiExampleHighlight[index] && (
-                  <span className="text-[11px] font-bold text-accent">✨ AI가 채운 값</span>
-                )}
-              </div>
-            ))}
-          </div>
-        </Card>
+        </div>
       ))}
 
-      <Card className="flex flex-col gap-3">
+      {showContinue && (
+        <button
+          type="button"
+          onClick={addBlankExtraWord}
+          className="flex min-h-11 items-center justify-center gap-1 border-2 border-dashed border-pixel-ink/60 text-sm font-bold text-foreground/70 transition hover:bg-surface"
+        >
+          <PixelPlus className="size-3.5" aria-hidden="true" />
+          단어 카드 추가
+        </button>
+      )}
+
+      <Card className="flex flex-col gap-3" data-form-target="vocabularyBookIds">
         <span className="text-sm font-medium text-foreground">
           단어장<span className="text-error"> *</span>
         </span>
@@ -1230,26 +1161,70 @@ export function VocabularyForm({
             </ChipButton>
           ))}
         </div>
+        {fieldErrors.vocabularyBookIds && (
+          <p role="alert" className="text-xs text-error">
+            {fieldErrors.vocabularyBookIds}
+          </p>
+        )}
       </Card>
 
       {error && (
-        <p role="alert" className="text-sm text-error">
+        <p role="alert" data-form-target="form-error" className="text-sm text-error">
           {error}
         </p>
       )}
 
-      <div className="flex justify-end gap-2">
+      <div
+        className={cn(
+          showContinue
+            ? "sticky bottom-16 z-30 -mx-4 flex flex-col gap-2 border-t-2 border-pixel-ink bg-background px-4 py-3 sm:-mx-6 sm:flex-row sm:justify-end sm:px-6 lg:bottom-0 lg:-mx-8 lg:px-8"
+            : "flex justify-end gap-2",
+        )}
+      >
         <Button
           type="button"
           variant="outline"
+          className={cn(showContinue && "order-3 h-11 sm:order-1 sm:h-10")}
           onClick={() => (onCancel ? onCancel() : router.back())}
         >
           취소
         </Button>
-        <Button type="submit" loading={mutation.isPending || extraSubmitting}>
-          {isEdit ? "저장" : extraWords.length > 0 ? `등록 (${extraWords.length + 1}개)` : "등록"}
+        <Button
+          type="submit"
+          variant={showContinue ? "outline" : "primary"}
+          className={cn(showContinue && "order-2 h-11 sm:h-10")}
+          loading={submitting}
+        >
+          {isEdit ? "저장" : saveCount > 1 ? `등록 (${saveCount}개)` : "등록"}
         </Button>
+        {showContinue && (
+          <Button
+            type="button"
+            variant="quest"
+            className="order-1 h-11 sm:order-3 sm:h-10"
+            loading={submitting}
+            onClick={() => void submit("continue")}
+            title="Ctrl+Enter"
+          >
+            {saveCount > 1 ? `등록하고 계속 추가 (${saveCount}개)` : "등록하고 계속 추가"}
+          </Button>
+        )}
       </div>
+      <Modal
+        open={notFoundMessage !== null}
+        onClose={() => setNotFoundMessage(null)}
+        title="존재하지 않는 단어예요"
+      >
+        <div className="flex flex-col gap-4">
+          <p className="text-sm text-foreground">{notFoundMessage}</p>
+          <p className="text-xs text-foreground/60">
+            단어를 고쳐 다시 분석하거나, 그대로 직접 입력해 등록할 수도 있어요.
+          </p>
+          <Button type="button" className="self-end" onClick={() => setNotFoundMessage(null)}>
+            확인
+          </Button>
+        </div>
+      </Modal>
     </form>
   );
 }
