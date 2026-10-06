@@ -1,10 +1,12 @@
 import "server-only";
 
 import { db } from "@/lib/db";
-import type { AdminAuditAction, UserStatus } from "@/lib/generated/prisma/client";
+import type { UserStatus } from "@/lib/generated/prisma/client";
+
+type MemberAction = "APPROVE" | "REJECT" | "SUSPEND" | "RESTORE";
 
 /** 액션별로 허용되는 현재 상태와 결과 상태. REJECTED는 재신청 불가라 되돌리는 액션이 없다. */
-const TRANSITIONS: Record<AdminAuditAction, { from: UserStatus; to: UserStatus }> = {
+const TRANSITIONS: Record<MemberAction, { from: UserStatus; to: UserStatus }> = {
   APPROVE: { from: "PENDING", to: "APPROVED" },
   REJECT: { from: "PENDING", to: "REJECTED" },
   SUSPEND: { from: "APPROVED", to: "SUSPENDED" },
@@ -18,7 +20,7 @@ const TRANSITIONS: Record<AdminAuditAction, { from: UserStatus; to: UserStatus }
 export async function reviewMembers(params: {
   adminId: string;
   userIds: string[];
-  action: AdminAuditAction;
+  action: MemberAction;
   reason?: string;
 }): Promise<{ updated: number; skipped: number }> {
   const { adminId, userIds, action, reason } = params;

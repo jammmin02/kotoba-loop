@@ -9,9 +9,12 @@ export const GET = withApiHandler(async (): Promise<AdminSummary> => {
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);
 
-  const [grouped, signupsToday] = await Promise.all([
+  const [grouped, signupsToday, openReportGroups] = await Promise.all([
     db.user.groupBy({ by: ["status"], _count: { _all: true }, where: { role: "USER" } }),
     db.user.count({ where: { role: "USER", created_at: { gte: startOfToday } } }),
+    db.report
+      .groupBy({ by: ["target_type", "target_id"], where: { status: "OPEN" } })
+      .then((groups) => groups.length),
   ]);
 
   const counts: Record<AdminUserStatus, number> = {
@@ -22,5 +25,5 @@ export const GET = withApiHandler(async (): Promise<AdminSummary> => {
   };
   for (const row of grouped) counts[row.status] = row._count._all;
 
-  return { counts, signupsToday };
+  return { counts, signupsToday, openReportGroups };
 });

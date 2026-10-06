@@ -20,6 +20,28 @@ export const GET = withApiHandler(
     });
     if (!user) throw new ApiError("NOT_FOUND", "회원을 찾을 수 없습니다.");
 
+    const books = await db.vocabularyBook.findMany({
+      where: { user_id: id },
+      select: { id: true, name: true },
+    });
+    const bookNameById = new Map(books.map((b) => [b.id, b.name]));
+
+    const [reports, sanctions] = await Promise.all([
+      db.report.findMany({
+        where: { target_type: "BOOK", target_id: { in: books.map((b) => b.id) } },
+        orderBy: { created_at: "desc" },
+        take: 10,
+      }),
+      db.adminAuditLog.findMany({
+        where: {
+          target_user_id: id,
+          action: { in: ["WARN", "RESTRICT_WRITE", "SUSPEND", "RESTORE"] },
+        },
+        orderBy: { created_at: "desc" },
+        take: 10,
+      }),
+    ]);
+
     return {
       id: user.id,
       email: user.email,
@@ -37,6 +59,21 @@ export const GET = withApiHandler(
       reviewedAt: user.reviewed_at?.toISOString() ?? null,
       reviewedBy: user.reviewed_by,
       rejectReason: user.reject_reason,
+      warningCount: user.warning_count,
+      writeRestrictedUntil: user.write_restricted_until?.toISOString() ?? null,
+      relatedReports: reports.map((r) => ({
+        id: r.id,
+        targetLabel: bookNameById.get(r.target_id) ?? "(삭제된 단어장)",
+        reason: r.reason,
+        status: r.status,
+        createdAt: r.created_at.toISOString(),
+      })),
+      sanctionHistory: sanctions.map((l) => ({
+        id: l.id,
+        action: l.action,
+        reason: l.reason,
+        createdAt: l.created_at.toISOString(),
+      })),
     };
   },
 );

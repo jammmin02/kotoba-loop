@@ -5,25 +5,42 @@ import { useState } from "react";
 
 import { Pagination } from "@/components/admin/pagination";
 import { Card } from "@/components/ui/card";
+import { ChipButton } from "@/components/ui/chip-button";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
-import type { AdminAuditAction, AdminAuditList } from "@/types/admin";
+import type { AdminAuditAction, AdminAuditGroup, AdminAuditList } from "@/types/admin";
 
-const ACTION_LABELS: Record<AdminAuditAction, string> = {
-  APPROVE: "승인",
-  REJECT: "거절",
+export const AUDIT_ACTION_LABELS: Record<AdminAuditAction, string> = {
+  APPROVE: "가입 승인",
+  REJECT: "가입 거절",
   SUSPEND: "정지",
-  RESTORE: "복구",
+  RESTORE: "정지 해제",
+  HIDE_CONTENT: "콘텐츠 숨김",
+  RESTORE_CONTENT: "콘텐츠 복구",
+  DELETE_CONTENT: "콘텐츠 삭제",
+  WARN: "경고",
+  RESTRICT_WRITE: "작성 제한",
+  RESOLVE_REPORT: "신고 처리",
+  DISMISS_REPORT: "신고 기각",
 };
+
+const GROUPS: { group: AdminAuditGroup; label: string }[] = [
+  { group: "all", label: "전체" },
+  { group: "report", label: "신고 처리" },
+  { group: "content", label: "콘텐츠" },
+  { group: "sanction", label: "제재" },
+  { group: "member", label: "가입·정지" },
+];
 
 function formatDateTime(iso: string): string {
   return new Date(iso).toLocaleString("ko-KR", { dateStyle: "short", timeStyle: "short" });
 }
 
 export function AdminAuditView() {
+  const [group, setGroup] = useState<AdminAuditGroup>("all");
   const [page, setPage] = useState(1);
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ["admin", "audit", page],
-    queryFn: () => apiFetch<AdminAuditList>(`/api/admin/audit?page=${page}`),
+    queryKey: ["admin", "audit", group, page],
+    queryFn: () => apiFetch<AdminAuditList>(`/api/admin/audit?group=${group}&page=${page}`),
   });
 
   return (
@@ -34,6 +51,21 @@ export function AdminAuditView() {
       className="flex flex-col gap-4 p-4"
     >
       <h1 className="text-lg font-bold">감사 로그</h1>
+
+      <div className="flex flex-wrap gap-2">
+        {GROUPS.map((g) => (
+          <ChipButton
+            key={g.group}
+            selected={group === g.group}
+            onClick={() => {
+              setGroup(g.group);
+              setPage(1);
+            }}
+          >
+            {g.label}
+          </ChipButton>
+        ))}
+      </div>
 
       {isLoading && <p className="text-sm text-foreground/60">불러오는 중...</p>}
       {isError && (
@@ -51,9 +83,12 @@ export function AdminAuditView() {
             <li key={log.id} className="flex flex-col gap-1 bg-surface p-3 text-sm">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="border-2 border-pixel-ink bg-background px-2 py-0.5 text-xs font-bold">
-                  {ACTION_LABELS[log.action]}
+                  {AUDIT_ACTION_LABELS[log.action]}
                 </span>
                 <span className="font-bold">{log.targetUserEmail}</span>
+                {log.targetLabel && (
+                  <span className="text-xs text-foreground/60">「{log.targetLabel}」</span>
+                )}
               </div>
               <span className="text-xs text-foreground/60">
                 {log.adminNickname ?? "(삭제된 관리자)"} · {formatDateTime(log.createdAt)}

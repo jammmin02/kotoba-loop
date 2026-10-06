@@ -15,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/toast";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
 import type {
-  AdminAuditAction,
+  AdminMemberAction,
   AdminMemberList,
   AdminMemberRow,
   AdminReviewResult,
@@ -29,7 +29,7 @@ const STATUS_TABS: { status: AdminUserStatus; label: string }[] = [
   { status: "SUSPENDED", label: "정지" },
 ];
 
-const ACTION_LABELS: Record<AdminAuditAction, string> = {
+const ACTION_LABELS: Record<AdminMemberAction, string> = {
   APPROVE: "승인",
   REJECT: "거절",
   SUSPEND: "정지",
@@ -37,7 +37,7 @@ const ACTION_LABELS: Record<AdminAuditAction, string> = {
 };
 
 // 현재 상태에서 할 수 있는 액션. 거절(REJECTED)은 재신청 불가라 되돌리는 액션이 없다.
-const ROW_ACTIONS: Record<AdminUserStatus, AdminAuditAction[]> = {
+const ROW_ACTIONS: Record<AdminUserStatus, AdminMemberAction[]> = {
   PENDING: ["APPROVE", "REJECT"],
   APPROVED: ["SUSPEND"],
   REJECTED: [],
@@ -45,7 +45,7 @@ const ROW_ACTIONS: Record<AdminUserStatus, AdminAuditAction[]> = {
 };
 
 interface PendingAction {
-  action: AdminAuditAction;
+  action: AdminMemberAction;
   members: AdminMemberRow[];
 }
 
@@ -74,7 +74,7 @@ export function AdminMembersView({ initialStatus }: { initialStatus: AdminUserSt
   });
 
   const review = useMutation({
-    mutationFn: (input: { userIds: string[]; action: AdminAuditAction; reason?: string }) =>
+    mutationFn: (input: { userIds: string[]; action: AdminMemberAction; reason?: string }) =>
       apiFetch<AdminReviewResult>("/api/admin/members/review", { method: "POST", body: input }),
     onSuccess: (result, input) => {
       const label = ACTION_LABELS[input.action];
@@ -118,7 +118,7 @@ export function AdminMembersView({ initialStatus }: { initialStatus: AdminUserSt
     );
   }
 
-  function openAction(action: AdminAuditAction, targets: AdminMemberRow[]) {
+  function openAction(action: AdminMemberAction, targets: AdminMemberRow[]) {
     if (targets.length === 0) return;
     setReason("");
     // 승인·복구는 되돌리기 쉬워 바로 처리하고, 거절·정지는 사유 입력과 확인을 거친다.

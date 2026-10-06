@@ -60,6 +60,11 @@ export function AdminDashboard() {
             <Counter label="거절" value={data.counts.REJECTED} />
             <Counter label="정지" value={data.counts.SUSPENDED} />
             <Counter label="오늘 가입" value={data.signupsToday} />
+            <Counter
+              label="처리 대기 신고"
+              value={data.openReportGroups}
+              highlight={data.openReportGroups > 0}
+            />
           </div>
           {data.counts.PENDING > 0 && (
             <Link
