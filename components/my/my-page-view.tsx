@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 import { LogoutButton } from "@/components/auth/logout-button";
 import { GameProfileHeader } from "@/components/game/game-profile-header";
@@ -10,6 +11,7 @@ import {
   PixelEgg,
   PixelFlame,
   PixelGlobe,
+  PixelLock,
   PixelStar,
   PixelUsers,
 } from "@/components/icons/pixel-icons";
@@ -18,6 +20,7 @@ import { ExamGoalSettings } from "@/components/my/exam-goal-settings";
 import { OnboardingSettingsForm } from "@/components/my/onboarding-settings-form";
 import { Card, cardVariants } from "@/components/ui/card";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
+import { isAdminRole } from "@/lib/auth-admin";
 import { cn } from "@/lib/utils";
 import type { UserProfileResponse } from "@/types/user";
 
@@ -59,6 +62,7 @@ function MenuCard({
 }
 
 export function MyPageView() {
+  const { data: session } = useSession();
   const {
     data: profile,
     isLoading,
@@ -101,6 +105,9 @@ export function MyPageView() {
         <MenuCard icon={PixelEgg} label="내 펫" href="/my/pet" />
         <MenuCard icon={PixelUsers} label="친구" href="/my/friends" />
         <MenuCard icon={PixelGlobe} label="커뮤니티 단어장" href="/community" />
+        {isAdminRole(session?.user?.role) && (
+          <MenuCard icon={PixelLock} label="관리자" href="/admin" />
+        )}
       </div>
 
       <OnboardingSettingsForm profile={profile} />

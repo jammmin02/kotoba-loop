@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useSyncExternalStore } from "react";
 
 import {
@@ -10,6 +11,7 @@ import {
   PixelChevronDown,
   PixelGlobe,
   PixelHome,
+  PixelLock,
   PixelPenTool,
   PixelSparkles,
   PixelStar,
@@ -17,6 +19,7 @@ import {
 } from "@/components/icons/pixel-icons";
 import type { PixelIconComponent } from "@/components/icons/pixel-icons";
 import { NavSearchBox } from "@/components/search/nav-search-box";
+import { isAdminRole } from "@/lib/auth-admin";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
@@ -36,6 +39,9 @@ const desktopNavItems: NavItem[] = [
   { href: "/stats", label: "통계", icon: PixelBarChart },
   { href: "/my", label: "MY", icon: PixelUser },
 ];
+
+// 관리자에게만 보이는 항목(가입 승인 등). 모바일은 MY 화면의 메뉴 카드로 들어간다.
+const adminNavItem: NavItem = { href: "/admin", label: "ADMIN", icon: PixelLock };
 
 // Mobile bottom tab bar: AI학습 lives inside the home screen, 통계 moves under MY.
 const mobileNavItems: NavItem[] = [
@@ -74,6 +80,10 @@ function getSidebarCollapsedSnapshot() {
 
 export function Sidebar({ className }: { className?: string }) {
   const pathname = usePathname();
+  const { data: session } = useSession();
+  const navItems = isAdminRole(session?.user?.role)
+    ? [...desktopNavItems, adminNavItem]
+    : desktopNavItems;
   // 서버에서는 항상 펼친 상태로 그리고, 하이드레이션 뒤 저장된 값으로 바뀐다.
   const collapsed = useSyncExternalStore(
     subscribeSidebarCollapsed,
@@ -113,7 +123,7 @@ export function Sidebar({ className }: { className?: string }) {
       </button>
 
       {!collapsed && <NavSearchBox className="mb-2" />}
-      {desktopNavItems.map((item) => {
+      {navItems.map((item) => {
         const active = isActivePath(pathname, item.href);
         const Icon = item.icon;
         return (
