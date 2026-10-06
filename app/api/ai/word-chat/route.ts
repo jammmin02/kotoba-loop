@@ -1,4 +1,3 @@
-import { enforceRateLimit } from "@/lib/ai/rate-limit";
 import { runWithAiUser } from "@/lib/ai/usage-context";
 import { chatAboutWord, type WordChatResult } from "@/lib/ai/word-chat";
 import { ApiError } from "@/lib/api/error";
@@ -13,8 +12,6 @@ export const POST = withApiHandler(async (req: NextRequest): Promise<WordChatRes
   if (!session?.user) {
     throw new ApiError("UNAUTHORIZED", "로그인이 필요합니다.");
   }
-
-  enforceRateLimit("word_chat", session.user.id);
 
   const body = await req.json();
   const { word, question, history } = wordChatSchema.parse(body);

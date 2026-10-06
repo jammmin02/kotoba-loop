@@ -11,6 +11,7 @@ import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 
 import { AI_MAX_RETRIES, AI_MODEL, AI_TIMEOUT_MS, anthropic } from "@/lib/ai/client";
 import { withRetry } from "@/lib/ai/retry";
+import { enforceAiUsageLimit } from "@/lib/ai/usage-limit";
 import { recordAiUsage } from "@/lib/ai/usage-log";
 import { ApiError } from "@/lib/api/error";
 
@@ -87,6 +88,9 @@ export async function runStructuredAnalysis<Schema extends z.ZodType>({
   timeoutMs = AI_TIMEOUT_MS,
   maxRetries = AI_MAX_RETRIES,
 }: StructuredAnalysisParams<Schema>): Promise<StructuredAnalysisResult<z.infer<Schema>>> {
+  // 한도 초과는 재시도·AI 오류 매핑 대상이 아니므로 try 밖에서 먼저 검사한다.
+  await enforceAiUsageLimit();
+
   let attempts = 0;
 
   try {
