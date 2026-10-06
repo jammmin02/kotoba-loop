@@ -2,6 +2,7 @@ import { ZodError } from "zod";
 
 import { ApiError } from "@/lib/api/error";
 import { apiError, apiSuccess } from "@/lib/api/response";
+import { logger } from "@/lib/logger";
 import type { ApiResponse } from "@/types/api";
 
 import type { NextRequest, NextResponse } from "next/server";
@@ -30,7 +31,10 @@ export function withApiHandler<Args extends unknown[] = []>(handler: Handler<Arg
         const message = err.issues.map((issue) => issue.message).join(", ");
         return apiError("VALIDATION_ERROR", message, 400);
       }
-      console.error(err);
+      logger.error("api-handler", "처리되지 않은 오류", err, {
+        method: req.method,
+        path: req.nextUrl.pathname,
+      });
       return apiError("INTERNAL_ERROR", "예상치 못한 오류가 발생했습니다.", 500);
     }
   };

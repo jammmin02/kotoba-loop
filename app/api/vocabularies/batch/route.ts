@@ -3,6 +3,7 @@ import { ApiError } from "@/lib/api/error";
 import { withApiHandler } from "@/lib/api/handler";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { logger } from "@/lib/logger";
 import { batchItemSchema, batchSaveSchema } from "@/lib/validations/vocabulary";
 import { createVocabularyRecord } from "@/lib/vocabulary-create";
 import { requireOwnedVocabulary } from "@/lib/vocabulary-ownership";
@@ -79,7 +80,7 @@ export const POST = withApiHandler(async (req: NextRequest): Promise<BatchSaveRe
       if (err instanceof ApiError) {
         results.push({ status: "failed", message: err.message });
       } else {
-        console.error(err);
+        logger.error("vocabularies-batch", "단어 저장 실패", err);
         results.push({ status: "failed", message: "저장 중 오류가 발생했습니다." });
       }
     }

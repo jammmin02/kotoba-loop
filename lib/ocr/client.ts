@@ -6,6 +6,8 @@ import path from "node:path";
 import sharp from "sharp";
 import { OEM, createWorker } from "tesseract.js";
 
+import { logger } from "@/lib/logger";
+
 /**
  * Only the Japanese LSTM (fast) model ships with this app (public/tesseract/jpn.traineddata,
  * from tesseract-ocr/tessdata_fast) so a request never has to fetch it from the jsdelivr CDN
@@ -110,7 +112,7 @@ async function prepareForOcr(image: Buffer): Promise<Buffer> {
       })
       .toBuffer();
   } catch (err) {
-    console.error("[ocr] downscale failed, using original image", err);
+    logger.error("ocr", "이미지 축소 실패, 원본 사용", err);
     return image;
   }
 }
@@ -140,6 +142,6 @@ export async function recognizeJapaneseText(image: Buffer): Promise<RecognizeRes
     );
     return { text: data.text, confidence: data.confidence };
   } finally {
-    await worker.terminate().catch((err) => console.error("[ocr] worker terminate failed", err));
+    await worker.terminate().catch((err) => logger.error("ocr", "worker 종료 실패", err));
   }
 }

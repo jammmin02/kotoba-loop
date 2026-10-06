@@ -1,6 +1,7 @@
 import "server-only";
 
 import { db } from "@/lib/db";
+import { logger } from "@/lib/logger";
 
 /** DB에 값이 없을 때 쓰는 기본값. 가입 도메인은 기존 임시 정책(2026-09)과 같다. */
 export const DEFAULT_ALLOWED_EMAIL_DOMAINS = ["@g.yju.ac.kr"];
@@ -60,7 +61,7 @@ export async function getMaintenanceState(): Promise<{ enabled: boolean; message
     const { maintenanceEnabled, maintenanceMessage } = await getSettings();
     return { enabled: maintenanceEnabled, message: maintenanceMessage };
   } catch (err) {
-    console.error("[settings] maintenance lookup failed, failing open", err);
+    logger.error("settings", "점검 상태 조회 실패, 서비스 개방", err);
     return { enabled: false, message: DEFAULT_MAINTENANCE_MESSAGE };
   }
 }
@@ -70,7 +71,7 @@ export async function getAllowedEmailDomains(): Promise<string[]> {
   try {
     return (await getSettings()).allowedEmailDomains;
   } catch (err) {
-    console.error("[settings] domain lookup failed, using default", err);
+    logger.error("settings", "허용 도메인 조회 실패, 기본값 사용", err);
     return DEFAULT_ALLOWED_EMAIL_DOMAINS;
   }
 }

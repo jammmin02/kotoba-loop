@@ -4,6 +4,7 @@ import { apiError } from "@/lib/api/response";
 import { requireAdmin } from "@/lib/auth-guard";
 import { db } from "@/lib/db";
 import type { Prisma } from "@/lib/generated/prisma/client";
+import { logger } from "@/lib/logger";
 import { adminMembersQuerySchema } from "@/lib/validations/admin";
 
 import type { NextRequest } from "next/server";
@@ -102,7 +103,7 @@ export async function GET(req: NextRequest) {
     if (err instanceof Error && err.name === "ZodError") {
       return apiError("VALIDATION_ERROR", "잘못된 요청입니다.", 400);
     }
-    console.error(err);
+    logger.error("admin-members-export", "회원 내보내기 실패", err);
     return apiError("INTERNAL_ERROR", "예상치 못한 오류가 발생했습니다.", 500);
   }
 }

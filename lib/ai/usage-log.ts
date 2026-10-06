@@ -2,6 +2,7 @@ import "server-only";
 
 import { getAiUserId } from "@/lib/ai/usage-context";
 import { db } from "@/lib/db";
+import { logger } from "@/lib/logger";
 
 /**
  * AI 호출 한 번의 토큰 사용량을 DB에 남긴다. 기록은 본 기능을 막으면 안 되므로 기다리지 않고(호출부가
@@ -26,6 +27,6 @@ export function recordAiUsage(params: {
       },
     })
     .catch((err: unknown) => {
-      console.error("[ai-usage] failed to record usage", err);
+      logger.error("ai-usage", "사용량 기록 실패", err);
     });
 }

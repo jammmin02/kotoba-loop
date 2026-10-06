@@ -5,6 +5,7 @@ import { withApiHandler } from "@/lib/api/handler";
 import { auth } from "@/lib/auth";
 import { toKstDateKey } from "@/lib/datetime";
 import { db } from "@/lib/db";
+import { logger } from "@/lib/logger";
 import { resolveReportPeriod } from "@/lib/study/report";
 import { getReportStats } from "@/lib/study/report-stats";
 import { getWeakKanjiStats } from "@/lib/study/weak-kanji";
@@ -85,7 +86,7 @@ export const GET = withApiHandler(async (req: NextRequest): Promise<StatsReportR
           );
           comment = result.comment;
         } catch (err) {
-          console.error("[report-recommendation] AI 호출 실패", err);
+          logger.error("report-recommendation", "AI 호출 실패", err);
           comment = null;
         }
       }

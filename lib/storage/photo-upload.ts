@@ -3,6 +3,7 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 
 import { ApiError } from "@/lib/api/error";
+import { logger } from "@/lib/logger";
 import {
   createPresignedGetUrl,
   createPresignedPutUrl,
@@ -46,7 +47,7 @@ export async function createPhotoUploadTarget(userId: string, mimeType: string) 
     const uploadUrl = await createPresignedPutUrl(storageKey, mimeType, UPLOAD_URL_TTL_SECONDS);
     return { storageKey, uploadUrl, expiresInSeconds: UPLOAD_URL_TTL_SECONDS };
   } catch (err) {
-    console.error(err);
+    logger.error("photo-upload", "업로드 URL 발급 실패", err);
     throw new ApiError(
       "STORAGE_ERROR",
       "업로드 준비 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
@@ -76,7 +77,7 @@ export async function verifyUploadedPhoto(
   try {
     head = await headObject(storageKey);
   } catch (err) {
-    console.error(err);
+    logger.error("photo-upload", "업로드 파일 확인 실패", err, { storageKey });
     throw new ApiError("STORAGE_ERROR", "업로드된 파일을 확인하지 못했습니다.");
   }
   if (!head) {
@@ -84,7 +85,9 @@ export async function verifyUploadedPhoto(
   }
 
   const cleanupAndThrow = async (error: ApiError): Promise<never> => {
-    await deleteObject(storageKey).catch((err) => console.error(err));
+    await deleteObject(storageKey).catch((err) =>
+      logger.error("photo-upload", "정리용 객체 삭제 실패", err, { storageKey }),
+    );
     throw error;
   };
 

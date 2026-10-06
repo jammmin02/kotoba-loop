@@ -2,6 +2,7 @@ import { ApiError } from "@/lib/api/error";
 import { withApiHandler } from "@/lib/api/handler";
 import { formatKstISOString } from "@/lib/datetime";
 import { db } from "@/lib/db";
+import { logger } from "@/lib/logger";
 
 interface DbHealthData {
   status: "ok";
@@ -12,7 +13,7 @@ export const GET = withApiHandler(async (): Promise<DbHealthData> => {
   try {
     await db.$queryRaw`SELECT 1`;
   } catch (err) {
-    console.error(err);
+    logger.error("health", "DB 연결 확인 실패", err);
     throw new ApiError("EXTERNAL_API_ERROR", "데이터베이스에 연결할 수 없습니다.");
   }
 

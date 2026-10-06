@@ -14,6 +14,7 @@ import { withRetry } from "@/lib/ai/retry";
 import { enforceAiUsageLimit } from "@/lib/ai/usage-limit";
 import { recordAiUsage } from "@/lib/ai/usage-log";
 import { ApiError } from "@/lib/api/error";
+import { logger } from "@/lib/logger";
 
 import type { Message } from "@anthropic-ai/sdk/resources/messages";
 import type { z } from "zod";
@@ -111,7 +112,7 @@ export async function runStructuredAnalysis<Schema extends z.ZodType>({
 
         const usage = buildUsageLog(analysisType, model, attempts, response);
         // Minimal cost/token log for later monitoring — see roadmap PROMPT 13 requirements.
-        console.info("[ai-orchestrator] usage", usage);
+        logger.info("ai-orchestrator", "usage", { ...usage });
         recordAiUsage({
           feature: analysisType,
           model,

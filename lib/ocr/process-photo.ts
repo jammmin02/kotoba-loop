@@ -4,6 +4,7 @@ import { ApiError } from "@/lib/api/error";
 import { formatKstISOString } from "@/lib/datetime";
 import { db } from "@/lib/db";
 import type { PhotoOcrResult } from "@/lib/generated/prisma/client";
+import { logger } from "@/lib/logger";
 import { OcrTimeoutError, recognizeJapaneseText } from "@/lib/ocr/client";
 import { getObject } from "@/lib/storage/client";
 import type { OcrResult } from "@/types/ocr";
@@ -21,7 +22,7 @@ function toOcrResult(row: PhotoOcrResult): OcrResult {
 
 /** Quality-metric logging (PROMPT 29) — no per-call cost to track since Tesseract.js runs in-process, so processing time and failure rate are what matter for monitoring. */
 function logOcrOutcome(entry: Record<string, unknown>) {
-  console.info("[ocr] result", entry);
+  logger.info("ocr", "result", entry);
 }
 
 /**
@@ -54,7 +55,7 @@ export async function processPhotoOcr(photoUploadId: string, userId: string): Pr
     imageBytes = await getObject(photoUpload.storage_key);
   } catch (err) {
     await db.photoUpload.update({ where: { id: photoUploadId }, data: { status: "failed" } });
-    console.error(err);
+    logger.error("ocr", "원본 이미지 조회 실패", err, { photoUploadId });
     logOcrOutcome({ photoUploadId, status: "failed", reason: "storage_error" });
     throw new ApiError("STORAGE_ERROR", "사진을 불러오지 못했어요. 잠시 후 다시 시도해주세요.");
   }
@@ -70,7 +71,7 @@ export async function processPhotoOcr(photoUploadId: string, userId: string): Pr
       logOcrOutcome({ photoUploadId, status: "failed", reason: "timeout", processingMs });
       throw new ApiError("OCR_TIMEOUT", "텍스트 추출 시간이 너무 오래 걸려요. 다시 시도해주세요.");
     }
-    console.error(err);
+    logger.error("ocr", "텍스트 인식 실패", err, { photoUploadId });
     logOcrOutcome({ photoUploadId, status: "failed", reason: "recognize_error", processingMs });
     throw new ApiError(
       "OCR_NO_TEXT_FOUND",

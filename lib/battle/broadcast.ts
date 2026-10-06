@@ -1,5 +1,6 @@
 import "server-only";
 
+import { logger } from "@/lib/logger";
 import { pusherServer } from "@/lib/pusher/server";
 
 /**
@@ -16,6 +17,6 @@ export async function triggerBattleEvent(
   try {
     await pusherServer.trigger(channel, event, data);
   } catch (err) {
-    console.error(`[battle] Pusher trigger 실패 (channel=${channel}, event=${event}):`, err);
+    logger.error("battle", "Pusher trigger 실패", err, { channel, event });
   }
 }

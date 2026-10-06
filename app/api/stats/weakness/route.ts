@@ -3,6 +3,7 @@ import { ApiError } from "@/lib/api/error";
 import { withApiHandler } from "@/lib/api/handler";
 import { auth } from "@/lib/auth";
 import { toKstDateKey } from "@/lib/datetime";
+import { logger } from "@/lib/logger";
 import { getQuizTypeAccuracy, hasEnoughDataForWeakness } from "@/lib/study/weakness";
 import type { WeaknessAnalysisResponse } from "@/types/stats";
 
@@ -25,7 +26,7 @@ export const GET = withApiHandler(async (): Promise<WeaknessAnalysisResponse> =>
     const { result } = await analyzeWeakness(userId, accuracyByType, toKstDateKey(new Date()));
     return { accuracyByType, hasEnoughData: true, comment: result.comment };
   } catch (err) {
-    console.error("[weakness-analysis] AI 호출 실패", err);
+    logger.error("weakness-analysis", "AI 호출 실패", err);
     return { accuracyByType, hasEnoughData: true, comment: null };
   }
 });

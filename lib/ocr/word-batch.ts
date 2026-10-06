@@ -12,6 +12,7 @@ import type { WordAnalysisResult } from "@/lib/ai/word-analysis";
 import { ApiError } from "@/lib/api/error";
 import { db } from "@/lib/db";
 import { Prisma } from "@/lib/generated/prisma/client";
+import { logger } from "@/lib/logger";
 import type { OcrWordBatchJob, OcrWordBatchJobView } from "@/types/ocr-word-batch";
 
 /**
@@ -198,7 +199,7 @@ export async function runOcrWordBatchAnalyze(
     } catch (err) {
       const message = err instanceof ApiError ? err.message : "분석에 실패했습니다.";
       if (!(err instanceof ApiError)) {
-        console.error(err);
+        logger.error("ocr-word-batch", "단어 분석 실패", err);
       }
       job.words[wordIndex] = { ...candidate, status: "failed", error: message };
     }

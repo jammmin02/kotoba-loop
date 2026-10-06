@@ -3,6 +3,7 @@ import { ApiError } from "@/lib/api/error";
 import { withApiHandler } from "@/lib/api/handler";
 import { auth } from "@/lib/auth";
 import { toKstDateKey } from "@/lib/datetime";
+import { logger } from "@/lib/logger";
 import { getExamPlanRecommendation } from "@/lib/study/exam-plan-query";
 import type { ExamPlanResponse } from "@/types/exam-goal";
 
@@ -31,7 +32,7 @@ export const GET = withApiHandler(async (): Promise<ExamPlanResponse> => {
     });
     comment = result.comment;
   } catch (err) {
-    console.error("[exam-plan] AI 설명 생성 실패", err);
+    logger.error("exam-plan", "AI 설명 생성 실패", err);
   }
 
   return { status: "ok", activeGoal, daysRemaining, plan, comment };

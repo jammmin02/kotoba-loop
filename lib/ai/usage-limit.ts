@@ -8,6 +8,7 @@ import {
 } from "@/lib/ai/usage-limit-policy";
 import { ApiError } from "@/lib/api/error";
 import { db } from "@/lib/db";
+import { logger } from "@/lib/logger";
 
 /**
  * 사용자별 AI 호출 한도. 서버리스 인스턴스끼리 메모리를 공유하지 않아 인메모리 카운터는 의미가 없으므로,
@@ -59,7 +60,7 @@ export async function enforceAiUsageLimit(): Promise<void> {
       dayTokens: (day._sum.input_tokens ?? 0) + (day._sum.output_tokens ?? 0),
     };
   } catch (err) {
-    console.error("[ai-usage-limit] usage lookup failed, allowing call", err);
+    logger.error("ai-usage-limit", "사용량 조회 실패, 호출 허용", err);
     return;
   }
 

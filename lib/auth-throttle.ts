@@ -7,6 +7,7 @@ import {
   isRegisterThrottled,
 } from "@/lib/auth-throttle-policy";
 import { db } from "@/lib/db";
+import { logger } from "@/lib/logger";
 
 /**
  * 로그인 실패·가입 시도를 DB(AuthAttempt)에 남기고 최근 구간을 집계해 제한한다. 존재하지 않는 이메일도
@@ -25,7 +26,7 @@ export async function isLoginBlocked(email: string, ip: string): Promise<boolean
     ]);
     return isLoginThrottled({ emailFailures, ipFailures });
   } catch (err) {
-    console.error("[auth-throttle] login lookup failed, allowing", err);
+    logger.error("auth-throttle", "로그인 시도 조회 실패, 허용", err);
     return false;
   }
 }
@@ -38,7 +39,7 @@ export async function recordLoginFailure(email: string, ip: string): Promise<voi
       where: { created_at: { lt: new Date(Date.now() - RETENTION_MS) } },
     });
   } catch (err) {
-    console.error("[auth-throttle] failed to record login failure", err);
+    logger.error("auth-throttle", "로그인 실패 기록 실패", err);
   }
 }
 
@@ -47,7 +48,7 @@ export async function clearLoginFailures(email: string): Promise<void> {
   try {
     await db.authAttempt.deleteMany({ where: { kind: "login_fail", email } });
   } catch (err) {
-    console.error("[auth-throttle] failed to clear login failures", err);
+    logger.error("auth-throttle", "로그인 실패 기록 초기화 실패", err);
   }
 }
 
@@ -62,7 +63,7 @@ export async function isRegisterBlocked(ip: string): Promise<boolean> {
     });
     return isRegisterThrottled(attempts);
   } catch (err) {
-    console.error("[auth-throttle] register lookup failed, allowing", err);
+    logger.error("auth-throttle", "가입 시도 조회 실패, 허용", err);
     return false;
   }
 }
@@ -71,6 +72,6 @@ export async function recordRegisterAttempt(ip: string): Promise<void> {
   try {
     await db.authAttempt.create({ data: { kind: "register", ip } });
   } catch (err) {
-    console.error("[auth-throttle] failed to record register attempt", err);
+    logger.error("auth-throttle", "가입 시도 기록 실패", err);
   }
 }
