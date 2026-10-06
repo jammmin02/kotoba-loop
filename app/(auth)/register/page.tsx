@@ -15,6 +15,9 @@ export default function RegisterPage() {
         <p className="text-xs font-content text-foreground/50">
           현재는 @g.yju.ac.kr 이메일만 가입할 수 있습니다.
         </p>
+        <p className="text-xs font-content text-foreground/50">
+          가입 후 관리자 승인이 완료되면 로그인할 수 있어요.
+        </p>
       </div>
 
       <RegisterForm />

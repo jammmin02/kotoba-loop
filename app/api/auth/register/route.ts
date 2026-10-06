@@ -4,6 +4,7 @@ import { ApiError } from "@/lib/api/error";
 import { withApiHandler } from "@/lib/api/handler";
 import {
   isRegistrationAllowed,
+  REGISTRATION_REJECTED_MESSAGE,
   REGISTRATION_RESTRICTED_MESSAGE,
 } from "@/lib/auth-registration-policy";
 import { db } from "@/lib/db";
@@ -30,6 +31,10 @@ export const POST = withApiHandler(async (req: NextRequest): Promise<RegisterDat
 
   const existing = await db.user.findUnique({ where: { email } });
   if (existing) {
+    // 거절된 이메일은 재신청할 수 없다 — 계정 행을 남겨 두는 이유이기도 하다.
+    if (existing.status === "REJECTED") {
+      throw new ApiError("FORBIDDEN", REGISTRATION_REJECTED_MESSAGE);
+    }
     throw new ApiError("VALIDATION_ERROR", "이미 사용 중인 이메일입니다.");
   }
 

@@ -16,7 +16,7 @@ import { Card } from "@/components/ui/card";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { toast } from "@/components/ui/toast";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
-import { isAdminEmail } from "@/lib/auth-admin";
+import { isAdminRole } from "@/lib/auth-admin";
 import { PET_SPECIES_OPTIONS, PET_STAGE_LABELS } from "@/lib/pet/constants";
 import type { PetSpecies } from "@/lib/pet/types";
 import { cn } from "@/lib/utils";
@@ -45,7 +45,7 @@ export function PetWidget() {
   const [blinking, setBlinking] = useState(false);
   const [motionPending, clearMotionPending] = usePetMotionPending();
   const { data: session } = useSession();
-  const isAdmin = isAdminEmail(session?.user?.email);
+  const isAdmin = isAdminRole(session?.user?.role);
 
   const pet = data?.pet ?? null;
 

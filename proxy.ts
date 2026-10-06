@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
+import { isAdminRole } from "@/lib/auth-admin";
 
 // Routes (and their sub-paths) that don't require a session.
-const PUBLIC_ROUTES = ["/welcome", "/login", "/register", "/dev"];
+const PUBLIC_ROUTES = ["/welcome", "/login", "/register", "/pending", "/dev"];
 // Of those, the ones a signed-in user shouldn't be able to revisit (they'd just
 // hit a "가입 중"/duplicate-email dead end instead of continuing where they left off).
 const GUEST_ONLY_ROUTES = ["/welcome", "/login", "/register"];
@@ -27,6 +28,14 @@ export default auth((req) => {
     const loginUrl = new URL("/login", req.nextUrl);
     loginUrl.searchParams.set("callbackUrl", req.nextUrl.pathname);
     return NextResponse.redirect(loginUrl);
+  }
+
+  // /admin 은 관리자만. 실제 권한 검사는 각 페이지·API가 서버에서 다시 한다(여기는 빠른 차단용).
+  const { pathname } = req.nextUrl;
+  if (req.auth && (pathname === "/admin" || pathname.startsWith("/admin/"))) {
+    if (!isAdminRole(req.auth.user?.role)) {
+      return NextResponse.redirect(new URL("/", req.nextUrl));
+    }
   }
 
   if (req.auth && isGuestOnlyRoute(req.nextUrl.pathname)) {

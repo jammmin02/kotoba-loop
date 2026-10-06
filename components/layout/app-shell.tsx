@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { Navigation } from "@/components/ui/navigation";
 
 // Full-bleed, single-task screens that shouldn't show the app chrome/search box.
-const CHROME_LESS_PREFIXES = ["/welcome", "/login", "/register", "/onboarding"];
+const CHROME_LESS_PREFIXES = ["/welcome", "/login", "/register", "/pending", "/onboarding"];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

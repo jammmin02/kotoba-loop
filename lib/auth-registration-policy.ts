@@ -14,3 +14,5 @@ export function isRegistrationAllowed(email: string): boolean {
   const normalized = email.trim().toLowerCase();
   return normalized === ADMIN_EMAIL || normalized.endsWith(ALLOWED_EMAIL_DOMAIN);
 }
+
+export const REGISTRATION_REJECTED_MESSAGE = "가입이 거절된 이메일입니다. 다시 신청할 수 없습니다.";

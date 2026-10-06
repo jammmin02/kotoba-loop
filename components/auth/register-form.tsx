@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -48,20 +47,8 @@ export function RegisterForm() {
     try {
       await apiFetch("/api/auth/register", { method: "POST", body: parsed.data });
 
-      const result = await signIn("credentials", {
-        email: parsed.data.email,
-        password: parsed.data.password,
-        redirect: false,
-      });
-      if (result?.error) {
-        throw new Error(
-          "회원가입은 완료되었지만 자동 로그인에 실패했습니다. 로그인 페이지에서 다시 시도해주세요.",
-        );
-      }
-
-      toast.success("회원가입이 완료되었습니다.");
-      router.push("/onboarding");
-      router.refresh();
+      // 가입 승인제: 관리자 승인 전에는 로그인할 수 없으므로 자동 로그인 없이 승인 대기 화면으로 보낸다.
+      router.push("/pending");
     } catch (err) {
       const message =
         err instanceof ApiClientError

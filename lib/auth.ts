@@ -20,6 +20,21 @@ export class InvalidPasswordError extends CredentialsSignin {
 export class GoogleOnlyAccountError extends CredentialsSignin {
   code = "google_only_account";
 }
+export class AccountPendingError extends CredentialsSignin {
+  code = "account_pending";
+}
+export class AccountRejectedError extends CredentialsSignin {
+  code = "account_rejected";
+}
+export class AccountSuspendedError extends CredentialsSignin {
+  code = "account_suspended";
+}
+
+// JWT에 실린 role/status가 DB와 어긋나 있어도 이 시간 안에는 다시 조회하지 않는다. 정지·거절은
+// 최대 이 시간 안에 기존 세션에도 반영된다.
+const SESSION_REFRESH_MS = 60_000;
+// last_active_at 쓰기는 이 간격으로만 한다(요청마다 쓰지 않기 위해).
+const LAST_ACTIVE_WRITE_MS = 10 * 60_000;
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt" },
@@ -46,6 +61,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const valid = await bcrypt.compare(password, user.password_hash);
         if (!valid) throw new InvalidPasswordError();
 
+        // 비밀번호가 맞은 뒤에만 상태를 알려준다(상태를 알아내는 용도로 계정 존재를 탐색하지 못하게).
+        if (user.status === "PENDING") throw new AccountPendingError();
+        if (user.status === "REJECTED") throw new AccountRejectedError();
+        if (user.status === "SUSPENDED") throw new AccountSuspendedError();
+
         return { id: user.id, email: user.email, name: user.nickname };
       },
     }),
@@ -53,44 +73,66 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     async signIn({ user, account }) {
       if (account?.provider !== "google") return true;
-      // TEMP DEBUG (remove after diagnosing @g.yju.ac.kr sign-in issue)
-      console.log("[signIn debug] raw user.email:", JSON.stringify(user.email));
       if (!user.email) return false;
       const email = user.email.trim().toLowerCase();
 
       const existing = await db.user.findUnique({ where: { email } });
       if (existing) {
+        // 문자열을 반환하면 Auth.js가 그 경로로 리다이렉트한다(로그인 세션은 만들어지지 않는다).
+        if (existing.status === "PENDING") return "/pending";
+        if (existing.status === "REJECTED") return "/login?error=account_rejected";
+        if (existing.status === "SUSPENDED") return "/login?error=account_suspended";
         user.id = existing.id;
         user.email = existing.email;
         return true;
       }
 
-      console.log(
-        "[signIn debug] normalized email:",
-        JSON.stringify(email),
-        "isRegistrationAllowed:",
-        isRegistrationAllowed(email),
-      );
       if (!isRegistrationAllowed(email)) return false;
 
-      const created = await db.user.create({
+      // 신규 Google 가입도 이메일 가입과 같이 관리자 승인 전까지는 로그인할 수 없다.
+      await db.user.create({
         data: {
           email,
           nickname: user.name?.trim() || email.split("@")[0],
         },
       });
-      user.id = created.id;
-      return true;
+      return "/pending";
     },
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
+        token.id = user.id as string;
+        token.checkedAt = 0;
+      }
+
+      const now = Date.now();
+      const checkedAt = typeof token.checkedAt === "number" ? token.checkedAt : 0;
+      if (typeof token.id === "string" && now - checkedAt > SESSION_REFRESH_MS) {
+        const current = await db.user.findUnique({
+          where: { id: token.id },
+          select: { status: true, role: true, last_active_at: true },
+        });
+        // 계정이 사라졌거나 승인 상태가 아니면 세션을 무효화한다(null 반환 시 쿠키가 지워진다).
+        if (!current || current.status !== "APPROVED") return null;
+
+        token.role = current.role;
+        token.checkedAt = now;
+
+        if (
+          !current.last_active_at ||
+          now - current.last_active_at.getTime() > LAST_ACTIVE_WRITE_MS
+        ) {
+          await db.user.update({
+            where: { id: token.id },
+            data: { last_active_at: new Date(now) },
+          });
+        }
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
+        session.user.role = token.role === "ADMIN" ? "ADMIN" : "USER";
       }
       return session;
     },
