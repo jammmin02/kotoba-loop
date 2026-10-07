@@ -38,6 +38,7 @@ export const quizQuestionSchema = z.object({
   targetType: z.enum(QUIZ_TARGET_TYPES),
   targetId: z.string().min(1),
   prompt: z.string().min(1),
+  speechText: z.string().optional(),
   choices: z.array(quizChoiceSchema).optional(),
   correctAnswer: z.string().min(1),
   acceptableAnswers: z.array(z.string()).optional(),

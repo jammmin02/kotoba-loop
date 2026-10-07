@@ -556,7 +556,7 @@ export function QuizSession({
             {current.prompt}
           </p>
           {/* 일본어 단어를 보여주고 한국어 뜻을 묻는 유형만 — 읽기를 묻는 유형에서는 정답이 새어나간다. */}
-          {current.quizType === "JA_TO_KO" && <SpeakButton text={current.prompt} size="md" />}
+          {current.quizType === "JA_TO_KO" && <SpeakButton text={current.speechText || current.prompt} size="md" />}
         </div>
 
         <QuizAnswerArea

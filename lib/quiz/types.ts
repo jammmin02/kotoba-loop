@@ -90,6 +90,8 @@ export interface QuizQuestion {
   targetType: QuizTargetType;
   targetId: string;
   prompt: string;
+  /** 일본어를 읽어줄 때 쓸 텍스트(후리가나). 없으면 prompt를 그대로 읽는다. */
+  speechText?: string;
   /** 객관식 문제(선택지가 있는 유형)에서만 채워진다. */
   choices?: QuizChoice[];
   /** 채점 기준 정답. 객관식은 정답 choice의 id를 담는다. */

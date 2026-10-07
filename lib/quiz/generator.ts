@@ -17,6 +17,7 @@ function generateJaToKo(target: QuizVocabulary): QuizQuestion | null {
     targetType: "vocab",
     targetId: target.id,
     prompt: target.word,
+    speechText: target.reading || undefined,
     correctAnswer: target.meanings[0],
     acceptableAnswers: target.meanings,
   };
