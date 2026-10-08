@@ -213,28 +213,14 @@ export function MobileTopBar({ className }: { className?: string }) {
   );
 }
 
-/** Desktop-only top strip with the theme toggle (mobile has it in MobileTopBar). */
-export function DesktopTopBar({ className }: { className?: string }) {
-  return (
-    <div
-      className={cn(
-        "sticky top-0 z-30 hidden items-center justify-end border-b-2 border-pixel-ink bg-surface px-4 py-2 lg:flex",
-        className,
-      )}
-    >
-      <ThemeToggle />
-    </div>
-  );
-}
-
 /** Full app shell: desktop sidebar + mobile top search bar/bottom tabs around page content. */
 export function Navigation({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-dvh w-full">
       <Sidebar />
-      <div className="flex min-w-0 flex-1 flex-col pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0">
+      <div className="relative flex min-w-0 flex-1 flex-col pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0">
         <MobileTopBar />
-        <DesktopTopBar />
+        <ThemeToggle className="fixed right-4 top-4 z-30 hidden lg:flex" />
         <div className="flex-1">{children}</div>
         <BottomTabBar />
       </div>

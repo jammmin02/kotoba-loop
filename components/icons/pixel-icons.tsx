@@ -410,3 +410,30 @@ export const PixelMenu: PixelIconComponent = (props) => (
     {...props}
   />
 );
+
+export const PixelMoon: PixelIconComponent = (props) => (
+  <PixelGlyph
+    blocks={[
+      [6, 2, 4, 2],
+      [4, 4, 4, 2],
+      [2, 6, 4, 4],
+      [4, 10, 4, 2],
+      [6, 12, 6, 2],
+      [10, 10, 4, 2],
+    ]}
+    {...props}
+  />
+);
+
+export const PixelSun: PixelIconComponent = (props) => (
+  <PixelGlyph
+    blocks={[
+      [5, 5, 6, 6],
+      [7, 1, 2, 2],
+      [7, 13, 2, 2],
+      [1, 7, 2, 2],
+      [13, 7, 2, 2],
+    ]}
+    {...props}
+  />
+);
