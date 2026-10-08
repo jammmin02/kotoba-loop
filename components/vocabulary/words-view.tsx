@@ -26,6 +26,8 @@ import { WordListItem } from "@/components/vocabulary/word-list-item";
 import { apiFetch } from "@/lib/api/client";
 import { toKstDateKey } from "@/lib/datetime";
 import { useIncrementalList } from "@/lib/hooks/use-incremental-list";
+import { filterHiddenWords } from "@/lib/pending-deletion/hidden";
+import { useHiddenSpecs } from "@/lib/pending-deletion/store";
 import { cn } from "@/lib/utils";
 import {
   applyWordListFilters,
@@ -110,7 +112,7 @@ export function WordsView() {
   });
 
   const {
-    data: words,
+    data: serverWords,
     isLoading,
     isError,
     error,
@@ -128,6 +130,13 @@ export function WordsView() {
       return apiFetch<VocabularySummary[]>(`/api/vocabularies${query ? `?${query}` : ""}`);
     },
   });
+
+  // 삭제 대기 중이거나 방금 삭제한 단어는 서버 응답에 아직 있어도 숨긴다(실행 취소하면 돌아온다).
+  const hiddenSpecs = useHiddenSpecs();
+  const words = useMemo(
+    () => serverWords && filterHiddenWords(serverWords, hiddenSpecs, filters.bookId || undefined),
+    [serverWords, hiddenSpecs, filters.bookId],
+  );
 
   const newWordHref = filters.bookId ? `/words/new?bookId=${filters.bookId}` : "/words/new";
   const hasServerFilters = !!(

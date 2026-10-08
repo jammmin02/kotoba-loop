@@ -21,10 +21,12 @@ export default async function WordsPreviewPage(props: PageProps<"/dev/words-prev
   const rawCount = typeof searchParams.count === "string" ? Number(searchParams.count) : NaN;
   const count = Number.isInteger(rawCount) && rawCount > 0 ? Math.min(rawCount, 20000) : 3000;
   const baseline = searchParams.mode === "baseline";
+  // `?mode=undo`: 삭제 실행 취소 흐름(단어/단어장에서 빼기/단어장 삭제)을 가짜 API로 확인한다.
+  const undo = searchParams.mode === "undo";
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-4 py-8 sm:px-6 lg:px-8">
-      <WordsPreview count={count} baseline={baseline} />
+      <WordsPreview count={count} baseline={baseline} undo={undo} />
     </main>
   );
 }

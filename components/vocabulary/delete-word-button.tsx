@@ -1,14 +1,12 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import type { RemoveWordsResponse } from "@/app/api/vocabulary-books/[id]/remove-words/route";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
-import { toast } from "@/components/ui/toast";
-import { ApiClientError, apiFetch } from "@/lib/api/client";
+import { scheduleWordDeletion, UNDO_WINDOW_MS } from "@/lib/pending-deletion/actions";
 
 export interface DeleteWordButtonProps {
   id: string;
@@ -25,30 +23,13 @@ export function DeleteWordButton({ id, word, bookId }: DeleteWordButtonProps) {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
 
-  const mutation = useMutation({
-    mutationFn: async () => {
-      if (bookId) {
-        return apiFetch<RemoveWordsResponse>(`/api/vocabulary-books/${bookId}/remove-words`, {
-          method: "POST",
-          body: { ids: [id] },
-        });
-      }
-      await apiFetch(`/api/vocabularies/${id}`, { method: "DELETE" });
-      return null;
-    },
-    onSuccess: (result) => {
-      queryClient.invalidateQueries({ queryKey: ["vocabularies"] });
-      queryClient.invalidateQueries({ queryKey: ["vocabulary-books"] });
-      toast.success(
-        result && result.deletedCount === 0 ? "이 단어장에서 뺐습니다." : "단어를 삭제했습니다.",
-      );
-      router.push(bookId ? `/vocabulary/${bookId}` : "/words");
-      router.refresh();
-    },
-    onError: (err) => {
-      toast.error(err instanceof ApiClientError ? err.message : "삭제 중 오류가 발생했습니다.");
-    },
-  });
+  // 서버에는 바로 보내지 않고 취소 시간(UNDO_WINDOW_MS)이 지난 뒤에 보낸다 — 그 안에는 토스트의
+  // "실행 취소"로 되돌릴 수 있다. 목록에서는 즉시 사라진 것처럼 보인다.
+  function handleDelete() {
+    scheduleWordDeletion({ wordId: id, word, bookId, queryClient });
+    setOpen(false);
+    router.push(bookId ? `/vocabulary/${bookId}` : "/words");
+  }
 
   return (
     <>
@@ -64,16 +45,14 @@ export function DeleteWordButton({ id, word, bookId }: DeleteWordButtonProps) {
                 ? "단어를 이 단어장에서 삭제할까요? 다른 단어장에도 있으면 그쪽에 그대로 남고, 어느 단어장에도 없게 되면 뜻·예문·학습 기록까지 완전히 삭제돼요."
                 : "단어를 삭제할까요? 등록된 뜻과 예문도 함께 삭제되고, 모든 단어장에서 사라져요."}
             </p>
+            <p className="text-xs text-muted">
+              삭제 후 {UNDO_WINDOW_MS / 1000}초 안에는 &apos;실행 취소&apos;로 되돌릴 수 있어요.
+            </p>
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                 취소
               </Button>
-              <Button
-                type="button"
-                variant="danger"
-                onClick={() => mutation.mutate()}
-                loading={mutation.isPending}
-              >
+              <Button type="button" variant="danger" onClick={handleDelete}>
                 삭제
               </Button>
             </div>

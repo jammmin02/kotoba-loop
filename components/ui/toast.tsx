@@ -32,7 +32,8 @@ interface ToastItem {
 
 interface ToastState {
   toasts: ToastItem[];
-  show: (message: string, variant: ToastVariant, options?: ToastOptions) => void;
+  /** 새 토스트의 id를 돌려준다 — 나중에 `toast.dismiss(id)`로 닫을 때 쓴다. */
+  show: (message: string, variant: ToastVariant, options?: ToastOptions) => string;
   dismiss: (id: string) => void;
 }
 
@@ -52,6 +53,7 @@ const useToastStore = create<ToastState>()((set) => ({
       durationMs: options?.durationMs ?? DEFAULT_DURATION_MS,
     };
     set((state) => ({ toasts: [...state.toasts, item].slice(-MAX_VISIBLE_TOASTS) }));
+    return item.id;
   },
   dismiss: (id) => set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
 }));
@@ -63,6 +65,8 @@ export const toast = {
     useToastStore.getState().show(message, "error", options),
   info: (message: string, options?: ToastOptions) =>
     useToastStore.getState().show(message, "info", options),
+  /** 이미 사라졌거나 없는 id여도 아무 일도 일어나지 않는다. */
+  dismiss: (id: string) => useToastStore.getState().dismiss(id),
 };
 
 const variantIconBoxStyles: Record<ToastVariant, string> = {

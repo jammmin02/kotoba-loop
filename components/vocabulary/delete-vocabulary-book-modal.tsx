@@ -1,11 +1,10 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
-import { toast } from "@/components/ui/toast";
-import { ApiClientError, apiFetch } from "@/lib/api/client";
+import { scheduleBookDeletion, UNDO_WINDOW_MS } from "@/lib/pending-deletion/actions";
 import type { VocabularyBookSummary } from "@/types/vocabulary-book";
 
 interface DeleteVocabularyBookModalProps {
@@ -17,17 +16,10 @@ interface DeleteVocabularyBookModalProps {
 export function DeleteVocabularyBookModal({ book, open, onClose }: DeleteVocabularyBookModalProps) {
   const queryClient = useQueryClient();
 
-  const mutation = useMutation({
-    mutationFn: () => apiFetch(`/api/vocabulary-books/${book.id}`, { method: "DELETE" }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["vocabulary-books"] });
-      toast.success("단어장을 삭제했습니다.");
-      onClose();
-    },
-    onError: (err) => {
-      toast.error(err instanceof ApiClientError ? err.message : "삭제 중 오류가 발생했습니다.");
-    },
-  });
+  function handleDelete() {
+    scheduleBookDeletion({ bookId: book.id, name: book.name, queryClient });
+    onClose();
+  }
 
   return (
     <Modal open={open} onClose={onClose} title="단어장 삭제">
@@ -41,16 +33,14 @@ export function DeleteVocabularyBookModal({ book, open, onClose }: DeleteVocabul
             자체와 학습 기록은 그대로 남습니다.
           </p>
         )}
+        <p className="text-xs text-muted">
+          삭제 후 {UNDO_WINDOW_MS / 1000}초 안에는 &apos;실행 취소&apos;로 되돌릴 수 있어요.
+        </p>
         <div className="flex justify-end gap-2">
           <Button type="button" variant="outline" onClick={onClose}>
             취소
           </Button>
-          <Button
-            type="button"
-            variant="danger"
-            onClick={() => mutation.mutate()}
-            loading={mutation.isPending}
-          >
+          <Button type="button" variant="danger" onClick={handleDelete}>
             삭제
           </Button>
         </div>

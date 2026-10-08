@@ -1,10 +1,15 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 
+import { Button } from "@/components/ui/button";
+import { BookWordList } from "@/components/vocabulary/book-word-list";
+import { VocabularyBooksView } from "@/components/vocabulary/vocabulary-books-view";
 import { WordListItem } from "@/components/vocabulary/word-list-item";
 import { WordsView } from "@/components/vocabulary/words-view";
 import { formatKstISOString } from "@/lib/datetime";
+import { scheduleWordDeletion } from "@/lib/pending-deletion/actions";
 import type { VocabularySummary } from "@/types/vocabulary";
 
 const STATUSES = ["NEW", "LEARNING", "REVIEW", "WEAK", "MASTERED"] as const;
@@ -52,12 +57,44 @@ function envelope(data: unknown): Response {
   });
 }
 
-/** 이 화면이 열려 있는 동안만 목록 API 3개를 가짜 응답으로 바꾼다. */
+interface RecordedCall {
+  method: string;
+  path: string;
+  body: unknown;
+  at: number;
+}
+
+/**
+ * 이 화면이 열려 있는 동안만 단어/단어장 API를 가짜 응답으로 바꾼다. 삭제 요청은 실제로 가짜
+ * 데이터에 반영하고 `window.__mockCalls`에 기록해, 요청이 언제(몇 ms 뒤) 나갔는지 확인할 수 있다.
+ */
 function installMockApi(words: ReturnType<typeof generateWords>) {
   const realFetch = window.fetch;
+  const books = BOOKS.map((book) => ({ ...book }));
+  const calls: RecordedCall[] = [];
+  window.__mockCalls = calls;
+
+  const bookSummaries = () =>
+    books.map((book) => ({
+      id: book.id,
+      name: book.name,
+      description: null,
+      isPublic: false,
+      createdAt: formatKstISOString(new Date()),
+      wordCount: words.filter((w) => w.bookIds.includes(book.id)).length,
+      masteredCount: 0,
+    }));
+
   window.fetch = async (input, init) => {
     const url = new URL(typeof input === "string" ? input : (input as Request).url, location.href);
-    if (url.pathname === "/api/vocabularies") {
+    const method = (init?.method ?? "GET").toUpperCase();
+    const body = init?.body ? JSON.parse(String(init.body)) : undefined;
+
+    if (method !== "GET" && url.pathname.startsWith("/api/")) {
+      calls.push({ method, path: url.pathname, body, at: performance.now() });
+    }
+
+    if (url.pathname === "/api/vocabularies" && method === "GET") {
       const bookId = url.searchParams.get("bookId");
       const status = url.searchParams.get("status");
       const tagId = url.searchParams.get("tagId");
@@ -72,8 +109,41 @@ function installMockApi(words: ReturnType<typeof generateWords>) {
         ),
       );
     }
-    if (url.pathname === "/api/vocabulary-books") {
-      return envelope(BOOKS.map((b) => ({ ...b, wordCount: 0 })));
+
+    const wordMatch = url.pathname.match(/^\/api\/vocabularies\/([^/]+)$/);
+    if (wordMatch && method === "DELETE") {
+      const index = words.findIndex((w) => w.id === wordMatch[1]);
+      if (index >= 0) words.splice(index, 1);
+      return envelope(null);
+    }
+
+    const removeMatch = url.pathname.match(/^\/api\/vocabulary-books\/([^/]+)\/remove-words$/);
+    if (removeMatch && method === "POST") {
+      const ids = new Set<string>((body as { ids: string[] }).ids);
+      let removedCount = 0;
+      let deletedCount = 0;
+      for (const word of [...words]) {
+        if (!ids.has(word.id) || !word.bookIds.includes(removeMatch[1])) continue;
+        removedCount += 1;
+        word.bookIds = word.bookIds.filter((id) => id !== removeMatch[1]);
+        if (word.bookIds.length === 0) {
+          words.splice(words.indexOf(word), 1);
+          deletedCount += 1;
+        }
+      }
+      return envelope({ removedCount, deletedCount });
+    }
+
+    const bookMatch = url.pathname.match(/^\/api\/vocabulary-books\/([^/]+)$/);
+    if (bookMatch && method === "DELETE") {
+      const index = books.findIndex((b) => b.id === bookMatch[1]);
+      if (index >= 0) books.splice(index, 1);
+      for (const word of words) word.bookIds = word.bookIds.filter((id) => id !== bookMatch[1]);
+      return envelope(null);
+    }
+
+    if (url.pathname === "/api/vocabulary-books" && method === "GET") {
+      return envelope(bookSummaries());
     }
     if (url.pathname === "/api/tags") return envelope(TAGS);
     return realFetch(input, init);
@@ -87,6 +157,8 @@ declare global {
   interface Window {
     /** 성능 비교용 — 목록이 DOM에 나타나기까지의 시간과 그 시점의 DOM 노드 수. */
     __wordsPreviewMetrics?: { listReadyMs: number; listItems: number; domNodes: number };
+    /** 삭제 실행 취소 확인용 — 가짜 API가 받은 변경 요청 기록. */
+    __mockCalls?: { method: string; path: string; body: unknown; at: number }[];
   }
 }
 
@@ -114,7 +186,49 @@ function useListReadyMetric(expectedItems: number) {
   }, [expectedItems]);
 }
 
-export function WordsPreview({ count, baseline }: { count: number; baseline: boolean }) {
+function UndoPanel({ words }: { words: ReturnType<typeof generateWords> }) {
+  const queryClient = useQueryClient();
+  // 서버 컴포넌트가 내려주는 목록처럼, 삭제해도 바뀌지 않는 스냅샷을 쓴다(묘비 동작 확인용).
+  const [bookWords] = useState(() =>
+    words.filter((w) => w.bookIds.includes("book-a")).slice(0, 12),
+  );
+
+  return (
+    <div className="flex flex-col gap-12">
+      <section className="flex flex-col gap-4">
+        <h2 className="text-lg font-bold">전체 단어 + 단어 삭제 시뮬레이션</h2>
+        <div>
+          <Button
+            variant="danger"
+            size="sm"
+            onClick={() => scheduleWordDeletion({ wordId: "w3", word: "単語3", queryClient })}
+          >
+            단어 삭제 (単語3)
+          </Button>
+        </div>
+        <WordsView />
+      </section>
+      <section className="flex flex-col gap-4">
+        <h2 className="text-lg font-bold">단어장 상세 (book-a, 서버 스냅샷 12개)</h2>
+        <BookWordList bookId="book-a" words={bookWords} />
+      </section>
+      <section className="flex flex-col gap-4">
+        <h2 className="text-lg font-bold">단어장 목록</h2>
+        <VocabularyBooksView />
+      </section>
+    </div>
+  );
+}
+
+export function WordsPreview({
+  count,
+  baseline,
+  undo = false,
+}: {
+  count: number;
+  baseline: boolean;
+  undo?: boolean;
+}) {
   const words = useMemo(() => generateWords(count), [count]);
   const [ready, setReady] = useState(false);
   const [baselineReady, setBaselineReady] = useState(false);
@@ -148,5 +262,6 @@ export function WordsPreview({ count, baseline }: { count: number; baseline: boo
     ) : null;
   }
 
-  return ready ? <WordsView /> : null;
+  if (!ready) return null;
+  return undo ? <UndoPanel words={words} /> : <WordsView />;
 }

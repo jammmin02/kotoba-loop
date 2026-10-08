@@ -1,10 +1,8 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 
-import type { RemoveWordsResponse } from "@/app/api/vocabulary-books/[id]/remove-words/route";
 import { PixelBookOpen } from "@/components/icons/pixel-icons";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -13,10 +11,11 @@ import { Input } from "@/components/ui/input";
 import { LoadMore } from "@/components/ui/load-more";
 import { Modal } from "@/components/ui/modal";
 import { Select } from "@/components/ui/select";
-import { toast } from "@/components/ui/toast";
 import { WordListItem } from "@/components/vocabulary/word-list-item";
-import { ApiClientError, apiFetch } from "@/lib/api/client";
 import { useIncrementalList } from "@/lib/hooks/use-incremental-list";
+import { scheduleBookWordsRemoval, UNDO_WINDOW_MS } from "@/lib/pending-deletion/actions";
+import { filterHiddenWords } from "@/lib/pending-deletion/hidden";
+import { useHiddenSpecs } from "@/lib/pending-deletion/store";
 import {
   matchesWordQuery,
   sortWordSummaries,
@@ -30,9 +29,14 @@ interface BookWordListProps {
   words: VocabularySummary[];
 }
 
-export function BookWordList({ bookId, words }: BookWordListProps) {
-  const router = useRouter();
+export function BookWordList({ bookId, words: serverWords }: BookWordListProps) {
   const queryClient = useQueryClient();
+  // 삭제 대기 중이거나 방금 삭제한 단어는 서버가 내려준 목록에 아직 있어도 숨긴다.
+  const hiddenSpecs = useHiddenSpecs();
+  const words = useMemo(
+    () => filterHiddenWords(serverWords, hiddenSpecs, bookId),
+    [serverWords, hiddenSpecs, bookId],
+  );
   const [query, setQuery] = useState("");
   const [sortKey, setSortKey] = useState<WordSortKey>("createdDesc");
   const [isSelecting, setIsSelecting] = useState(false);
@@ -59,28 +63,11 @@ export function BookWordList({ bookId, words }: BookWordListProps) {
   const allVisibleSelected =
     visibleWords.length > 0 && visibleSelectedIds.length === visibleWords.length;
 
-  const deleteMutation = useMutation({
-    mutationFn: (ids: string[]) =>
-      apiFetch<RemoveWordsResponse>(`/api/vocabulary-books/${bookId}/remove-words`, {
-        method: "POST",
-        body: { ids },
-      }),
-    onSuccess: ({ removedCount, deletedCount }) => {
-      queryClient.invalidateQueries({ queryKey: ["vocabularies"] });
-      queryClient.invalidateQueries({ queryKey: ["vocabulary-books"] });
-      toast.success(
-        deletedCount === removedCount
-          ? `${removedCount}개 단어를 삭제했습니다.`
-          : `${removedCount}개 단어를 이 단어장에서 뺐습니다. (다른 단어장에 없던 ${deletedCount}개는 완전히 삭제)`,
-      );
-      setConfirmOpen(false);
-      exitSelecting();
-      router.refresh();
-    },
-    onError: (err) => {
-      toast.error(err instanceof ApiClientError ? err.message : "삭제 중 오류가 발생했습니다.");
-    },
-  });
+  function removeSelected() {
+    scheduleBookWordsRemoval({ bookId, wordIds: visibleSelectedIds, queryClient });
+    setConfirmOpen(false);
+    exitSelecting();
+  }
 
   function exitSelecting() {
     setIsSelecting(false);
@@ -181,16 +168,14 @@ export function BookWordList({ bookId, words }: BookWordListProps) {
               단어장에서 삭제할까요? 다른 단어장에도 있는 단어는 그쪽에 그대로 남고, 어느 단어장에도
               없게 되는 단어는 뜻·예문·학습 기록까지 완전히 삭제돼요.
             </p>
+            <p className="text-xs text-muted">
+              삭제 후 {UNDO_WINDOW_MS / 1000}초 안에는 &apos;실행 취소&apos;로 되돌릴 수 있어요.
+            </p>
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => setConfirmOpen(false)}>
                 취소
               </Button>
-              <Button
-                type="button"
-                variant="danger"
-                onClick={() => deleteMutation.mutate(visibleSelectedIds)}
-                loading={deleteMutation.isPending}
-              >
+              <Button type="button" variant="danger" onClick={removeSelected}>
                 삭제
               </Button>
             </div>

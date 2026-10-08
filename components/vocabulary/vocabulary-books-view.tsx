@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { PixelBookOpen, PixelCamera, PixelPlus } from "@/components/icons/pixel-icons";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,8 @@ import { DeleteVocabularyBookModal } from "@/components/vocabulary/delete-vocabu
 import { VocabularyBookCard } from "@/components/vocabulary/vocabulary-book-card";
 import { VocabularyBookFormModal } from "@/components/vocabulary/vocabulary-book-form-modal";
 import { apiFetch } from "@/lib/api/client";
+import { isBookHidden } from "@/lib/pending-deletion/hidden";
+import { useHiddenSpecs } from "@/lib/pending-deletion/store";
 import { cn } from "@/lib/utils";
 import type { VocabularyBookSummary } from "@/types/vocabulary-book";
 
@@ -36,7 +38,7 @@ export function VocabularyBooksView() {
   const [deletingBook, setDeletingBook] = useState<VocabularyBookSummary | null>(null);
 
   const {
-    data: books,
+    data: serverBooks,
     isLoading,
     isError,
     error,
@@ -46,6 +48,13 @@ export function VocabularyBooksView() {
     queryKey: ["vocabulary-books"],
     queryFn: () => apiFetch<VocabularyBookSummary[]>("/api/vocabulary-books"),
   });
+
+  // 삭제 대기 중이거나 방금 삭제한 단어장은 서버 목록에 아직 있어도 숨긴다.
+  const hiddenSpecs = useHiddenSpecs();
+  const books = useMemo(
+    () => serverBooks?.filter((book) => !isBookHidden(book.id, hiddenSpecs)),
+    [serverBooks, hiddenSpecs],
+  );
 
   // 관리자 숨김(isHidden) 책도 공개 여부는 그대로라 "공개" 탭에 남기고, 카드의 "관리자 숨김" 배지로 구분한다.
   const counts: Record<FilterKey, number> = {
