@@ -3,7 +3,11 @@ import "server-only";
 import { z } from "zod";
 
 import { runStructuredAnalysis } from "@/lib/ai/orchestrator";
-import { COMPOSITION_ACCEPT_SCORE, COMPOSITION_PROMPT_MAX } from "@/lib/composition/config";
+import {
+  COMPOSITION_ACCEPT_SCORE,
+  COMPOSITION_BUSINESS_SITUATION,
+  COMPOSITION_PROMPT_MAX,
+} from "@/lib/composition/config";
 
 export const COMPOSITION_PROMPT_ANALYSIS_TYPE = "composition_prompt";
 export const COMPOSITION_GRADE_ANALYSIS_TYPE = "composition_grade";
@@ -11,7 +15,15 @@ export const COMPOSITION_GRADE_ANALYSIS_TYPE = "composition_grade";
 const REASON_MAX = 200;
 const JAPANESE_MAX = 200;
 
-export const FEEDBACK_KINDS = ["문법", "어휘", "조사", "말투", "표기", "실제 표현"] as const;
+export const FEEDBACK_KINDS = [
+  "문법",
+  "어휘",
+  "조사",
+  "말투",
+  "경어",
+  "표기",
+  "실제 표현",
+] as const;
 
 export interface CompositionSettings {
   situation: string;
@@ -20,9 +32,13 @@ export interface CompositionSettings {
   tone: string;
 }
 
+function isBusiness(settings: CompositionSettings): boolean {
+  return settings.situation === COMPOSITION_BUSINESS_SITUATION;
+}
+
 // ---- 출제 ------------------------------------------------------------------
 
-const hintSchema = z.object({
+export const hintSchema = z.object({
   word: z.string().min(1).max(20),
   reading: z.string().min(1).max(30),
   meaning: z.string().min(1).max(30),
@@ -40,6 +56,22 @@ const LEVEL_GUIDE: Record<string, string> = {
   "접속 포함": "から/ので/けど/て형 등으로 두 절을 잇는 문장",
   복문: "관계절·조건·인용 등이 들어간 두 개 이상의 절로 된 긴 문장",
 };
+
+/** 상황별 추가 출제 지침. 비즈니스는 경어와 업무 정형 표현을 연습하는 전문 상황이다. */
+const BUSINESS_PROMPT_GUIDE = `
+비즈니스 상황 추가 규칙:
+- 거래처·상사·고객과의 이메일, 전화, 회의, 사내 보고 등 실제 업무 장면의 문장으로 출제할 것.
+- 존경어·겸양어·정중어(敬語)가 필요한 문장, 쿠션어(恐れ入りますが 등), 의뢰·사과·거절·감사·일정 조율 같은 업무 정형 표현을 골고루 다룰 것.
+- 한국어는 격식 있는 존댓말로 쓰고, 어떤 상대(상사/거래처/고객)에게 하는 말인지 문장에서 드러나게 할 것.
+- hints는 업무 어휘나 경어 동사(例: 拝見する, 伺う)를 우선으로 고를 것.`;
+
+const BUSINESS_GRADE_GUIDE = `
+비즈니스 상황 추가 채점 규칙:
+- 경어 사용(존경어/겸양어/정중어의 구분, 상대와 자신의 방향)이 맞는지 가장 엄격하게 평가하세요. 방향이 틀린 경어(상대에게 겸양어, 자신에게 존경어)는 중대한 오류입니다.
+- 경어 오류와 비즈니스 장면에 어울리지 않는 캐주얼한 표현은 kind "경어" 카드로 알리세요. 말투(정중체/반말) 자체를 벗어난 경우만 "말투"를 쓰세요.
+- 이중 경어(二重敬語)나 어색한 아르바이트 경어(〜のほう, 〜になります 남용)도 지적하세요.
+- 쿠션어, 의뢰·사과 표현 등 업무 메일·회화에서 실제로 쓰는 정형 표현이 있으면 "실제 표현" 카드로 제안하세요. 틀린 것은 아님을 분명히 하세요.
+- modelAnswers는 실제 비즈니스 현장에서 쓸 수 있는 정중한 경어 표현으로 쓰세요.`;
 
 const PROMPT_SYSTEM = `당신은 일본어 학습 앱 kotoba-loop의 "작문 퀘스트" 출제자입니다.
 학습자가 일본어로 옮겨 쓸 한국어 문장을 정확히 1개 출제하세요.
@@ -69,7 +101,7 @@ export async function generateCompositionPrompt(
 
   const { data } = await runStructuredAnalysis({
     analysisType: COMPOSITION_PROMPT_ANALYSIS_TYPE,
-    system: PROMPT_SYSTEM,
+    system: isBusiness(settings) ? PROMPT_SYSTEM + BUSINESS_PROMPT_GUIDE : PROMPT_SYSTEM,
     user: lines.join("\n"),
     schema: promptSchema,
     maxTokens: 512,
@@ -79,9 +111,9 @@ export async function generateCompositionPrompt(
 
 // ---- 채점 ------------------------------------------------------------------
 
-const score = z.number().int().min(0).max(100);
+export const score = z.number().int().min(0).max(100);
 
-const feedbackItemSchema = z.object({
+export const feedbackItemSchema = z.object({
   kind: z.enum(FEEDBACK_KINDS),
   /** 사용자가 쓴 부분. "실제 표현" 카드에서는 정답이지만 덜 쓰이는 부분. */
   original: z.string().min(1).max(JAPANESE_MAX),
@@ -116,7 +148,7 @@ const GRADE_SYSTEM = `당신은 일본어 학습 앱 kotoba-loop의 "작문 퀘�
 - 지정된 말투(정중체/반말)에서 벗어나면 kind "말투" 카드로 알리고 문법 점수를 과하게 깎지 마세요.
 
 feedback 규칙(최대 6개, 중요한 순서):
-- kind는 문법/어휘/조사/말투/표기/실제 표현 중 하나.
+- kind는 문법/어휘/조사/말투/경어/표기/실제 표현 중 하나("경어"는 비즈니스 상황의 경어 오류에만 사용).
 - original: 사용자가 쓴 해당 부분, suggestion: 고친(또는 더 자연스러운) 표현, reason: 한국어로 1~2문장의 짧은 이유.
 - 틀린 곳이 있으면 해당 종류의 카드로 알리세요.
 - 문법적으로 맞고 의미도 맞지만 실제로는 다른 표현이 더 흔히 쓰이면 "실제 표현" 카드로 알리세요(예: 見る보다 観る, ので보다 から가 회화에서 더 흔함).
@@ -140,7 +172,7 @@ export async function gradeComposition(
 
   const { data } = await runStructuredAnalysis({
     analysisType: COMPOSITION_GRADE_ANALYSIS_TYPE,
-    system: GRADE_SYSTEM,
+    system: isBusiness(settings) ? GRADE_SYSTEM + BUSINESS_GRADE_GUIDE : GRADE_SYSTEM,
     user,
     schema: gradeSchema,
     maxTokens: 2048,

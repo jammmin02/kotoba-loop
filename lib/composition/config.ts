@@ -1,6 +1,8 @@
 // 작문 퀘스트의 공용 상수/순수 로직 — server-only 의존이 없어 클라이언트와 단위 테스트에서도 쓴다.
 
-export const COMPOSITION_SITUATIONS = ["일상", "여행", "직장", "친구", "학교"] as const;
+export const COMPOSITION_SITUATIONS = ["일상", "여행", "직장", "친구", "학교", "비즈니스"] as const;
+/** 경어(존경어·겸양어·정중어)만 쓰는 상황 — 반말을 고를 수 없다. */
+export const COMPOSITION_BUSINESS_SITUATION = "비즈니스";
 export const COMPOSITION_VOCAB_LEVELS = ["N5", "N4", "N3", "N2"] as const;
 export const COMPOSITION_LEVELS = ["단문", "접속 포함", "복문"] as const;
 export const COMPOSITION_TONES = ["정중체", "반말"] as const;
