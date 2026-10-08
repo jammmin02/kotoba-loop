@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { PixelLock, PixelSparkles } from "@/components/icons/pixel-icons";
+import { PixelPenTool, PixelSparkles } from "@/components/icons/pixel-icons";
 import { QuestLinkCard } from "@/components/ui/quest-link-card";
 import { auth } from "@/lib/auth";
 
@@ -53,15 +53,16 @@ export default async function AiHomePage() {
           badge={{ label: "NEW", className: "bg-success text-success-foreground" }}
         />
 
-        <div className="flex items-center gap-4 border-2 border-dashed border-pixel-ink/50 px-4 py-4 opacity-50">
-          <span className="flex size-12 shrink-0 items-center justify-center border-2 border-dashed border-pixel-ink/50 text-foreground/40">
-            <PixelLock className="size-5" aria-hidden="true" />
-          </span>
-          <div>
-            <span className="text-sm font-bold text-foreground">문장 만들기</span>
-            <p className="mt-0.5 text-xs font-content text-muted">준비 중인 퀘스트예요.</p>
-          </div>
-        </div>
+        <QuestLinkCard
+          href="/ai/composition"
+          fileName="QUEST_03.EXE"
+          titleColor="primary"
+          icon={PixelPenTool}
+          iconColor="bg-secondary text-secondary-foreground"
+          title="작문 퀘스트"
+          description="한국어 문장을 일본어로 써보면 AI가 채점하고 더 자연스러운 표현을 알려줘요."
+          badge={{ label: "NEW", className: "bg-success text-success-foreground" }}
+        />
       </div>
     </main>
   );

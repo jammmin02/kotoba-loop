@@ -175,6 +175,8 @@ model User {
   aiAnalyses           AIAnalysis[]
   gameProfile          UserGameProfile?
   sentences            UserSentence[]
+  compositionSessions  CompositionSession[]
+  compositionAttempts  CompositionAttempt[]
   questProgress        UserQuestProgress[]
   achievements         UserAchievement[]
   photoUploads         PhotoUpload[]
@@ -604,6 +606,57 @@ model UserSentence {
   vocabulary Vocabulary @relation(fields: [vocabulary_id], references: [id], onDelete: Cascade)
 
   @@id([user_id, vocabulary_id])
+}
+
+// AI 작문 퀘스트 — 한국어 문장을 일본어로 작문하고 AI가 채점한다. 등록 단어와 무관하게
+// 상황/단어 수준/작문 수준/말투만 정해 출제한다. 세션은 문항 수 모드(기본·사용자 지정·무한)를 갖는다.
+enum CompositionMode {
+  DEFAULT
+  CUSTOM
+  ENDLESS
+}
+
+model CompositionSession {
+  id                String          @id @default(uuid())
+  user_id           String
+  situation         String
+  vocab_level       JlptLevel
+  composition_level String
+  tone              String
+  mode              CompositionMode
+  // ENDLESS면 null — 사용자가 직접 끝낼 때까지 계속한다.
+  target_count      Int?
+  created_at        DateTime        @default(now())
+  finished_at       DateTime?
+
+  user     User                 @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  attempts CompositionAttempt[]
+
+  @@index([user_id, created_at])
+}
+
+model CompositionAttempt {
+  id                String   @id @default(uuid())
+  session_id        String
+  user_id           String
+  order             Int
+  prompt_korean     String
+  answer_japanese   String
+  score             Int
+  grammar_score     Int
+  vocabulary_score  Int
+  naturalness_score Int
+  // 의미가 원문과 맞아 정답으로 인정됐는지(표현이 달라도 인정될 수 있다).
+  is_accepted       Boolean
+  // 피드백 카드 목록(종류/원문/수정/이유) + 모범 답안 — AI 결과를 그대로 보존한다.
+  feedback          Json
+  created_at        DateTime @default(now())
+
+  session CompositionSession @relation(fields: [session_id], references: [id], onDelete: Cascade)
+  user    User               @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([session_id, order])
+  @@index([user_id, created_at])
 }
 
 // Daily Quest(PROMPT 25) — 4개 고정 카탈로그 행을 마이그레이션이 시딩하고(lib/quest/constants.ts
