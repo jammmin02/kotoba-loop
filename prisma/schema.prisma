@@ -177,6 +177,8 @@ model User {
   sentences            UserSentence[]
   compositionSessions  CompositionSession[]
   compositionAttempts  CompositionAttempt[]
+  conversationSessions ConversationSession[]
+  conversationMessages ConversationMessage[]
   questProgress        UserQuestProgress[]
   achievements         UserAchievement[]
   photoUploads         PhotoUpload[]
@@ -187,8 +189,8 @@ model User {
   battleRoomsHosted    BattleRoom[]
   battleParticipations BattleParticipant[]
   battleAnswers        BattleAnswer[]
-  following            Friend[]            @relation("FriendFollower")
-  followedBy           Friend[]            @relation("FriendFollowee")
+  following            Friend[]              @relation("FriendFollower")
+  followedBy           Friend[]              @relation("FriendFollowee")
 
   @@index([status])
 }
@@ -658,6 +660,65 @@ model CompositionAttempt {
   user    User               @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@unique([session_id, order])
+  @@index([user_id, created_at])
+}
+
+// AI 회화 퀘스트 — 상황극(친구/상사/처음 보는 사람/점원)으로 AI와 일본어를 주고받는다.
+// 사용자의 발화(USER)마다 같은 호출에서 채점·첨삭이 붙고, 종료 시 총평과 EXP가 한 번 지급된다.
+// 대화 이력은 항상 서버(이 테이블)에서만 읽는다 — 클라이언트가 보낸 이력은 신뢰하지 않는다.
+enum ConversationRole {
+  AI
+  USER
+}
+
+model ConversationSession {
+  id              String    @id @default(uuid())
+  user_id         String
+  scenario        String
+  // 시작할 때 서버가 무작위로 정한 세부 상황(점원이면 가게 종류). 사용자가 직접 입력하지 않는다.
+  topic           String
+  vocab_level     JlptLevel
+  tone            String
+  // 사용자가 말할 턴 수 — 이 횟수만큼 말하면 대화가 끝난다.
+  target_turns    Int
+  summary_comment String?
+  summary_focus   String?
+  // 종료 시 EXP를 이미 지급했는지 — 종료 처리의 중복 지급 방지와 일일 한도 집계에 쓴다.
+  exp_granted     Boolean   @default(false)
+  created_at      DateTime  @default(now())
+  finished_at     DateTime?
+
+  user     User                  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  messages ConversationMessage[]
+
+  @@index([user_id, created_at])
+}
+
+model ConversationMessage {
+  id                String           @id @default(uuid())
+  session_id        String
+  user_id           String
+  // 세션 안 순번(1부터). AI/USER가 번갈아 쌓인다.
+  seq               Int
+  role              ConversationRole
+  text              String
+  // AI 발화의 한국어 번역과 다음 발화용 힌트(단어 1~3개). USER 행에서는 null.
+  text_ko           String?
+  hints             Json?
+  // 아래는 USER 발화에만 채워진다.
+  score             Int?
+  grammar_score     Int?
+  vocabulary_score  Int?
+  naturalness_score Int?
+  is_accepted       Boolean?
+  hint_used         Boolean          @default(false)
+  feedback          Json?
+  created_at        DateTime         @default(now())
+
+  session ConversationSession @relation(fields: [session_id], references: [id], onDelete: Cascade)
+  user    User                @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([session_id, seq])
   @@index([user_id, created_at])
 }
 
