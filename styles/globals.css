@@ -267,6 +267,15 @@
   }
 }
 
+/**
+ * 화면 밖 항목의 레이아웃/페인트를 브라우저가 건너뛰게 한다(긴 목록 스크롤 성능). 실제 높이를 한 번
+ * 그리면 그 값을 기억하므로(`auto`) 스크롤바가 크게 튀지 않고, 처음 추정 높이만 `--defer-height`로 준다.
+ */
+@utility defer-render {
+  content-visibility: auto;
+  contain-intrinsic-size: auto var(--defer-height, 5.5rem);
+}
+
 body {
   /* viewport-fit=cover(app/layout.tsx)를 쓰므로 가로 모드 노치/둥근 모서리 영역을 비워 둔다. */
   padding-inline: env(safe-area-inset-left) env(safe-area-inset-right);

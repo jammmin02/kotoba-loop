@@ -10,11 +10,13 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { LoadMore } from "@/components/ui/load-more";
 import { Modal } from "@/components/ui/modal";
 import { Select } from "@/components/ui/select";
 import { toast } from "@/components/ui/toast";
 import { WordListItem } from "@/components/vocabulary/word-list-item";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
+import { useIncrementalList } from "@/lib/hooks/use-incremental-list";
 import {
   matchesWordQuery,
   sortWordSummaries,
@@ -42,10 +44,17 @@ export function BookWordList({ bookId, words }: BookWordListProps) {
     return sortWordSummaries(matched, sortKey);
   }, [words, query, sortKey]);
 
+  // 수천 개여도 처음엔 앞부분만 그린다. "전체 선택"과 개수는 아래 전체 목록(visibleWords) 기준이다.
+  const { shownItems, shownCount, remaining, hasMore, loadMore } = useIncrementalList(
+    visibleWords,
+    { resetKey: `${query.trim()}|${sortKey}`, storagePrefix: `book-words:${bookId}` },
+  );
+
   // 검색으로 가려진 단어가 선택에 남아 의도치 않게 삭제되지 않도록, 보이는 단어만 선택으로 센다.
+  const selectedIdSet = useMemo(() => new Set(selectedIds), [selectedIds]);
   const visibleSelectedIds = useMemo(
-    () => visibleWords.filter((word) => selectedIds.includes(word.id)).map((word) => word.id),
-    [visibleWords, selectedIds],
+    () => visibleWords.filter((word) => selectedIdSet.has(word.id)).map((word) => word.id),
+    [visibleWords, selectedIdSet],
   );
   const allVisibleSelected =
     visibleWords.length > 0 && visibleSelectedIds.length === visibleWords.length;
@@ -138,22 +147,29 @@ export function BookWordList({ bookId, words }: BookWordListProps) {
 
       {visibleWords.length === 0 ? (
         <Card className="flex flex-col items-center gap-2 py-8 text-center">
-          <PixelBookOpen className="size-10 text-foreground/30" aria-hidden="true" />
+          <PixelBookOpen className="size-10 text-subtle" aria-hidden="true" />
           <p className="text-sm font-bold text-foreground">조건에 맞는 단어가 없어요</p>
         </Card>
       ) : (
         <div className="flex flex-col gap-3">
-          {visibleWords.map((word) => (
-            <WordListItem
-              key={word.id}
-              word={word}
-              bookId={bookId}
-              highlightQuery={query}
-              selectable={isSelecting}
-              selected={selectedIds.includes(word.id)}
-              onToggleSelect={toggleSelected}
-            />
+          {shownItems.map((word) => (
+            <div key={word.id} className="defer-render">
+              <WordListItem
+                word={word}
+                bookId={bookId}
+                highlightQuery={query}
+                selectable={isSelecting}
+                selected={selectedIdSet.has(word.id)}
+                onToggleSelect={toggleSelected}
+              />
+            </div>
           ))}
+          <LoadMore
+            hasMore={hasMore}
+            remaining={remaining}
+            shownCount={shownCount}
+            onLoadMore={loadMore}
+          />
         </div>
       )}
 
