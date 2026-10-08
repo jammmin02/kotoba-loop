@@ -13,10 +13,21 @@ import type { QueryClient } from "@tanstack/react-query";
 /** 삭제를 누른 뒤 되돌릴 수 있는 시간. 이 시간이 지나야 서버에 삭제 요청을 보낸다. */
 export const UNDO_WINDOW_MS = 10_000;
 
+/** keepalive 요청 본문은 브라우저가 약 64KB까지만 허용한다 — 넘기면 요청 자체가 거부된다. */
+const KEEPALIVE_MAX_BODY_CHARS = 60_000;
+
 const scheduler = createDeletionScheduler({
   delayMs: UNDO_WINDOW_MS,
-  send: (request, { keepalive }) =>
-    apiFetch(request.path, { method: request.method, body: request.body, keepalive }),
+  send: (request, { keepalive }) => {
+    // 수천 개를 한꺼번에 빼는 요청은 본문이 커서 keepalive를 쓸 수 없다. 그때는 일반 요청으로
+    // 보내 최선을 다한다(탭이 이미 닫히면 전송되지 않고, 데이터는 그대로 남는다).
+    const bodySize = request.body === undefined ? 0 : JSON.stringify(request.body).length;
+    return apiFetch(request.path, {
+      method: request.method,
+      body: request.body,
+      keepalive: keepalive && bodySize <= KEEPALIVE_MAX_BODY_CHARS,
+    });
+  },
 });
 
 let pagehideListenerInstalled = false;
