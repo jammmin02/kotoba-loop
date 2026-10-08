@@ -23,7 +23,7 @@ function subscribe(onChange: () => void) {
   };
 }
 
-/** SSR에서는 항상 '시스템'으로 시작하고, 마운트 후 저장된 선택으로 갱신한다. */
+/** SSR에서는 항상 '라이트'로 시작하고, 마운트 후 저장된 선택으로 갱신한다. */
 export function useThemePreference(): ThemePreference {
   return useSyncExternalStore(subscribe, readThemePreference, () => DEFAULT_THEME_PREFERENCE);
 }

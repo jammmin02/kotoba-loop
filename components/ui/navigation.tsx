@@ -8,6 +8,7 @@ import { useState, useSyncExternalStore } from "react";
 import { PixelChevronDown } from "@/components/icons/pixel-icons";
 import { NavSearchBox } from "@/components/search/nav-search-box";
 import { Modal } from "@/components/ui/modal";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import {
   MORE_NAV_ITEMS,
   MORE_TAB_LABEL,
@@ -200,11 +201,28 @@ export function MobileTopBar({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "sticky top-0 z-30 border-b-2 border-pixel-ink bg-surface p-3 lg:hidden",
+        "sticky top-0 z-30 flex items-center gap-2 border-b-2 border-pixel-ink bg-surface p-3 lg:hidden",
         className,
       )}
     >
-      <NavSearchBox />
+      <div className="min-w-0 flex-1">
+        <NavSearchBox />
+      </div>
+      <ThemeToggle />
+    </div>
+  );
+}
+
+/** Desktop-only top strip with the theme toggle (mobile has it in MobileTopBar). */
+export function DesktopTopBar({ className }: { className?: string }) {
+  return (
+    <div
+      className={cn(
+        "sticky top-0 z-30 hidden items-center justify-end border-b-2 border-pixel-ink bg-surface px-4 py-2 lg:flex",
+        className,
+      )}
+    >
+      <ThemeToggle />
     </div>
   );
 }
@@ -216,6 +234,7 @@ export function Navigation({ children }: { children: React.ReactNode }) {
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0">
         <MobileTopBar />
+        <DesktopTopBar />
         <div className="flex-1">{children}</div>
         <BottomTabBar />
       </div>

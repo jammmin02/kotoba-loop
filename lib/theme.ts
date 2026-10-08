@@ -10,7 +10,7 @@ export type ResolvedTheme = "light" | "dark";
 
 export const THEME_STORAGE_KEY = "kotoba-theme";
 export const THEME_CHANGE_EVENT = "kotoba-theme-change";
-export const DEFAULT_THEME_PREFERENCE: ThemePreference = "system";
+export const DEFAULT_THEME_PREFERENCE: ThemePreference = "light";
 
 const DARK_MEDIA_QUERY = "(prefers-color-scheme: dark)";
 
@@ -34,7 +34,7 @@ export function readThemePreference(): ThemePreference {
   try {
     return parseThemePreference(localStorage.getItem(THEME_STORAGE_KEY));
   } catch {
-    // 저장소에 접근할 수 없으면(시크릿 모드 등) 시스템 설정을 따른다.
+    // 저장소에 접근할 수 없으면(시크릿 모드 등) 기본값(라이트)을 쓴다.
     return DEFAULT_THEME_PREFERENCE;
   }
 }
@@ -61,4 +61,4 @@ export function writeThemePreference(preference: ThemePreference): void {
  * 첫 페인트 전에 실행되는 인라인 스크립트. 위 로직(parse/resolve/apply)을 의존성 없이
  * 그대로 옮긴 것이라 둘을 함께 수정해야 한다.
  */
-export const THEME_INIT_SCRIPT = `(function(){try{var p=null;try{p=localStorage.getItem(${JSON.stringify(THEME_STORAGE_KEY)})}catch(e){}if(p!=="light"&&p!=="dark")p="system";var d=p==="dark"||(p==="system"&&window.matchMedia(${JSON.stringify(DARK_MEDIA_QUERY)}).matches);var r=document.documentElement;r.classList.toggle("dark",d);r.style.colorScheme=d?"dark":"light"}catch(e){}})()`;
+export const THEME_INIT_SCRIPT = `(function(){try{var p=null;try{p=localStorage.getItem(${JSON.stringify(THEME_STORAGE_KEY)})}catch(e){}if(p!=="light"&&p!=="dark"&&p!=="system")p="light";var d=p==="dark"||(p==="system"&&window.matchMedia(${JSON.stringify(DARK_MEDIA_QUERY)}).matches);var r=document.documentElement;r.classList.toggle("dark",d);r.style.colorScheme=d?"dark":"light"}catch(e){}})()`;

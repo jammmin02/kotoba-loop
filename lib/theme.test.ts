@@ -10,10 +10,10 @@ describe("parseThemePreference", () => {
     assert.equal(parseThemePreference("system"), "system");
   });
 
-  it("없거나 알 수 없는 값은 system으로 폴백한다", () => {
-    assert.equal(parseThemePreference(null), "system");
-    assert.equal(parseThemePreference(undefined), "system");
-    assert.equal(parseThemePreference("sepia"), "system");
+  it("없거나 알 수 없는 값은 light로 폴백한다", () => {
+    assert.equal(parseThemePreference(null), "light");
+    assert.equal(parseThemePreference(undefined), "light");
+    assert.equal(parseThemePreference("sepia"), "light");
   });
 });
 
