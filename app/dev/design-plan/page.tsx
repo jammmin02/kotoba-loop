@@ -148,11 +148,11 @@ export default function DesignPlanPage() {
   return (
     <main className="mx-auto flex max-w-5xl flex-col gap-10 px-4 py-12 sm:px-6 lg:px-8">
       <header>
-        <p className="text-xs font-bold tracking-wide text-foreground/60">
+        <p className="text-xs font-bold tracking-wide text-muted">
           제27기 백호 튜터링 · 오보에조 · 1주차
         </p>
         <h1 className="mt-1 text-3xl font-bold">디자인 계획 — 무엇으로, 어떻게 만들 것인가</h1>
-        <p className="mt-2 text-sm text-foreground/70">
+        <p className="mt-2 text-sm text-muted">
           코토바루프(kotoba-loop) 개발에 들어가기 전, 이번 주에 확정한 디자인 방향과 사용할
           도구·컴포넌트 규칙을 정리했다. 이후 화면 구현은 전부 이 기준을 따른다.
         </p>
@@ -174,7 +174,7 @@ export default function DesignPlanPage() {
           <h2 id="game-heading" className="text-xl font-semibold">
             🎮 게임화 UI — 이 프로젝트의 핵심 재미 요소
           </h2>
-          <p className="mt-1 text-xs text-foreground/60">
+          <p className="mt-1 text-xs text-muted">
             &ldquo;RPG/수집형 게임 학습 서비스&rdquo;라는 컨셉이 실제로 드러나는 부분. 오늘의 학습
             홈, 학습 결과, 레벨업처럼 게임 연출이 우선인 화면에 이 컴포넌트들을 쓴다.
           </p>
@@ -208,7 +208,7 @@ export default function DesignPlanPage() {
         </div>
 
         <Card title="+EXP 토스트" titleColor="accent">
-          <p className="mb-3 text-xs leading-relaxed text-foreground/70">
+          <p className="mb-3 text-xs leading-relaxed text-muted">
             학습 중 즉시 피드백 — 보상 연출은 항상 400~600ms 이내로 절제한다.
           </p>
           <ExpToastDemo />
@@ -220,7 +220,7 @@ export default function DesignPlanPage() {
           <h2 id="word-heading" className="text-xl font-semibold">
             📖 단어 카드
           </h2>
-          <p className="mt-1 text-xs text-foreground/60">
+          <p className="mt-1 text-xs text-muted">
             단어장·검색 결과 등 정보 우선 화면에서도 픽셀 셸(카드/보더/그림자)은 동일하게 쓰되,
             일본어 단어·읽는법은 font-jp, 뜻풀이는 font-content로 가독성을 확보한다.
           </p>
@@ -233,9 +233,9 @@ export default function DesignPlanPage() {
                 <div className="min-w-0">
                   <div className="flex items-baseline gap-2">
                     <span className="font-jp text-lg font-bold text-foreground">{card.word}</span>
-                    <span className="font-jp text-sm text-foreground/60">{card.reading}</span>
+                    <span className="font-jp text-sm text-muted">{card.reading}</span>
                   </div>
-                  <p className="font-content text-sm text-foreground/70">{card.meaning}</p>
+                  <p className="font-content text-sm text-muted">{card.meaning}</p>
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1.5">
                   <StatusBadge status={card.status} />
@@ -267,7 +267,7 @@ export default function DesignPlanPage() {
             </div>
           ))}
         </div>
-        <p className="text-xs text-foreground/60">
+        <p className="text-xs text-muted">
           Primary/Secondary/Accent는 기존 브랜드 색상을 그대로 유지하고, Background·Surface· Pixel
           Ink·Titlebar 포인트 색을 이번 주에 새로 확정했다. 다크 모드는 별도 값으로 전환한다.
         </p>
@@ -280,14 +280,14 @@ export default function DesignPlanPage() {
         <div className="grid gap-3 sm:grid-cols-3">
           {fontPlan.map((font) => (
             <Card key={font.name} title={font.name} titleColor="mint">
-              <p className="text-xs font-semibold text-foreground/60">{font.role}</p>
+              <p className="text-xs font-semibold text-muted">{font.role}</p>
               <p
                 className={`mt-2 text-lg ${font.className}`}
                 lang={font.name === "Noto Sans JP" ? "ja" : undefined}
               >
                 {font.sample}
               </p>
-              <p className="mt-2 text-xs leading-relaxed text-foreground/70">{font.note}</p>
+              <p className="mt-2 text-xs leading-relaxed text-muted">{font.note}</p>
             </Card>
           ))}
         </div>
@@ -301,7 +301,7 @@ export default function DesignPlanPage() {
           {shellRules.map((rule) => (
             <Card key={rule.title} variant="elevated">
               <h3 className="text-sm font-bold">{rule.title}</h3>
-              <p className="mt-1.5 text-xs leading-relaxed text-foreground/75">{rule.body}</p>
+              <p className="mt-1.5 text-xs leading-relaxed text-muted">{rule.body}</p>
             </Card>
           ))}
         </div>
@@ -312,14 +312,14 @@ export default function DesignPlanPage() {
           <h2 id="preview-heading" className="text-xl font-semibold">
             컴포넌트 적용 예시
           </h2>
-          <p className="mt-1 text-xs text-foreground/60">
+          <p className="mt-1 text-xs text-muted">
             위 토큰과 규칙을 실제 버튼·뱃지·인풋·카드에 적용해 미리 만들어본 프로토타입. 재사용
             컴포넌트로 다듬는 작업은 다음 주에 진행한다.
           </p>
         </div>
 
         <Card variant="elevated">
-          <h3 className="text-sm font-bold text-foreground/70">Button</h3>
+          <h3 className="text-sm font-bold text-muted">Button</h3>
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <Button variant="primary">Primary</Button>
             <Button variant="secondary">Secondary</Button>
@@ -335,7 +335,7 @@ export default function DesignPlanPage() {
             <Button loading>로딩 중</Button>
             <Button disabled>Disabled</Button>
           </div>
-          <p className="mt-3 text-xs text-foreground/60">
+          <p className="mt-3 text-xs text-muted">
             클릭 시 2px 눌리며 그림자가 사라지는 프레스 효과 — ghost만 보더/그림자 없이 배경색
             반응만 준다.
           </p>
@@ -343,7 +343,7 @@ export default function DesignPlanPage() {
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Card variant="elevated">
-            <h3 className="text-sm font-bold text-foreground/70">Badge</h3>
+            <h3 className="text-sm font-bold text-muted">Badge</h3>
             <div className="mt-3 flex flex-wrap gap-2">
               <StatusBadge status="NEW" />
               <StatusBadge status="LEARNING" />
@@ -361,7 +361,7 @@ export default function DesignPlanPage() {
           </Card>
 
           <Card variant="elevated">
-            <h3 className="text-sm font-bold text-foreground/70">Input / Select / Textarea</h3>
+            <h3 className="text-sm font-bold text-muted">Input / Select / Textarea</h3>
             <div className="mt-3 flex flex-col gap-3">
               <Input label="닉네임" placeholder="예: 오보에조" helperText="2~12자" />
               <Input
@@ -395,7 +395,7 @@ export default function DesignPlanPage() {
           <h2 id="shared-heading" className="text-xl font-semibold">
             모달 · 알림 등 공용 컴포넌트
           </h2>
-          <p className="mt-1 text-xs text-foreground/60">
+          <p className="mt-1 text-xs text-muted">
             여러 화면에서 반복해서 쓰일 공용 컴포넌트 — 화면마다 새로 만들지 않고 이 컴포넌트만
             재사용한다. 버튼을 눌러 실제 동작까지 확인할 수 있다.
           </p>
@@ -403,7 +403,7 @@ export default function DesignPlanPage() {
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Card title="Modal" titleColor="primary">
-            <p className="mb-3 text-xs leading-relaxed text-foreground/70">
+            <p className="mb-3 text-xs leading-relaxed text-muted">
               확인/완료 등 화면을 가리는 팝업. 데스크탑은 중앙 모달, 좁은 화면은 하단 시트로 반응형
               전환.
             </p>
@@ -411,21 +411,21 @@ export default function DesignPlanPage() {
           </Card>
 
           <Card title="Toast" titleColor="mint">
-            <p className="mb-3 text-xs leading-relaxed text-foreground/70">
+            <p className="mb-3 text-xs leading-relaxed text-muted">
               저장/삭제 등 짧은 결과 안내. success / error / info 세 톤만 쓴다.
             </p>
             <ToastPreview />
           </Card>
 
           <Card title="Tooltip" titleColor="accent">
-            <p className="mb-3 text-xs leading-relaxed text-foreground/70">
+            <p className="mb-3 text-xs leading-relaxed text-muted">
               아이콘/축약 정보에 보충 설명이 필요할 때만 최소한으로 사용.
             </p>
             <TooltipPreview />
           </Card>
 
           <Card title="Progress Bar" titleColor="pink">
-            <p className="mb-3 text-xs leading-relaxed text-foreground/70">
+            <p className="mb-3 text-xs leading-relaxed text-muted">
               함몰 베벨 트랙 + 픽셀 세그먼트 채움 — 오늘의 학습 진행도, 한자 학습률 등에 공통 사용.
             </p>
             <ProgressBarPreview />
@@ -438,7 +438,7 @@ export default function DesignPlanPage() {
           {stack.map((item) => (
             <li key={item.name} className="text-sm">
               <span className="font-bold">{item.name}</span>
-              <span className="text-foreground/60"> — {item.note}</span>
+              <span className="text-muted"> — {item.note}</span>
             </li>
           ))}
         </ul>

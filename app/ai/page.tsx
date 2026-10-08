@@ -26,7 +26,7 @@ export default async function AiHomePage() {
         <PixelSparkles className="size-6 shrink-0 text-accent" aria-hidden="true" />
         <h1 className="text-xl font-bold text-foreground">AI 퀘스트 보드</h1>
       </div>
-      <p className="-mt-4 ml-8 text-sm font-content text-foreground/60">
+      <p className="-mt-4 ml-8 text-sm font-content text-muted">
         오늘의 AI 퀘스트를 골라 입장하세요.
       </p>
 
@@ -59,7 +59,7 @@ export default async function AiHomePage() {
           </span>
           <div>
             <span className="text-sm font-bold text-foreground">문장 만들기</span>
-            <p className="mt-0.5 text-xs font-content text-foreground/60">준비 중인 퀘스트예요.</p>
+            <p className="mt-0.5 text-xs font-content text-muted">준비 중인 퀘스트예요.</p>
           </div>
         </div>
       </div>

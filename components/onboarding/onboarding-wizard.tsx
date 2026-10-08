@@ -102,7 +102,7 @@ export function OnboardingWizard() {
         <div className="flex items-center gap-3">
           <ProgressRing value={step} max={ONBOARDING_TOTAL_STEPS} size={56} strokeWidth={6} />
           <div>
-            <p className="text-xs font-bold text-foreground/50">
+            <p className="text-xs font-bold text-muted">
               STEP {step}/{ONBOARDING_TOTAL_STEPS}
             </p>
             <p className="text-base font-bold text-foreground">학습 설정</p>
@@ -112,7 +112,7 @@ export function OnboardingWizard() {
           type="button"
           onClick={handleSkip}
           disabled={submitting}
-          className="text-xs font-bold text-foreground/50 underline underline-offset-2 hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
+          className="text-xs font-bold text-muted underline underline-offset-2 hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
         >
           나중에 하기
         </button>

@@ -7,6 +7,7 @@ import { useState } from "react";
 import { AchievementToastViewport } from "@/components/game/achievement-toast";
 import { ExpToastViewport } from "@/components/game/exp-toast";
 import { StreakFreezeToastViewport } from "@/components/game/streak-freeze-toast";
+import { ThemeSync } from "@/components/layout/theme-sync";
 import { InstallPromptBanner } from "@/components/pwa/install-prompt-banner";
 import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
 import { Toaster } from "@/components/ui/toast";
@@ -29,6 +30,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
       <QueryClientProvider client={queryClient}>
+        <ThemeSync />
         {children}
         <Toaster />
         <ExpToastViewport />

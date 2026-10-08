@@ -233,7 +233,7 @@ export function FlashcardSession({
               ? "커스텀 학습 완료!"
               : "오늘의 학습 완료!"}
         </p>
-        <p className="text-sm font-content text-foreground/60">
+        <p className="text-sm font-content text-muted">
           총 {totalDone}개 단어를 학습했어요. (기억남 {tally.GOOD + tally.EASY}개 · 모르겠음/헷갈림{" "}
           {tally.UNKNOWN + tally.HARD}개)
         </p>
@@ -275,7 +275,7 @@ export function FlashcardSession({
   return (
     <div className="flex w-full max-w-md flex-col gap-4">
       {mode === "tag" && tagName && (
-        <p className="text-center text-sm font-bold text-foreground/60">
+        <p className="text-center text-sm font-bold text-muted">
           『{tagName}』 태그 학습 중
         </p>
       )}
@@ -285,14 +285,14 @@ export function FlashcardSession({
           <button
             type="button"
             onClick={onExit}
-            className="text-xs font-bold text-foreground/60 hover:text-foreground"
+            className="text-xs font-bold text-muted hover:text-foreground"
           >
             나가기
           </button>
         ) : (
           <Link
             href={exitHref ?? defaultExitHref(mode)}
-            className="text-xs font-bold text-foreground/60 hover:text-foreground"
+            className="text-xs font-bold text-muted hover:text-foreground"
           >
             나가기
           </Link>
@@ -336,7 +336,7 @@ export function FlashcardSession({
           >
             <div>
               <p className="font-jp text-2xl font-bold text-foreground">{currentCard?.word}</p>
-              <p className="font-jp text-base text-foreground/60">{currentCard?.reading}</p>
+              <p className="font-jp text-base text-muted">{currentCard?.reading}</p>
             </div>
             <ul className="flex flex-col gap-1">
               {currentCard?.meanings.map((meaning) => (
@@ -353,7 +353,7 @@ export function FlashcardSession({
                   </p>
                   <SpeakButton text={currentCard.examples[0].japanese} label="예문 듣기" />
                 </div>
-                <p className="font-content text-xs text-foreground/60">
+                <p className="font-content text-xs text-muted">
                   {currentCard.examples[0].korean}
                 </p>
               </div>

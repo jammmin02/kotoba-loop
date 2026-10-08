@@ -64,23 +64,23 @@ export function CardDemo() {
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <Card variant="default">
         <p className="font-semibold">Default</p>
-        <p className="mt-1 text-sm text-foreground/60">기본 카드</p>
+        <p className="mt-1 text-sm text-muted">기본 카드</p>
       </Card>
       <Card variant="elevated">
         <p className="font-semibold">Elevated</p>
-        <p className="mt-1 text-sm text-foreground/60">그림자가 있는 카드</p>
+        <p className="mt-1 text-sm text-muted">그림자가 있는 카드</p>
       </Card>
       <Card variant="quest">
         <p className="font-semibold">Quest</p>
-        <p className="mt-1 text-sm text-foreground/60">퀘스트 카드</p>
+        <p className="mt-1 text-sm text-muted">퀘스트 카드</p>
       </Card>
       <Card variant="achievement" locked>
         <p className="font-semibold">Achievement (locked)</p>
-        <p className="mt-1 text-sm text-foreground/60">잠긴 업적</p>
+        <p className="mt-1 text-sm text-muted">잠긴 업적</p>
       </Card>
       <Card variant="achievement">
         <p className="font-semibold">Achievement (unlocked)</p>
-        <p className="mt-1 text-sm text-foreground/60">해금된 업적</p>
+        <p className="mt-1 text-sm text-muted">해금된 업적</p>
       </Card>
     </div>
   );
@@ -190,13 +190,13 @@ export function NavigationDemo() {
   return (
     <div className="flex flex-col gap-6 overflow-hidden rounded-lg border border-foreground/10">
       <div>
-        <p className="border-b border-foreground/10 bg-background px-4 py-2 text-xs font-semibold text-foreground/60">
+        <p className="border-b border-foreground/10 bg-background px-4 py-2 text-xs font-semibold text-muted">
           Desktop Sidebar (6개 메뉴)
         </p>
         <Sidebar className="static !flex h-auto w-full flex-row flex-wrap gap-2 border-r-0" />
       </div>
       <div>
-        <p className="border-b border-foreground/10 bg-background px-4 py-2 text-xs font-semibold text-foreground/60">
+        <p className="border-b border-foreground/10 bg-background px-4 py-2 text-xs font-semibold text-muted">
           Mobile Bottom Tab (4개 메뉴)
         </p>
         <BottomTabBar className="static !flex w-full" />

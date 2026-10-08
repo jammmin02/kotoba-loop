@@ -77,14 +77,14 @@ export function AdminAuditView() {
         ))}
       </div>
 
-      {isLoading && <p className="text-sm text-foreground/60">불러오는 중...</p>}
+      {isLoading && <p className="text-sm text-muted">불러오는 중...</p>}
       {isError && (
         <p role="alert" className="text-sm text-error">
           {error instanceof ApiClientError ? error.message : "불러오지 못했습니다."}
         </p>
       )}
       {data && data.logs.length === 0 && (
-        <p className="text-sm text-foreground/60">기록이 없습니다.</p>
+        <p className="text-sm text-muted">기록이 없습니다.</p>
       )}
 
       {data && data.logs.length > 0 && (
@@ -97,13 +97,13 @@ export function AdminAuditView() {
                 </span>
                 <span className="font-bold">{log.targetUserEmail}</span>
                 {log.targetLabel && (
-                  <span className="text-xs text-foreground/60">「{log.targetLabel}」</span>
+                  <span className="text-xs text-muted">「{log.targetLabel}」</span>
                 )}
               </div>
-              <span className="text-xs text-foreground/60">
+              <span className="text-xs text-muted">
                 {log.adminNickname ?? "(삭제된 관리자)"} · {formatDateTime(log.createdAt)}
               </span>
-              {log.reason && <span className="text-xs text-foreground/70">사유: {log.reason}</span>}
+              {log.reason && <span className="text-xs text-muted">사유: {log.reason}</span>}
             </li>
           ))}
         </ul>

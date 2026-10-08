@@ -38,14 +38,14 @@ export function QuestCard({
             aria-hidden="true"
           />
         ) : (
-          <span className="shrink-0 text-xs text-foreground/50">
+          <span className="shrink-0 text-xs text-muted">
             {clampedCurrent}/{safeTarget}
           </span>
         )}
       </div>
       <ProgressBar value={clampedCurrent} max={safeTarget} />
       {rewardExp !== undefined && (
-        <p className="text-xs text-foreground/50">보상 +{rewardExp} EXP</p>
+        <p className="text-xs text-muted">보상 +{rewardExp} EXP</p>
       )}
     </Card>
   );

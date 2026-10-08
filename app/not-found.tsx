@@ -18,7 +18,7 @@ export default function NotFound() {
         <div className="flex flex-col gap-1">
           <p className="text-4xl font-extrabold text-foreground">404</p>
           <p className="text-lg font-bold text-foreground">페이지를 찾을 수 없어요</p>
-          <p className="text-sm font-content text-foreground/60">
+          <p className="text-sm font-content text-muted">
             주소가 잘못됐거나 삭제된 페이지예요.
           </p>
         </div>

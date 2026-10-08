@@ -39,7 +39,7 @@ export function BattleRoomView({ roomCode, currentUserId }: BattleRoomViewProps)
   });
 
   if (roomQuery.isLoading) {
-    return <p className="text-sm text-foreground/60">불러오는 중...</p>;
+    return <p className="text-sm text-muted">불러오는 중...</p>;
   }
 
   if (roomQuery.isError || !roomQuery.data) {
@@ -89,5 +89,5 @@ export function BattleRoomView({ roomCode, currentUserId }: BattleRoomViewProps)
     return <BattleResultView participants={room.participants} />;
   }
 
-  return <p className="text-sm text-foreground/60">불러오는 중...</p>;
+  return <p className="text-sm text-muted">불러오는 중...</p>;
 }

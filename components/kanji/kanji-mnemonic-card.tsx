@@ -29,7 +29,7 @@ export function KanjiMnemonicCard({ character }: KanjiMnemonicCardProps) {
 
   return (
     <Card className="flex flex-col gap-3">
-      <h2 className="text-sm font-bold text-foreground/70">AI 기억법</h2>
+      <h2 className="text-sm font-bold text-muted">AI 기억법</h2>
 
       {!mutation.isSuccess && (
         <Button
@@ -46,7 +46,7 @@ export function KanjiMnemonicCard({ character }: KanjiMnemonicCardProps) {
       )}
 
       {mutation.isPending && (
-        <p className="flex items-center gap-1.5 text-sm text-foreground/60">
+        <p className="flex items-center gap-1.5 text-sm text-muted">
           <PixelSpinner className="size-3.5 animate-spin" aria-hidden="true" />
           기억법을 만드는 중...
         </p>
@@ -54,7 +54,7 @@ export function KanjiMnemonicCard({ character }: KanjiMnemonicCardProps) {
 
       {mutation.isError && (
         <div className="flex items-center justify-between gap-2 text-sm">
-          <p className="text-foreground/60">
+          <p className="text-muted">
             {mutation.error instanceof ApiClientError
               ? mutation.error.message
               : "AI 기억법을 불러오지 못했습니다."}

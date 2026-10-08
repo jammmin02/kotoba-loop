@@ -71,7 +71,7 @@ export function SituationExampleGenerator({ vocabularyId }: SituationExampleGene
 
   return (
     <div className="flex flex-col gap-3 border-t-2 border-pixel-ink pt-3">
-      <h3 className="text-sm font-bold text-foreground/70">AI 예문 생성</h3>
+      <h3 className="text-sm font-bold text-muted">AI 예문 생성</h3>
 
       <div className="flex flex-wrap gap-1.5">
         {SITUATION_OPTIONS.map((option) => (
@@ -108,12 +108,12 @@ export function SituationExampleGenerator({ vocabularyId }: SituationExampleGene
 
       {preview && (
         <div className="flex flex-col gap-2 border-2 border-pixel-ink bg-background p-3">
-          <span className="w-fit border-2 border-pixel-ink bg-surface px-2 py-0.5 text-xs font-bold text-foreground/60">
+          <span className="w-fit border-2 border-pixel-ink bg-surface px-2 py-0.5 text-xs font-bold text-muted">
             {preview.situation}
             {preview.cached && " · 캐시됨"}
           </span>
           <p className="font-jp text-foreground">{preview.result.japanese}</p>
-          <p className="font-content text-sm text-foreground/60">{preview.result.korean}</p>
+          <p className="font-content text-sm text-muted">{preview.result.korean}</p>
           <Button
             type="button"
             variant="primary"

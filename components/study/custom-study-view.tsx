@@ -139,7 +139,7 @@ function SessionRunner({ session, onExit }: { session: StartedSession; onExit: (
   }
 
   if (vocabQuery.isLoading) {
-    return <p className="text-sm text-foreground/60">불러오는 중...</p>;
+    return <p className="text-sm text-muted">불러오는 중...</p>;
   }
 
   if (vocabQuery.isError) {
@@ -275,12 +275,12 @@ export function CustomStudyView({ initialBookId }: CustomStudyViewProps = {}) {
         <p className="text-sm font-bold text-foreground">
           학습할 단어장을 골라주세요 (복수 선택 가능)
         </p>
-        {booksQuery.isLoading && <p className="text-sm text-foreground/60">불러오는 중...</p>}
+        {booksQuery.isLoading && <p className="text-sm text-muted">불러오는 중...</p>}
         {booksQuery.isError && (
           <p className="text-sm text-error">단어장 목록을 불러오지 못했습니다.</p>
         )}
         {booksQuery.data && booksQuery.data.length === 0 && (
-          <p className="text-sm text-foreground/60">등록된 단어장이 없어요.</p>
+          <p className="text-sm text-muted">등록된 단어장이 없어요.</p>
         )}
         <div className="flex flex-wrap gap-3 pt-1">
           {booksQuery.data?.map((book, index) => (
@@ -383,7 +383,7 @@ export function CustomStudyView({ initialBookId }: CustomStudyViewProps = {}) {
           }}
         />
         {gameMode === "quiz" && (
-          <p className="text-xs text-foreground/60">
+          <p className="text-xs text-muted">
             빈칸·문장 번역처럼 예문이 필요한 유형은 예문이 있는 단어에서만 출제돼요.
           </p>
         )}

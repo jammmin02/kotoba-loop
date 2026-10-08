@@ -45,14 +45,14 @@ export default async function SrsTestPage() {
     <main className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-12 sm:px-6 lg:px-8">
       <header>
         <h1 className="text-2xl font-bold text-foreground">SRS 엔진 테스트</h1>
-        <p className="mt-2 text-sm text-foreground/70">
+        <p className="mt-2 text-sm text-muted">
           개발 전용 페이지입니다. 프로덕션 빌드에서는 404로 응답합니다. 평가 버튼을 누르면{" "}
           <code>POST /api/user-vocabulary/:id/review-result</code> 응답을 그대로 확인할 수 있습니다.
         </p>
       </header>
 
       {words.length === 0 ? (
-        <p className="text-sm text-foreground/60">
+        <p className="text-sm text-muted">
           등록된 단어가 없습니다. 먼저{" "}
           <Link href="/words/new" className="underline">
             단어를 등록

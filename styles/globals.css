@@ -1,9 +1,10 @@
 @import "tailwindcss";
 
 /**
- * Class strategy: dark mode activates by adding `.dark` to a parent element
- * (typically <html>) rather than following the OS `prefers-color-scheme`.
- * No toggle UI wires this up yet — that lands in a later step.
+ * Class strategy: dark mode activates by adding `.dark` to <html>. The class is
+ * driven by the user's light/dark/system choice (lib/theme.ts): an inline script in
+ * app/layout.tsx applies it before first paint, and ThemeSync keeps it in sync —
+ * "system" follows the OS `prefers-color-scheme`, so CSS itself never reads the media query.
  */
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -30,6 +31,13 @@
   --error: #dc2626;
   --error-foreground: #ffffff;
   --foreground: #1e1533;
+  /* Secondary text tiers, derived from --foreground so they adapt to any surface tint.
+     Ratios measured on the cream surface / lavender desktop (worst case: desktop):
+       muted  — help text, placeholders, captions: >= 4.5:1 (WCAG AA body text)
+       subtle — disabled/inactive controls and icons: >= 3:1 (non-text UI)
+     Never use raw `text-foreground/NN` for readable copy; use these. */
+  --muted: color-mix(in srgb, var(--foreground) 70%, transparent);
+  --subtle: color-mix(in srgb, var(--foreground) 55%, transparent);
   --pixel-ink: #171018;
   --titlebar-pink: #ff8fb1;
   --titlebar-mint: #7fe0c0;
@@ -51,6 +59,8 @@
   --accent-foreground: #431407;
   --warning-foreground: #431407;
   --foreground: #f1eafb;
+  --muted: color-mix(in srgb, var(--foreground) 65%, transparent);
+  --subtle: color-mix(in srgb, var(--foreground) 45%, transparent);
   --pixel-ink: #000000;
   --titlebar-pink: #e85d8a;
   --titlebar-mint: #34c7a0;
@@ -76,6 +86,8 @@
   --color-error: var(--error);
   --color-error-foreground: var(--error-foreground);
   --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
   --color-pixel-ink: var(--pixel-ink);
   --color-titlebar-pink: var(--titlebar-pink);
   --color-titlebar-mint: var(--titlebar-mint);

@@ -84,7 +84,7 @@ export function StudyCalendar({
         </button>
       </div>
 
-      <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-foreground/50">
+      <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-muted">
         {WEEKDAY_LABELS.map((label) => (
           <span key={label}>{label}</span>
         ))}
@@ -115,7 +115,7 @@ export function StudyCalendar({
                 "flex aspect-square flex-col items-center justify-center gap-0.5 rounded-none border-2 text-[11px] font-bold",
                 studied || protectedDay
                   ? "border-pixel-ink bg-surface text-foreground shadow-pixel-sm"
-                  : "border-transparent text-foreground/40",
+                  : "border-transparent text-subtle",
                 isToday && "border-accent",
               )}
             >

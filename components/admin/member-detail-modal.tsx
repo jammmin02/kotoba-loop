@@ -43,7 +43,7 @@ function formatDateTime(iso: string | null): string {
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex gap-3 text-sm">
-      <dt className="w-24 shrink-0 font-bold text-foreground/60">{label}</dt>
+      <dt className="w-24 shrink-0 font-bold text-muted">{label}</dt>
       <dd className="min-w-0 break-words">{value}</dd>
     </div>
   );
@@ -87,7 +87,7 @@ export function MemberDetailModal({
 
   return (
     <Modal open={userId !== null} onClose={onClose} title="회원 상세">
-      {isLoading && <p className="text-sm text-foreground/60">불러오는 중...</p>}
+      {isLoading && <p className="text-sm text-muted">불러오는 중...</p>}
       {isError && (
         <p role="alert" className="text-sm text-error">
           {error instanceof ApiClientError ? error.message : "불러오지 못했습니다."}
@@ -145,14 +145,14 @@ export function MemberDetailModal({
                 </Button>
               </div>
             )}
-            <p className="text-xs text-foreground/50">
+            <p className="text-xs text-muted">
               단계: 경고 → 작성 제한 → 정지(회원 관리 목록에서 처리)
             </p>
 
             {data.sanctionHistory.length > 0 && (
               <ul className="flex flex-col gap-1 text-xs">
                 {data.sanctionHistory.map((h) => (
-                  <li key={h.id} className="text-foreground/70">
+                  <li key={h.id} className="text-muted">
                     {formatDateTime(h.createdAt)} · {AUDIT_ACTION_LABELS[h.action]}
                     {h.reason && ` (${h.reason})`}
                   </li>
@@ -164,11 +164,11 @@ export function MemberDetailModal({
           <section className="flex flex-col gap-2 border-t-2 border-pixel-ink pt-3">
             <h3 className="text-sm font-bold">관련 신고</h3>
             {data.relatedReports.length === 0 ? (
-              <p className="text-xs text-foreground/60">접수된 신고가 없습니다.</p>
+              <p className="text-xs text-muted">접수된 신고가 없습니다.</p>
             ) : (
               <ul className="flex flex-col gap-1 text-xs">
                 {data.relatedReports.map((r) => (
-                  <li key={r.id} className="text-foreground/70">
+                  <li key={r.id} className="text-muted">
                     {formatDateTime(r.createdAt)} · 「{r.targetLabel}」 ·{" "}
                     {REPORT_REASON_LABELS[r.reason]} · {REPORT_STATUS_LABELS[r.status]}
                   </li>

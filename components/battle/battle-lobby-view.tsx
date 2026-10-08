@@ -37,9 +37,9 @@ function CreateRoomModal({ open, onClose }: { open: boolean; onClose: () => void
     <Modal open={open} onClose={onClose} title="방 만들기">
       <div className="flex flex-col gap-4">
         <p className="text-sm font-bold text-foreground">대결에 쓸 단어장을 골라주세요</p>
-        {booksQuery.isLoading && <p className="text-sm text-foreground/60">불러오는 중...</p>}
+        {booksQuery.isLoading && <p className="text-sm text-muted">불러오는 중...</p>}
         {booksQuery.data?.length === 0 && (
-          <p className="text-sm text-foreground/60">등록된 단어장이 없어요.</p>
+          <p className="text-sm text-muted">등록된 단어장이 없어요.</p>
         )}
         <div className="flex flex-wrap gap-2">
           {booksQuery.data?.map((book) => (

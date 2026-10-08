@@ -56,7 +56,7 @@ export function VocabularyBookCard({ book, index, onEdit, onDelete }: Vocabulary
               {book.name}
             </Link>
             {book.description && (
-              <p className="line-clamp-2 text-sm font-content text-foreground/60">
+              <p className="line-clamp-2 text-sm font-content text-muted">
                 {book.description}
               </p>
             )}
@@ -65,7 +65,7 @@ export function VocabularyBookCard({ book, index, onEdit, onDelete }: Vocabulary
 
         <BookProgressGauge masteredCount={book.masteredCount} wordCount={book.wordCount} />
 
-        <div className="flex items-center justify-between gap-2 text-xs text-foreground/50">
+        <div className="flex items-center justify-between gap-2 text-xs text-muted">
           <span>
             {isMaster
               ? "전부 마스터했어요 🎉"

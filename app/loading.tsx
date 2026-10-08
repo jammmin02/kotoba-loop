@@ -8,7 +8,7 @@ export default function Loading() {
       aria-live="polite"
     >
       <PixelSpinner className="size-10 animate-spin text-primary" aria-hidden="true" />
-      <p className="text-sm font-bold text-foreground/60">불러오는 중...</p>
+      <p className="text-sm font-bold text-muted">불러오는 중...</p>
     </main>
   );
 }

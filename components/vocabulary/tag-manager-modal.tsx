@@ -96,7 +96,7 @@ export function TagManagerModal({ open, onClose }: TagManagerModalProps) {
           </p>
         )}
 
-        {isLoading && <p className="text-sm text-foreground/60">불러오는 중...</p>}
+        {isLoading && <p className="text-sm text-muted">불러오는 중...</p>}
 
         {isError && (
           <p className="text-sm text-error">
@@ -107,7 +107,7 @@ export function TagManagerModal({ open, onClose }: TagManagerModalProps) {
         )}
 
         {tags && tags.length === 0 && (
-          <p className="text-sm text-foreground/50">등록된 태그가 없어요.</p>
+          <p className="text-sm text-muted">등록된 태그가 없어요.</p>
         )}
 
         {tags && tags.length > 0 && (
@@ -120,7 +120,7 @@ export function TagManagerModal({ open, onClose }: TagManagerModalProps) {
                 <span className="text-sm font-bold text-foreground">#{tag.name}</span>
                 {pendingDeleteId === tag.id ? (
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs text-foreground/60">삭제할까요?</span>
+                    <span className="text-xs text-muted">삭제할까요?</span>
                     <Button
                       type="button"
                       variant="danger"
@@ -144,7 +144,7 @@ export function TagManagerModal({ open, onClose }: TagManagerModalProps) {
                     type="button"
                     onClick={() => setPendingDeleteId(tag.id)}
                     aria-label={`${tag.name} 태그 삭제`}
-                    className="text-foreground/40 hover:text-error"
+                    className="text-subtle hover:text-error"
                   >
                     <PixelTrash className="size-4" aria-hidden="true" />
                   </button>

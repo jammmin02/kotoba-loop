@@ -32,7 +32,7 @@ export function HandwritingSearchView() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
         <h1 className="text-xl font-bold text-foreground">손글씨로 한자 검색</h1>
-        <p className="text-sm text-foreground/60">
+        <p className="text-sm text-muted">
           아래 칸에 한자를 손가락이나 마우스로 그리면 비슷한 한자를 찾아드려요.
         </p>
       </div>
@@ -48,14 +48,14 @@ export function HandwritingSearchView() {
       )}
 
       {result && result.matches.length === 0 && notFoundCandidates.length === 0 && (
-        <p className="text-center text-sm text-foreground/60">
+        <p className="text-center text-sm text-muted">
           일치하는 한자를 찾지 못했어요. 조금 더 크고 또박또박 그려보세요.
         </p>
       )}
 
       {result && result.matches.length > 0 && (
         <div className="flex flex-col gap-2">
-          <p className="text-xs text-foreground/50">비슷한 한자 {result.matches.length}자</p>
+          <p className="text-xs text-muted">비슷한 한자 {result.matches.length}자</p>
           <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
             {result.matches.map((kanji) => (
               <Link
@@ -66,7 +66,7 @@ export function HandwritingSearchView() {
                 <span className="font-jp text-2xl font-bold text-foreground">
                   {kanji.character}
                 </span>
-                <span className="truncate text-[10px] text-foreground/60">
+                <span className="truncate text-[10px] text-muted">
                   {kanji.koreanReading}
                 </span>
               </Link>
@@ -76,7 +76,7 @@ export function HandwritingSearchView() {
       )}
 
       {notFoundCandidates.length > 0 && (
-        <p className="text-center text-xs text-foreground/40">
+        <p className="text-center text-xs text-muted">
           常用漢字 목록에는 없는 후보: {notFoundCandidates.join(" ")}
         </p>
       )}

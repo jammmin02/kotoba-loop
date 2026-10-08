@@ -11,13 +11,13 @@ export default async function RegisterPage() {
     <Card variant="elevated" title="SIGNUP.EXE" titleColor="mint" className="flex flex-col gap-6">
       <div className="flex flex-col gap-1 text-center">
         <h1 className="text-xl font-bold text-foreground">회원가입</h1>
-        <p className="text-sm font-content text-foreground/60">
+        <p className="text-sm font-content text-muted">
           이메일 또는 Google로 시작해보세요.
         </p>
-        <p className="text-xs font-content text-foreground/50">
+        <p className="text-xs font-content text-muted">
           현재는 {domains.join(", ")} 이메일만 가입할 수 있습니다.
         </p>
-        <p className="text-xs font-content text-foreground/50">
+        <p className="text-xs font-content text-muted">
           가입 후 관리자 승인이 완료되면 로그인할 수 있어요.
         </p>
       </div>
@@ -26,13 +26,13 @@ export default async function RegisterPage() {
 
       <div className="flex items-center gap-3">
         <div className="h-0.5 flex-1 bg-pixel-ink" />
-        <span className="text-xs font-bold text-foreground/50">또는</span>
+        <span className="text-xs font-bold text-muted">또는</span>
         <div className="h-0.5 flex-1 bg-pixel-ink" />
       </div>
 
       <GoogleSignInButton callbackUrl="/onboarding" />
 
-      <p className="text-center text-sm text-foreground/60">
+      <p className="text-center text-sm text-muted">
         이미 계정이 있으신가요?{" "}
         <Link href="/login" className="font-medium text-primary hover:underline">
           로그인

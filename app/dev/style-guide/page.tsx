@@ -21,7 +21,7 @@ import {
   QuestCardDemo,
   StreakIndicatorDemo,
 } from "@/app/dev/style-guide/game-demos";
-import { ThemeToggle } from "@/app/dev/style-guide/theme-toggle";
+import { ThemeSelector } from "@/components/ui/theme-selector";
 
 import type { Metadata } from "next";
 
@@ -85,11 +85,11 @@ export default function StyleGuidePage() {
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">kotoba-loop 디자인 토큰 스타일 가이드</h1>
-          <p className="mt-2 text-sm text-foreground/70">
+          <p className="mt-2 text-sm text-muted">
             개발 전용 페이지입니다. 프로덕션 빌드에서는 404로 응답합니다.
           </p>
         </div>
-        <ThemeToggle />
+        <ThemeSelector />
       </header>
 
       <section aria-labelledby="colors-heading" className="flex flex-col gap-4">
@@ -111,17 +111,33 @@ export default function StyleGuidePage() {
         </div>
       </section>
 
+      <section aria-labelledby="text-tiers-heading" className="flex flex-col gap-3">
+        <h2 id="text-tiers-heading" className="text-xl font-semibold">
+          텍스트 단계 (Text tiers)
+        </h2>
+        <p className="text-sm text-muted">
+          반투명 `text-foreground/NN` 대신 아래 토큰을 쓴다. 대비는 Surface/Background 위 최악 기준.
+        </p>
+        <div className="flex flex-col gap-2 border-2 border-pixel-ink bg-surface p-4">
+          <p className="text-sm text-foreground">text-foreground — 본문 · 제목</p>
+          <p className="text-sm text-muted">
+            text-muted — 보조 설명 · 플레이스홀더 (AA 4.5:1 이상)
+          </p>
+          <p className="text-sm text-subtle">text-subtle — 비활성 · 보조 아이콘 (3:1 이상)</p>
+        </div>
+      </section>
+
       <section aria-labelledby="typography-heading" className="flex flex-col gap-6">
         <h2 id="typography-heading" className="text-xl font-semibold">
           타이포그래피 (Typography)
         </h2>
 
         <div className="flex flex-col gap-3">
-          <h3 className="text-sm font-semibold text-foreground/70">폰트 크기 스케일</h3>
+          <h3 className="text-sm font-semibold text-muted">폰트 크기 스케일</h3>
           {typeScale.map((scale) => (
             <div key={scale.label} className="flex items-baseline gap-4">
               <span className={`${scale.label} font-medium`}>Aa 한글 見逃す</span>
-              <span className="text-xs text-foreground/50">
+              <span className="text-xs text-muted">
                 {scale.label} / {scale.px}
               </span>
             </div>
@@ -129,11 +145,11 @@ export default function StyleGuidePage() {
         </div>
 
         <div className="flex flex-col gap-3">
-          <h3 className="text-sm font-semibold text-foreground/70">폰트 굵기 (Weight)</h3>
+          <h3 className="text-sm font-semibold text-muted">폰트 굵기 (Weight)</h3>
           {weightScale.map((weight) => (
             <div key={weight.label} className="flex items-baseline gap-4">
               <span className={`${weight.label} text-lg`}>Aa 한글 見逃す</span>
-              <span className="text-xs text-foreground/50">
+              <span className="text-xs text-muted">
                 {weight.label} / {weight.value}
               </span>
             </div>
@@ -141,7 +157,7 @@ export default function StyleGuidePage() {
         </div>
 
         <div className="flex flex-col gap-3">
-          <h3 className="text-sm font-semibold text-foreground/70">
+          <h3 className="text-sm font-semibold text-muted">
             폰트 패밀리 (Galmuri 픽셀 / Pretendard / Noto Sans JP)
           </h3>
           <p className="font-sans text-lg">
@@ -165,7 +181,7 @@ export default function StyleGuidePage() {
           {radiusScale.map((radius) => (
             <div key={radius.label} className="flex flex-col items-center gap-2">
               <div className={`h-16 w-16 bg-primary ${radius.box}`} />
-              <span className="text-xs text-foreground/60">{radius.label}</span>
+              <span className="text-xs text-muted">{radius.label}</span>
             </div>
           ))}
         </div>
@@ -179,7 +195,7 @@ export default function StyleGuidePage() {
           {shadowScale.map((shadow) => (
             <div key={shadow} className="flex flex-col items-center gap-2">
               <div className={`h-16 w-16 rounded-lg bg-surface ${shadow}`} />
-              <span className="text-xs text-foreground/60">{shadow}</span>
+              <span className="text-xs text-muted">{shadow}</span>
             </div>
           ))}
         </div>
@@ -196,7 +212,7 @@ export default function StyleGuidePage() {
                 className={`h-4 bg-secondary`}
                 style={{ width: `calc(var(--spacing) * ${step})` }}
               />
-              <span className="text-xs text-foreground/60">
+              <span className="text-xs text-muted">
                 {step} · {step * 4}px
               </span>
             </div>
@@ -218,7 +234,7 @@ export default function StyleGuidePage() {
             </div>
           ))}
         </div>
-        <p className="text-xs text-foreground/50">
+        <p className="text-xs text-muted">
           화면 폭을 줄이거나 늘려 sm(640px)/md(768px)/lg(1024px)/xl(1280px) 구간에서 열 배치가
           바뀌는지 확인하세요.
         </p>
@@ -249,7 +265,7 @@ export default function StyleGuidePage() {
         <h2 id="modal-heading" className="text-xl font-semibold">
           Modal
         </h2>
-        <p className="text-xs text-foreground/50">
+        <p className="text-xs text-muted">
           모바일 너비(640px 미만)에서는 하단 시트로, 그 이상에서는 중앙 모달로 표시됩니다. ESC 키
           또는 배경 클릭으로 닫힙니다.
         </p>

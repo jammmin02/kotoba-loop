@@ -152,13 +152,13 @@ export function AdminAnnouncementsView() {
         </Button>
       </div>
 
-      {isLoading && <p className="text-sm text-foreground/60">불러오는 중...</p>}
+      {isLoading && <p className="text-sm text-muted">불러오는 중...</p>}
       {isError && (
         <p role="alert" className="text-sm text-error">
           {error instanceof ApiClientError ? error.message : "불러오지 못했습니다."}
         </p>
       )}
-      {data && data.length === 0 && <p className="text-sm text-foreground/60">공지가 없습니다.</p>}
+      {data && data.length === 0 && <p className="text-sm text-muted">공지가 없습니다.</p>}
 
       {data?.map((a) => (
         <div key={a.id} className="flex flex-col gap-2 border-2 border-pixel-ink bg-surface p-3">
@@ -178,10 +178,10 @@ export function AdminAnnouncementsView() {
             )}
             <span className="min-w-0 flex-1 truncate text-sm font-bold">{a.title}</span>
           </div>
-          <p className="line-clamp-2 whitespace-pre-line text-sm font-content text-foreground/70">
+          <p className="line-clamp-2 whitespace-pre-line text-sm font-content text-muted">
             {a.body}
           </p>
-          <p className="text-xs text-foreground/50">
+          <p className="text-xs text-muted">
             {formatDateTime(a.startsAt)} ~ {a.endsAt ? formatDateTime(a.endsAt) : "계속"}
           </p>
           <div className="flex justify-end gap-2">

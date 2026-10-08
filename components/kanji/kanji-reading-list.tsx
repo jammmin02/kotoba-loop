@@ -15,7 +15,7 @@ export function KanjiReadingList({ readings }: { readings: string[] }) {
   const [expanded, setExpanded] = useState(false);
 
   if (readings.length === 0) {
-    return <span className="text-foreground/40">-</span>;
+    return <span className="text-muted">-</span>;
   }
 
   const visible = expanded ? readings : readings.slice(0, COLLAPSED_LIMIT);
@@ -31,7 +31,7 @@ export function KanjiReadingList({ readings }: { readings: string[] }) {
             className="inline-flex items-baseline rounded-none border-2 border-pixel-ink bg-surface px-1.5 py-0.5 font-jp text-xs text-foreground"
           >
             {base}
-            {okurigana && <span className="text-foreground/40">({okurigana})</span>}
+            {okurigana && <span className="text-muted">({okurigana})</span>}
           </span>
         );
       })}
@@ -39,7 +39,7 @@ export function KanjiReadingList({ readings }: { readings: string[] }) {
         <button
           type="button"
           onClick={() => setExpanded(true)}
-          className="text-xs font-bold text-foreground/50 hover:text-foreground hover:underline"
+          className="text-xs font-bold text-muted hover:text-foreground hover:underline"
         >
           +{hiddenCount}개 더
         </button>
@@ -48,7 +48,7 @@ export function KanjiReadingList({ readings }: { readings: string[] }) {
         <button
           type="button"
           onClick={() => setExpanded(false)}
-          className="text-xs font-bold text-foreground/50 hover:text-foreground hover:underline"
+          className="text-xs font-bold text-muted hover:text-foreground hover:underline"
         >
           접기
         </button>

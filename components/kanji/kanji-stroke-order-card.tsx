@@ -131,7 +131,7 @@ export function KanjiStrokeOrderCard({ character }: KanjiStrokeOrderCardProps) {
 
   return (
     <Card className="flex flex-col gap-3">
-      <h2 className="text-sm font-bold text-foreground/70">획순</h2>
+      <h2 className="text-sm font-bold text-muted">획순</h2>
       <div className="flex flex-col items-center gap-3">
         <div
           ref={containerRef}

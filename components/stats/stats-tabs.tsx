@@ -34,7 +34,7 @@ export function StatsTabs() {
               "border-2 px-3 py-1.5 text-sm font-bold transition",
               tab === t.key
                 ? "border-pixel-ink bg-primary text-primary-foreground shadow-bevel-sunken"
-                : "border-pixel-ink bg-surface text-foreground/70 hover:bg-background",
+                : "border-pixel-ink bg-surface text-muted hover:bg-background",
             )}
           >
             {t.label}

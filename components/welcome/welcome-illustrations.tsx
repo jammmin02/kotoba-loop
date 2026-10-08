@@ -74,12 +74,12 @@ export function SrsIllustration() {
           <span className="border-2 border-pixel-ink bg-titlebar-pink px-1.5 py-0.5 text-[11px] font-bold text-pixel-ink">
             N2
           </span>
-          <span className="text-[11px] font-bold text-foreground/70">오늘 복습 3 / 12</span>
+          <span className="text-[11px] font-bold text-muted">오늘 복습 3 / 12</span>
         </div>
         <p lang="ja" className="mt-1.5 text-[44px] font-bold leading-tight text-foreground">
           見逃す
         </p>
-        <p lang="ja" className="text-[15px] text-foreground/70">
+        <p lang="ja" className="text-[15px] text-muted">
           みのがす
         </p>
         <p className="font-content text-base font-medium text-foreground">
@@ -100,7 +100,7 @@ export function SrsIllustration() {
               >
                 {item.day}
               </span>
-              <span className="text-[10px] text-foreground/70">{item.label}</span>
+              <span className="text-[10px] text-muted">{item.label}</span>
             </li>
           ))}
         </ol>
@@ -119,7 +119,7 @@ export function PhotoScanIllustration() {
   return (
     <>
       <div className="relative flex h-[118px] w-full flex-col justify-center gap-2 border-2 border-dashed border-pixel-ink bg-[#efe6cf] px-[18px] py-3.5 dark:bg-surface">
-        <span className="absolute right-2 top-1.5 text-[10px] font-bold text-foreground/70">
+        <span className="absolute right-2 top-1.5 text-[10px] font-bold text-muted">
           note_0923.jpg
         </span>
         {SCANNED_WORDS.map((item) => (
@@ -151,7 +151,7 @@ export function PhotoScanIllustration() {
             <span lang="ja" className="text-[17px] font-bold text-foreground">
               {item.word}
             </span>
-            <span lang="ja" className="text-xs text-foreground/70">
+            <span lang="ja" className="text-xs text-muted">
               {item.reading}
             </span>
             <span className="ml-auto font-content text-[13px] text-foreground">{item.meaning}</span>
@@ -205,19 +205,19 @@ export function KanjiIllustration() {
 
         <dl className="flex flex-col gap-2">
           <div className="flex flex-col gap-0.5">
-            <dt className="text-[10px] font-bold text-foreground/70">음독</dt>
+            <dt className="text-[10px] font-bold text-muted">음독</dt>
             <dd lang="ja" className="text-lg font-bold text-foreground">
               ゴ
             </dd>
           </div>
           <div className="flex flex-col gap-0.5">
-            <dt className="text-[10px] font-bold text-foreground/70">훈독</dt>
+            <dt className="text-[10px] font-bold text-muted">훈독</dt>
             <dd lang="ja" className="text-base font-bold text-foreground">
               かた(る)
             </dd>
           </div>
           <div className="flex flex-col gap-0.5">
-            <dt className="text-[10px] font-bold text-foreground/70">뜻</dt>
+            <dt className="text-[10px] font-bold text-muted">뜻</dt>
             <dd className="font-content text-[15px] font-medium text-foreground">말씀 어</dd>
           </div>
           <span className="self-start border-2 border-pixel-ink bg-titlebar-mint px-1.5 py-0.5 text-[11px] font-bold text-pixel-ink">
@@ -283,7 +283,7 @@ export function PetQuestIllustration() {
             </span>
             <span className="text-[13px] font-bold text-foreground">아기 고양이</span>
           </div>
-          <span className="text-[11px] font-bold text-foreground/70">EXP 320 / 500</span>
+          <span className="text-[11px] font-bold text-muted">EXP 320 / 500</span>
         </div>
         <div className="h-3.5 border-2 border-pixel-ink bg-white">
           <div className="h-full w-[64%] bg-primary" />

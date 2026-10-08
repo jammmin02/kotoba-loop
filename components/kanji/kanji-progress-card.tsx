@@ -16,7 +16,7 @@ export function KanjiProgressCard() {
   });
 
   if (isLoading) {
-    return <p className="text-sm text-foreground/60">학습률을 불러오는 중...</p>;
+    return <p className="text-sm text-muted">학습률을 불러오는 중...</p>;
   }
 
   if (isError || !data) {
@@ -36,11 +36,11 @@ export function KanjiProgressCard() {
     >
       <ProgressRing value={data.mastered} max={Math.max(data.total, 1)} label="한자 학습률" />
       <div className="flex flex-col gap-1">
-        <span className="text-xs font-bold text-foreground/60">마스터한 한자</span>
+        <span className="text-xs font-bold text-muted">마스터한 한자</span>
         <span className="text-2xl font-extrabold text-foreground">
           {data.mastered.toLocaleString()} / {data.total.toLocaleString()}
         </span>
-        <span className="text-xs text-foreground/50">{data.rate}%</span>
+        <span className="text-xs text-muted">{data.rate}%</span>
       </div>
     </Card>
   );

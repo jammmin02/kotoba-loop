@@ -70,7 +70,7 @@ export function VocabularyBooksView() {
         </div>
       </div>
 
-      {isLoading && <p className="text-sm text-foreground/60">불러오는 중...</p>}
+      {isLoading && <p className="text-sm text-muted">불러오는 중...</p>}
 
       {isError && (
         <p className="text-sm text-error">
@@ -83,7 +83,7 @@ export function VocabularyBooksView() {
           <PixelBookOpen className="size-16 text-primary" aria-hidden="true" />
           <div className="flex flex-col gap-1">
             <p className="text-lg font-bold text-foreground">아직 단어장이 없어요</p>
-            <p className="text-sm font-content text-foreground/60">
+            <p className="text-sm font-content text-muted">
               첫 단어장을 만들고 나만의 학습 여정을 시작해보세요!
             </p>
           </div>
@@ -107,7 +107,7 @@ export function VocabularyBooksView() {
                 "border-2 px-3 py-1.5 text-sm font-bold transition",
                 filter === f.key
                   ? "border-pixel-ink bg-primary text-primary-foreground shadow-bevel-sunken"
-                  : "border-pixel-ink bg-surface text-foreground/70 hover:bg-background",
+                  : "border-pixel-ink bg-surface text-muted hover:bg-background",
               )}
             >
               {f.label} ({counts[f.key]})
@@ -121,7 +121,7 @@ export function VocabularyBooksView() {
         visibleBooks &&
         visibleBooks.length === 0 &&
         filter !== "all" && (
-          <p className="py-8 text-center text-sm font-content text-foreground/60">
+          <p className="py-8 text-center text-sm font-content text-muted">
             {FILTER_EMPTY_MESSAGE[filter]}
           </p>
         )}

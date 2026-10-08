@@ -108,7 +108,7 @@ export default async function WordDetailPage(props: PageProps<"/words/[id]">) {
       <div className="flex items-center justify-between gap-2">
         <Link
           href={bookId ? `/vocabulary/${bookId}` : "/words"}
-          className="text-sm font-bold text-foreground/60 hover:text-foreground"
+          className="text-sm font-bold text-muted hover:text-foreground"
         >
           ← 단어 목록
         </Link>
@@ -162,7 +162,7 @@ export default async function WordDetailPage(props: PageProps<"/words/[id]">) {
                     ),
                   )}
                 </p>
-                <p className="font-jp text-lg text-foreground/60">{vocabulary.reading}</p>
+                <p className="font-jp text-lg text-muted">{vocabulary.reading}</p>
               </div>
               <SpeakButton text={vocabulary.reading || vocabulary.word} className="mt-1" />
             </div>
@@ -172,12 +172,12 @@ export default async function WordDetailPage(props: PageProps<"/words/[id]">) {
             </div>
           </div>
 
-          <span className="w-fit border-2 border-pixel-ink bg-surface px-2 py-0.5 text-xs font-bold text-foreground/60">
+          <span className="w-fit border-2 border-pixel-ink bg-surface px-2 py-0.5 text-xs font-bold text-muted">
             {vocabulary.part_of_speech}
           </span>
 
           <div className="flex flex-col gap-1.5">
-            <h2 className="text-sm font-bold text-foreground/70">뜻</h2>
+            <h2 className="text-sm font-bold text-muted">뜻</h2>
             <ul className="flex flex-col gap-1">
               {vocabulary.meanings.map((meaning) => (
                 <li key={meaning.id} className="font-content text-foreground">
@@ -188,13 +188,13 @@ export default async function WordDetailPage(props: PageProps<"/words/[id]">) {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <h2 className="text-sm font-bold text-foreground/70">태그</h2>
+            <h2 className="text-sm font-bold text-muted">태그</h2>
             <WordTagEditor vocabularyId={id} initialTags={tags} />
           </div>
 
           <div className="grid grid-cols-2 gap-4 border-t-2 border-pixel-ink pt-4 text-sm">
             <div>
-              <p className="text-xs font-bold text-foreground/50">마지막 학습</p>
+              <p className="text-xs font-bold text-muted">마지막 학습</p>
               <p className="text-foreground">
                 {userVocabulary.last_reviewed_at
                   ? formatDate(userVocabulary.last_reviewed_at)
@@ -202,7 +202,7 @@ export default async function WordDetailPage(props: PageProps<"/words/[id]">) {
               </p>
             </div>
             <div>
-              <p className="text-xs font-bold text-foreground/50">다음 복습</p>
+              <p className="text-xs font-bold text-muted">다음 복습</p>
               <p className="text-foreground">
                 {userVocabulary.next_review_at ? formatDate(userVocabulary.next_review_at) : "-"}
               </p>
@@ -211,15 +211,15 @@ export default async function WordDetailPage(props: PageProps<"/words/[id]">) {
         </Card>
 
         <Card className="flex flex-col gap-3">
-          <h2 className="text-sm font-bold text-foreground/70">예문</h2>
+          <h2 className="text-sm font-bold text-muted">예문</h2>
           {vocabulary.examples.length === 0 ? (
-            <p className="text-sm text-foreground/50">등록된 예문이 없어요.</p>
+            <p className="text-sm text-muted">등록된 예문이 없어요.</p>
           ) : (
             <ul className="flex flex-col gap-3">
               {vocabulary.examples.map((example) => (
                 <li key={example.id} className="border-2 border-pixel-ink bg-background p-3">
                   {example.source && (
-                    <span className="mb-1 inline-block border-2 border-pixel-ink bg-surface px-2 py-0.5 text-xs font-bold text-foreground/60">
+                    <span className="mb-1 inline-block border-2 border-pixel-ink bg-surface px-2 py-0.5 text-xs font-bold text-muted">
                       {example.source}
                     </span>
                   )}
@@ -227,7 +227,7 @@ export default async function WordDetailPage(props: PageProps<"/words/[id]">) {
                     <p className="font-jp text-foreground">{example.japanese}</p>
                     <SpeakButton text={example.japanese} label="예문 듣기" />
                   </div>
-                  <p className="font-content text-sm text-foreground/60">{example.korean}</p>
+                  <p className="font-content text-sm text-muted">{example.korean}</p>
                 </li>
               ))}
             </ul>
@@ -237,7 +237,7 @@ export default async function WordDetailPage(props: PageProps<"/words/[id]">) {
         </Card>
 
         <Card className="flex flex-col gap-3">
-          <h2 className="text-sm font-bold text-foreground/70">문장 만들기</h2>
+          <h2 className="text-sm font-bold text-muted">문장 만들기</h2>
           <SentencePracticeCard
             vocabularyId={id}
             initialSentence={userSentence?.sentence ?? null}
@@ -245,9 +245,9 @@ export default async function WordDetailPage(props: PageProps<"/words/[id]">) {
         </Card>
 
         <Card className="flex flex-col gap-3">
-          <h2 className="text-sm font-bold text-foreground/70">관련 표현</h2>
+          <h2 className="text-sm font-bold text-muted">관련 표현</h2>
           {vocabulary.relatedExpressions.length === 0 ? (
-            <p className="text-sm text-foreground/50">관련 표현 정보가 아직 없어요.</p>
+            <p className="text-sm text-muted">관련 표현 정보가 아직 없어요.</p>
           ) : (
             <ul className="flex flex-col gap-2">
               {vocabulary.relatedExpressions.map((related) => {
@@ -270,7 +270,7 @@ export default async function WordDetailPage(props: PageProps<"/words/[id]">) {
                         {related.expression}
                       </span>
                     )}
-                    <span className="text-sm text-foreground/60">{related.meaning}</span>
+                    <span className="text-sm text-muted">{related.meaning}</span>
                   </li>
                 );
               })}

@@ -74,7 +74,7 @@ export function AdminContentView() {
       className="flex flex-col gap-4 p-4"
     >
       <h1 className="text-lg font-bold">콘텐츠 관리</h1>
-      <p className="text-xs text-foreground/50">공개 단어장과 숨김 처리된 단어장이 표시됩니다.</p>
+      <p className="text-xs text-muted">공개 단어장과 숨김 처리된 단어장이 표시됩니다.</p>
 
       <div className="flex flex-wrap gap-2">
         {FILTERS.map((f) => (
@@ -111,14 +111,14 @@ export function AdminContentView() {
         </Button>
       </form>
 
-      {isLoading && <p className="text-sm text-foreground/60">불러오는 중...</p>}
+      {isLoading && <p className="text-sm text-muted">불러오는 중...</p>}
       {isError && (
         <p role="alert" className="text-sm text-error">
           {error instanceof ApiClientError ? error.message : "불러오지 못했습니다."}
         </p>
       )}
       {data && data.books.length === 0 && (
-        <p className="text-sm text-foreground/60">해당하는 단어장이 없습니다.</p>
+        <p className="text-sm text-muted">해당하는 단어장이 없습니다.</p>
       )}
 
       {data?.books.map((book) => (
@@ -126,7 +126,7 @@ export function AdminContentView() {
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div className="min-w-0">
               <p className="truncate text-sm font-bold">{book.name}</p>
-              <p className="text-xs text-foreground/60">
+              <p className="text-xs text-muted">
                 {book.owner.nickname} · {book.owner.email} · 단어 {book.wordCount}개 · 가져감{" "}
                 {book.importCount}회
               </p>
@@ -150,12 +150,12 @@ export function AdminContentView() {
             </div>
           </div>
           {book.description && (
-            <p className="line-clamp-2 text-sm font-content text-foreground/70">
+            <p className="line-clamp-2 text-sm font-content text-muted">
               {book.description}
             </p>
           )}
           {book.hideReason && (
-            <p className="text-xs text-foreground/60">숨김 사유: {book.hideReason}</p>
+            <p className="text-xs text-muted">숨김 사유: {book.hideReason}</p>
           )}
           <div className="flex justify-end gap-2">
             {book.hidden ? (

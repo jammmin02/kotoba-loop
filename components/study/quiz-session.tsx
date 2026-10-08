@@ -455,7 +455,7 @@ export function QuizSession({
   }
 
   if (isLoadingQuestions) {
-    return <p className="text-sm text-foreground/60">퀴즈를 불러오는 중...</p>;
+    return <p className="text-sm text-muted">퀴즈를 불러오는 중...</p>;
   }
 
   if (loadError) {
@@ -492,7 +492,7 @@ export function QuizSession({
         )}
       >
         <p className="text-lg font-bold text-foreground">복습 퀴즈 완료!</p>
-        <p className="text-sm font-content text-foreground/60">
+        <p className="text-sm font-content text-muted">
           총 {totalDone}문제 중 {correctCount}개 정답 (정답률 {accuracy}%)
         </p>
         {missedTargetIds.length > 0 && (
@@ -523,17 +523,17 @@ export function QuizSession({
           href={returnHref}
           label="나가기"
           onExit={onExit}
-          className="text-xs font-bold text-foreground/60 hover:text-foreground"
+          className="text-xs font-bold text-muted hover:text-foreground"
         />
       </div>
       {shortfall && (
-        <p className="text-xs font-bold text-foreground/50">
+        <p className="text-xs font-bold text-muted">
           선택한 유형으로 낼 수 있는 단어가 {shortfall.available}개뿐이라 {shortfall.available}
           문제로 진행해요.
         </p>
       )}
       {boostedType && (
-        <p className="text-xs font-bold text-foreground/50">
+        <p className="text-xs font-bold text-muted">
           오늘은 {QUIZ_TYPE_LABELS[boostedType]} 문제가 더 많이 나와요.
         </p>
       )}
@@ -548,7 +548,7 @@ export function QuizSession({
           feedback && !feedback.isCorrect && "animate-quiz-flash border-error",
         )}
       >
-        <span className="text-xs font-bold text-foreground/50">
+        <span className="text-xs font-bold text-muted">
           {QUIZ_TYPE_LABELS[current.quizType]}
         </span>
         <div className="flex items-center gap-2">

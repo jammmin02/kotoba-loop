@@ -672,7 +672,7 @@ export function VocabularyForm({
           className="flex flex-col gap-2 border-2 border-pixel-ink bg-accent/10 p-3"
         >
           <p className="text-sm font-bold text-foreground">작성 중이던 단어가 있어요</p>
-          <p className="text-xs text-foreground/70">
+          <p className="text-xs text-muted">
             {describeNewWordDraft(storedDraft)} 입력 내용을 이어서 작성할까요?
           </p>
           <div className="flex gap-2">
@@ -714,12 +714,12 @@ export function VocabularyForm({
             aria-label={mainCollapsed ? "메인 단어 펼치기" : "메인 단어 접기"}
             className="flex min-h-11 min-w-0 flex-1 items-center gap-2 text-left"
           >
-            <span className="text-xs font-bold text-foreground/60" aria-hidden="true">
+            <span className="text-xs font-bold text-muted" aria-hidden="true">
               {mainCollapsed ? "▸" : "▾"}
             </span>
             <span className="shrink-0 text-sm font-medium text-foreground">단어 1</span>
             {mainCollapsed && (
-              <span className="min-w-0 flex-1 truncate text-sm text-foreground/70">
+              <span className="min-w-0 flex-1 truncate text-sm text-muted">
                 {main.word || "(단어 없음)"}
                 {main.meanings.find((m) => m.trim())
                   ? ` — ${main.meanings.find((m) => m.trim())}`
@@ -747,7 +747,7 @@ export function VocabularyForm({
           <span className="text-sm font-medium text-foreground">함께 등록할 단어 후보</span>
           {main.aiExtras.relatedKanji.length > 0 && (
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs text-foreground/60">관련 한자</span>
+              <span className="text-xs text-muted">관련 한자</span>
               {main.aiExtras.relatedKanji.map((kanji) => (
                 <Link
                   key={kanji}
@@ -763,7 +763,7 @@ export function VocabularyForm({
           )}
           {main.aiExtras.synonyms.length > 0 && (
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs text-foreground/60">유의어</span>
+              <span className="text-xs text-muted">유의어</span>
               {main.aiExtras.synonyms.map((synonym) => {
                 const added = extraWords.some((entry) => entry.sourceText === synonym);
                 return (
@@ -787,7 +787,7 @@ export function VocabularyForm({
           )}
           {main.aiExtras.relatedExpressions.length > 0 && (
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs text-foreground/60">연관 표현</span>
+              <span className="text-xs text-muted">연관 표현</span>
               {main.aiExtras.relatedExpressions.map((expr) => {
                 const added = extraWords.some((entry) => entry.sourceText === expr);
                 return (
@@ -809,7 +809,7 @@ export function VocabularyForm({
               })}
             </div>
           )}
-          <p className="text-xs text-foreground/50">
+          <p className="text-xs text-muted">
             유의어·연관 표현을 누르면 별개의 새 단어 카드가 아래에 추가돼요. 다시 누르면 취소돼요.
             관련 한자를 누르면 한자 정보가 새 탭에서 열려요.
           </p>
@@ -848,7 +848,7 @@ export function VocabularyForm({
         <button
           type="button"
           onClick={addBlankExtraWord}
-          className="flex min-h-11 items-center justify-center gap-1 border-2 border-dashed border-pixel-ink/60 text-sm font-bold text-foreground/70 transition hover:bg-surface"
+          className="flex min-h-11 items-center justify-center gap-1 border-2 border-dashed border-pixel-ink/60 text-sm font-bold text-muted transition hover:bg-surface"
         >
           <PixelPlus className="size-3.5" aria-hidden="true" />
           단어 카드 추가
@@ -860,7 +860,7 @@ export function VocabularyForm({
           단어장<span className="text-error"> *</span>
         </span>
         {books && books.length === 0 && (
-          <p className="text-xs text-foreground/60">
+          <p className="text-xs text-muted">
             먼저 단어장을 만들어주세요.{" "}
             <Link href="/vocabulary" className="font-bold text-primary hover:underline">
               단어장 만들러 가기

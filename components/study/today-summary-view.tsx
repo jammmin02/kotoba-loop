@@ -35,7 +35,7 @@ export function TodaySummaryView() {
   });
 
   if (isLoading) {
-    return <p className="text-sm text-foreground/60">불러오는 중...</p>;
+    return <p className="text-sm text-muted">불러오는 중...</p>;
   }
 
   if (isError) {
@@ -69,7 +69,7 @@ export function TodaySummaryView() {
         <div className="flex flex-col items-center gap-3">
           <PixelBookOpen className="size-12 text-primary" aria-hidden="true" />
           <p className="text-lg font-bold text-foreground">아직 등록된 단어가 없어요</p>
-          <p className="text-sm font-content text-foreground/60">
+          <p className="text-sm font-content text-muted">
             첫 단어를 등록하고 오늘의 학습을 시작해보세요!
           </p>
           <Link href="/words/new">
@@ -83,7 +83,7 @@ export function TodaySummaryView() {
         <div className="flex flex-col items-center gap-3">
           <PixelCheck className="size-12 text-success" aria-hidden="true" />
           <p className="text-lg font-bold text-foreground">오늘 학습을 모두 마쳤어요!</p>
-          <p className="text-sm font-content text-foreground/60">
+          <p className="text-sm font-content text-muted">
             내일 또 새로운 단어와 복습이 기다리고 있어요. 잠시 쉬어가세요.
           </p>
         </div>
@@ -96,7 +96,7 @@ export function TodaySummaryView() {
                 const rowContent = (
                   <>
                     <span className="text-sm font-bold text-foreground">{category.label}</span>
-                    <span className="text-sm font-bold text-foreground/70">{category.count}개</span>
+                    <span className="text-sm font-bold text-muted">{category.count}개</span>
                   </>
                 );
                 // "오답 복습" 단계는 오늘의 퀴즈에 섞여 들어가는 것과 별개로, 단어별 오답
@@ -129,7 +129,7 @@ export function TodaySummaryView() {
               <span>총 학습</span>
               <span>{summary.totalCount}개</span>
             </div>
-            <p className="text-xs text-foreground/60">
+            <p className="text-xs text-muted">
               예상 소요 시간 {summary.estimatedTimeLabel}
             </p>
           </div>
@@ -153,7 +153,7 @@ export function TodaySummaryView() {
           className="flex w-full items-center justify-between border-2 border-pixel-ink bg-background px-3 py-2 transition hover:bg-surface"
         >
           <span className="text-sm font-bold text-foreground">오늘의 한자</span>
-          <span className="text-sm font-bold text-foreground/70">{summary.todayKanjiCount}자</span>
+          <span className="text-sm font-bold text-muted">{summary.todayKanjiCount}자</span>
         </Link>
       )}
     </Card>

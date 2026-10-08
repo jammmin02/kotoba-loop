@@ -37,7 +37,7 @@ export function ResumePrompt({
     >
       <div className="flex flex-col gap-1">
         <p className="text-base font-bold text-foreground">{title}</p>
-        <p className="text-sm font-content text-foreground/60">
+        <p className="text-sm font-content text-muted">
           {saved.label ? `${saved.label} · ` : ""}
           {done} / {total} 진행 · {formatSavedAgo(saved.savedAt)}
         </p>

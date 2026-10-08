@@ -144,7 +144,7 @@ export function VocabularyBookFormModal({ onClose, book }: VocabularyBookFormMod
               />
             ))}
           </div>
-          <p className="text-xs font-content text-foreground/60">
+          <p className="text-xs font-content text-muted">
             {color === null
               ? "자동은 목록 순서에 따라 색이 정해져요."
               : `${BOOK_COLOR_LABELS[color]} 색으로 표시돼요.`}

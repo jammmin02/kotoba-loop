@@ -30,11 +30,11 @@ export default function Error({
         <PixelX className="size-16 text-error" aria-hidden="true" />
         <div className="flex flex-col gap-1">
           <p className="text-lg font-bold text-foreground">문제가 발생했어요</p>
-          <p className="text-sm font-content text-foreground/60">
+          <p className="text-sm font-content text-muted">
             일시적인 오류일 수 있어요. 다시 시도해도 안 되면 잠시 후에 이용해주세요.
           </p>
           {error.digest && (
-            <p className="mt-1 text-xs font-content text-foreground/40">
+            <p className="mt-1 text-xs font-content text-muted">
               오류 코드: {error.digest}
             </p>
           )}

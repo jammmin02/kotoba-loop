@@ -64,20 +64,20 @@ export function FriendsView() {
       <Card variant="elevated" title="닉네임으로 찾기" className="flex flex-col gap-4">
         <form onSubmit={handleSubmit} role="search" className="flex gap-2">
           <div className="flex h-11 flex-1 items-center gap-2 border-2 border-pixel-ink bg-background px-3 shadow-bevel-sunken focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary">
-            <PixelSearch className="size-4 shrink-0 text-foreground/50" aria-hidden="true" />
+            <PixelSearch className="size-4 shrink-0 text-muted" aria-hidden="true" />
             <input
               type="search"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="닉네임 검색"
               aria-label="닉네임 검색"
-              className="h-full w-full min-w-0 bg-transparent text-sm text-foreground placeholder:text-foreground/40 focus:outline-none"
+              className="h-full w-full min-w-0 bg-transparent text-sm text-foreground placeholder:text-muted focus:outline-none"
             />
           </div>
           <Button type="submit">검색</Button>
         </form>
 
-        {searchResults.isLoading && <p className="text-sm text-foreground/60">검색 중...</p>}
+        {searchResults.isLoading && <p className="text-sm text-muted">검색 중...</p>}
 
         {searchResults.isError && (
           <p className="text-sm text-error">
@@ -88,7 +88,7 @@ export function FriendsView() {
         )}
 
         {searchResults.data && searchResults.data.length === 0 && (
-          <p className="text-sm text-foreground/50">검색 결과가 없습니다.</p>
+          <p className="text-sm text-muted">검색 결과가 없습니다.</p>
         )}
 
         {searchResults.data && searchResults.data.length > 0 && (
@@ -100,7 +100,7 @@ export function FriendsView() {
               >
                 <div className="min-w-0">
                   <p className="truncate text-sm font-bold text-foreground">{user.nickname}</p>
-                  <p className="truncate text-xs text-foreground/50">{user.email}</p>
+                  <p className="truncate text-xs text-muted">{user.email}</p>
                 </div>
                 <Button
                   type="button"
@@ -119,7 +119,7 @@ export function FriendsView() {
       </Card>
 
       <Card variant="elevated" title="팔로우 중" className="flex flex-col gap-3">
-        {friends.isLoading && <p className="text-sm text-foreground/60">불러오는 중...</p>}
+        {friends.isLoading && <p className="text-sm text-muted">불러오는 중...</p>}
 
         {friends.isError && (
           <p className="text-sm text-error">
@@ -132,7 +132,7 @@ export function FriendsView() {
         {friends.data && friends.data.length === 0 && (
           <div className="flex flex-col items-center gap-2 py-8 text-center">
             <PixelUsers className="size-10 text-foreground/30" aria-hidden="true" />
-            <p className="text-sm font-content text-foreground/60">
+            <p className="text-sm font-content text-muted">
               아직 팔로우 중인 사용자가 없어요. 닉네임으로 찾아보세요.
             </p>
           </div>
@@ -152,7 +152,7 @@ export function FriendsView() {
                   <p className="truncate text-sm font-bold text-foreground hover:underline">
                     {friend.nickname}
                   </p>
-                  <p className="truncate text-xs text-foreground/50">
+                  <p className="truncate text-xs text-muted">
                     공개 단어장 {friend.publicBookCount}개
                   </p>
                 </Link>

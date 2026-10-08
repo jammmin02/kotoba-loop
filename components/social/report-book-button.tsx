@@ -57,7 +57,7 @@ export function ReportBookButton({ bookId }: { bookId: string }) {
 
       <Modal open={open} onClose={() => setOpen(false)} title="단어장 신고">
         <div className="flex flex-col gap-4">
-          <p className="text-sm font-content text-foreground/70">
+          <p className="text-sm font-content text-muted">
             신고 사유를 선택해주세요. 관리자가 확인한 뒤 조치합니다.
           </p>
           <div className="flex flex-wrap gap-2">

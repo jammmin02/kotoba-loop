@@ -77,7 +77,7 @@ export function BattleRoundView({ roomCode, round, participants }: BattleRoundVi
   return (
     <div className="flex w-full max-w-md flex-col gap-4">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-bold text-foreground/70">
+        <span className="text-sm font-bold text-muted">
           {round.roundNumber} / {round.totalRounds} 라운드
         </span>
         <div className="flex items-center gap-2">
@@ -138,7 +138,7 @@ export function BattleRoundView({ roomCode, round, participants }: BattleRoundVi
             <span className="font-bold text-foreground">
               {index + 1}. {participant.nickname}
             </span>
-            <span className="font-mono text-foreground/70">{participant.score}점</span>
+            <span className="font-mono text-muted">{participant.score}점</span>
           </div>
         ))}
       </Card>

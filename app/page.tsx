@@ -22,7 +22,7 @@ export default async function Home() {
         {session?.user && (
           <div className="flex w-full flex-col gap-4">
             <div className="flex items-center justify-between">
-              <p className="font-content text-sm text-foreground/60">
+              <p className="font-content text-sm text-muted">
                 {session.user.name ?? session.user.email} 님, 환영합니다.
               </p>
               <LogoutButton />

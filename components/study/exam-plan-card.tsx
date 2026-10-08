@@ -63,34 +63,34 @@ export function ExamPlanCard() {
       titleColor="accent"
       className="flex w-full max-w-md flex-col gap-3"
     >
-      <p className="text-xs font-bold text-foreground/60">
+      <p className="text-xs font-bold text-muted">
         목표 JLPT {activeGoal.targetJlpt} · 시험까지 {daysRemaining}일
       </p>
 
       <ul className="grid grid-cols-2 gap-2 text-sm">
         <li className="flex items-center justify-between border-2 border-pixel-ink bg-background px-3 py-2">
           <span className="font-bold text-foreground">새 단어</span>
-          <span className="font-bold text-foreground/70">{plan.newWordsPerDay}개</span>
+          <span className="font-bold text-muted">{plan.newWordsPerDay}개</span>
         </li>
         <li className="flex items-center justify-between border-2 border-pixel-ink bg-background px-3 py-2">
           <span className="font-bold text-foreground">복습</span>
-          <span className="font-bold text-foreground/70">{plan.reviewPerDay}개</span>
+          <span className="font-bold text-muted">{plan.reviewPerDay}개</span>
         </li>
         <li className="flex items-center justify-between border-2 border-pixel-ink bg-background px-3 py-2">
           <span className="font-bold text-foreground">한자</span>
-          <span className="font-bold text-foreground/70">{plan.kanjiPerDay}개</span>
+          <span className="font-bold text-muted">{plan.kanjiPerDay}개</span>
         </li>
         <li className="flex items-center justify-between border-2 border-pixel-ink bg-background px-3 py-2">
           <span className="font-bold text-foreground">문장</span>
-          <span className="font-bold text-foreground/70">{plan.sentencePerDay}문제</span>
+          <span className="font-bold text-muted">{plan.sentencePerDay}문제</span>
         </li>
       </ul>
 
-      <p className="text-xs text-foreground/60">예상 소요 시간 약 {plan.estimatedMinutes}분</p>
+      <p className="text-xs text-muted">예상 소요 시간 약 {plan.estimatedMinutes}분</p>
 
       {comment && (
         <div className="border-2 border-pixel-ink bg-titlebar-mint/20 p-3">
-          <p className="text-xs font-bold text-foreground/60">AI 코멘트</p>
+          <p className="text-xs font-bold text-muted">AI 코멘트</p>
           <p className="mt-1 text-sm text-foreground">{comment}</p>
         </div>
       )}

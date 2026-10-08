@@ -130,18 +130,18 @@ export function AdminReportsView() {
           </ChipButton>
         ))}
       </div>
-      <p className="text-xs text-foreground/50">
+      <p className="text-xs text-muted">
         같은 단어장의 신고는 하나로 묶여 건수 순으로 표시됩니다.
       </p>
 
-      {isLoading && <p className="text-sm text-foreground/60">불러오는 중...</p>}
+      {isLoading && <p className="text-sm text-muted">불러오는 중...</p>}
       {isError && (
         <p role="alert" className="text-sm text-error">
           {error instanceof ApiClientError ? error.message : "불러오지 못했습니다."}
         </p>
       )}
       {data && data.groups.length === 0 && (
-        <p className="text-sm text-foreground/60">해당하는 신고가 없습니다.</p>
+        <p className="text-sm text-muted">해당하는 신고가 없습니다.</p>
       )}
 
       {data?.groups.map((group) => (
@@ -155,7 +155,7 @@ export function AdminReportsView() {
                 {group.target ? group.target.title : "(삭제된 단어장)"}
               </p>
               {group.target && (
-                <p className="text-xs text-foreground/60">
+                <p className="text-xs text-muted">
                   {group.target.owner.nickname} · {group.target.owner.email} · 단어{" "}
                   {group.target.wordCount}개{group.target.hidden && " · 숨김 상태"}
                 </p>
@@ -167,7 +167,7 @@ export function AdminReportsView() {
           </div>
 
           {group.target?.description && (
-            <p className="line-clamp-3 border-l-4 border-pixel-ink pl-2 text-sm font-content text-foreground/70">
+            <p className="line-clamp-3 border-l-4 border-pixel-ink pl-2 text-sm font-content text-muted">
               {group.target.description}
             </p>
           )}
@@ -181,7 +181,7 @@ export function AdminReportsView() {
           </div>
 
           {group.details.length > 0 && (
-            <ul className="flex flex-col gap-1 text-xs text-foreground/70">
+            <ul className="flex flex-col gap-1 text-xs text-muted">
               {group.details.map((d, i) => (
                 <li key={i}>· {d}</li>
               ))}
@@ -189,7 +189,7 @@ export function AdminReportsView() {
           )}
 
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="text-xs text-foreground/50">
+            <span className="text-xs text-muted">
               최근 신고 {formatDateTime(group.lastReportedAt)}
               {group.handledAt && ` · 처리 ${formatDateTime(group.handledAt)}`}
               {group.resolutionNote && ` · ${group.resolutionNote}`}
@@ -239,7 +239,7 @@ export function AdminReportsView() {
                 />
               </>
             ) : (
-              <p className="text-xs text-foreground/60">
+              <p className="text-xs text-muted">
                 대상이 이미 삭제되어 신고만 기각할 수 있습니다.
               </p>
             )}

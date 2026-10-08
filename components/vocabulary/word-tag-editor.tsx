@@ -89,7 +89,7 @@ export function WordTagEditor({ vocabularyId, initialTags }: WordTagEditorProps)
         <button
           type="button"
           onClick={() => setPickerOpen((prev) => !prev)}
-          className="flex items-center gap-1 border-2 border-dashed border-pixel-ink/40 px-2 py-0.5 text-xs font-bold text-foreground/50 hover:border-solid hover:text-foreground"
+          className="flex items-center gap-1 border-2 border-dashed border-pixel-ink/40 px-2 py-0.5 text-xs font-bold text-muted hover:border-solid hover:text-foreground"
         >
           <PixelPlus className="size-3" aria-hidden="true" />
           태그
@@ -97,7 +97,7 @@ export function WordTagEditor({ vocabularyId, initialTags }: WordTagEditorProps)
         {pickerOpen && (
           <div className="absolute left-0 top-full z-10 mt-1 flex min-w-32 flex-col gap-0.5 border-2 border-pixel-ink bg-surface p-1.5 shadow-pixel-sm">
             {isTagsLoading ? (
-              <p className="whitespace-nowrap px-1.5 py-1 text-xs text-foreground/50">
+              <p className="whitespace-nowrap px-1.5 py-1 text-xs text-muted">
                 불러오는 중...
               </p>
             ) : isTagsError ? (
@@ -105,7 +105,7 @@ export function WordTagEditor({ vocabularyId, initialTags }: WordTagEditorProps)
                 태그를 불러오지 못했어요
               </p>
             ) : availableTags.length === 0 ? (
-              <p className="whitespace-nowrap px-1.5 py-1 text-xs text-foreground/50">
+              <p className="whitespace-nowrap px-1.5 py-1 text-xs text-muted">
                 {allTags?.length ? "추가할 태그가 없어요" : "등록된 태그가 없어요"}
               </p>
             ) : (
@@ -115,7 +115,7 @@ export function WordTagEditor({ vocabularyId, initialTags }: WordTagEditorProps)
                   type="button"
                   onClick={() => attachMutation.mutate(tag.id)}
                   disabled={attachMutation.isPending}
-                  className="whitespace-nowrap px-1.5 py-1 text-left text-xs font-bold text-foreground/70 hover:bg-background disabled:opacity-50"
+                  className="whitespace-nowrap px-1.5 py-1 text-left text-xs font-bold text-muted hover:bg-background disabled:opacity-50"
                 >
                   #{tag.name}
                 </button>

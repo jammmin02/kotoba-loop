@@ -134,7 +134,7 @@ export function DictionaryView() {
           <PixelSearch className="size-5 text-accent" aria-hidden="true" />
           단어 사전
         </h1>
-        <p className="text-sm font-content text-foreground/60">
+        <p className="text-sm font-content text-muted">
           궁금한 단어를 입력하면 네이버 사전 링크와 AI 설명을 함께 보여드려요. 단어장에 저장하지
           않아도 자유롭게 찾아볼 수 있어요.
         </p>
@@ -162,13 +162,13 @@ export function DictionaryView() {
       </form>
 
       {lookupMutation.isPending && (
-        <p className="text-sm text-foreground/50">
+        <p className="text-sm text-muted">
           AI가 분석하고 있어요. 최대 45초 정도 걸릴 수 있어요.
         </p>
       )}
 
       {!activeWord && !lookupMutation.isPending && (
-        <p className="py-16 text-center text-sm font-content text-foreground/60">
+        <p className="py-16 text-center text-sm font-content text-muted">
           찾아보고 싶은 일본어 단어를 입력해보세요.
         </p>
       )}
@@ -178,7 +178,7 @@ export function DictionaryView() {
           <div className="flex items-start justify-between gap-3">
             <div className="flex flex-col gap-0.5">
               <p className="font-jp text-2xl text-foreground">{activeWord}</p>
-              <p className="text-sm text-foreground/60">{analysis.result.reading}</p>
+              <p className="text-sm text-muted">{analysis.result.reading}</p>
             </div>
             <div className="flex flex-wrap justify-end gap-1.5">
               {analysis.result.jlptLevel && <JlptBadge level={analysis.result.jlptLevel} />}
@@ -210,7 +210,7 @@ export function DictionaryView() {
             {analysis.result.examples.map((example, i) => (
               <div key={i} className="border-2 border-pixel-ink bg-background p-2">
                 <p className="font-jp text-sm text-foreground">{example.japanese}</p>
-                <p className="text-xs text-foreground/60">{example.korean}</p>
+                <p className="text-xs text-muted">{example.korean}</p>
               </div>
             ))}
           </div>
@@ -221,7 +221,7 @@ export function DictionaryView() {
             <div className="flex flex-col gap-1.5 border-t-2 border-dashed border-pixel-ink/30 pt-3">
               {analysis.result.relatedKanji.length > 0 && (
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs text-foreground/60">관련 한자</span>
+                  <span className="text-xs text-muted">관련 한자</span>
                   {analysis.result.relatedKanji.map((kanji) => (
                     <span
                       key={kanji}
@@ -234,7 +234,7 @@ export function DictionaryView() {
               )}
               {analysis.result.synonyms.length > 0 && (
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs text-foreground/60">유의어</span>
+                  <span className="text-xs text-muted">유의어</span>
                   {analysis.result.synonyms.map((word) => (
                     <span
                       key={word}
@@ -247,7 +247,7 @@ export function DictionaryView() {
               )}
               {analysis.result.relatedExpressions.length > 0 && (
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs text-foreground/60">관련 표현</span>
+                  <span className="text-xs text-muted">관련 표현</span>
                   {analysis.result.relatedExpressions.map((word) => (
                     <span
                       key={word}
@@ -278,7 +278,7 @@ export function DictionaryView() {
         <Card title="AI에게 더 물어보기" titleColor="mint" className="flex flex-col gap-3">
           <div className="flex flex-col gap-3">
             {chatMessages.length === 0 && (
-              <p className="text-sm text-foreground/50">
+              <p className="text-sm text-muted">
                 &ldquo;{activeWord}&rdquo;에 대해 더 궁금한 점을 채팅으로 물어보세요.
               </p>
             )}
@@ -295,7 +295,7 @@ export function DictionaryView() {
               </div>
             ))}
             {chatMutation.isPending && (
-              <p className="text-sm text-foreground/50">AI가 답변을 작성하고 있어요...</p>
+              <p className="text-sm text-muted">AI가 답변을 작성하고 있어요...</p>
             )}
           </div>
 

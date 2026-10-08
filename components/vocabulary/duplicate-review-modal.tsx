@@ -64,7 +64,7 @@ export function DuplicateReviewModal({
   return (
     <Modal open={open} onClose={onCancel} title="중복 단어 확인">
       <div className="flex flex-col gap-4">
-        <p className="text-sm text-foreground/70">
+        <p className="text-sm text-muted">
           이미 등록된 단어 {duplicateCount}개를 찾았어요. 각 단어를 어떻게 처리할지 골라주세요.
         </p>
 
@@ -79,7 +79,7 @@ export function DuplicateReviewModal({
             >
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-sm font-bold text-foreground">{item.word}</span>
-                <span className="text-xs text-foreground/60">({item.reading})</span>
+                <span className="text-xs text-muted">({item.reading})</span>
                 {item.isDuplicate && (
                   <span className="inline-flex items-center gap-1 border-2 border-pixel-ink bg-warning px-2 py-0.5 text-[11px] font-bold text-warning-foreground">
                     <PixelInfo className="size-2.5" aria-hidden="true" />
@@ -88,11 +88,11 @@ export function DuplicateReviewModal({
                 )}
               </div>
 
-              <p className="text-xs text-foreground/70">{item.meanings[0]}</p>
+              <p className="text-xs text-muted">{item.meanings[0]}</p>
 
               {item.isDuplicate && (
                 <>
-                  <p className="text-[11px] text-foreground/50">
+                  <p className="text-[11px] text-muted">
                     기존 등록: {item.existing?.meanings.join(", ")}
                   </p>
                   <div className="flex flex-wrap gap-1.5">
@@ -113,7 +113,7 @@ export function DuplicateReviewModal({
           ))}
         </div>
 
-        <p className="text-xs text-foreground/60">
+        <p className="text-xs text-muted">
           새로 저장 {willCreateCount}개 · 단어장에 연결 {willLinkCount}개 · 건너뛰기 {willSkipCount}
           개
         </p>

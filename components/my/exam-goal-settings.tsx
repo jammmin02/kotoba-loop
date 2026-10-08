@@ -87,14 +87,14 @@ export function ExamGoalSettings() {
     <Card title="EXAM GOAL.EXE" titleColor="pink" className="flex flex-col gap-4">
       <p className="text-sm font-bold text-foreground">시험 목표</p>
 
-      {isLoading && <p className="text-sm text-foreground/60">불러오는 중...</p>}
+      {isLoading && <p className="text-sm text-muted">불러오는 중...</p>}
       {isError && (
         <p className="text-sm text-error">
           {error instanceof ApiClientError ? error.message : "시험 목표를 불러오지 못했습니다."}
         </p>
       )}
       {goals && goals.length === 0 && (
-        <p className="text-sm text-foreground/50">
+        <p className="text-sm text-muted">
           등록된 시험 목표가 없어요. 아래에서 추가해보세요.
         </p>
       )}
@@ -107,7 +107,7 @@ export function ExamGoalSettings() {
             >
               <div className="flex flex-col">
                 <span className="text-sm font-bold text-foreground">JLPT {goal.targetJlpt}</span>
-                <span className="text-xs text-foreground/60">{formatExamDate(goal.examDate)}</span>
+                <span className="text-xs text-muted">{formatExamDate(goal.examDate)}</span>
               </div>
               {goal.isActive ? (
                 <span className="text-xs font-bold text-primary">현재 목표</span>
@@ -132,7 +132,7 @@ export function ExamGoalSettings() {
         className="flex flex-col gap-3 border-t-2 border-pixel-ink pt-4"
       >
         <div className="flex flex-col gap-2">
-          <p className="text-xs font-bold text-foreground/60">목표 JLPT 급수</p>
+          <p className="text-xs font-bold text-muted">목표 JLPT 급수</p>
           <div className="flex flex-wrap gap-2">
             {JLPT_LEVELS.map((level) => (
               <ChipButton

@@ -36,7 +36,7 @@ export function FormFieldWrapper({
           {error}
         </p>
       ) : helperText ? (
-        <p id={`${htmlFor}-helper`} className="text-xs text-foreground/60">
+        <p id={`${htmlFor}-helper`} className="text-xs text-muted">
           {helperText}
         </p>
       ) : null}
@@ -45,4 +45,4 @@ export function FormFieldWrapper({
 }
 
 export const fieldControlClassName =
-  "h-10 rounded-none border-2 border-pixel-ink bg-background px-3 text-sm text-foreground shadow-bevel-sunken transition placeholder:text-foreground/40 focus:outline-2 focus:outline-offset-2 focus:outline-primary disabled:cursor-not-allowed disabled:opacity-50";
+  "h-10 rounded-none border-2 border-pixel-ink bg-background px-3 text-sm text-foreground shadow-bevel-sunken transition placeholder:text-muted focus:outline-2 focus:outline-offset-2 focus:outline-primary disabled:cursor-not-allowed disabled:opacity-50";

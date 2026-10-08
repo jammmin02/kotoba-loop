@@ -18,7 +18,7 @@ export function WeaknessAnalysisCard() {
   if (isLoading) {
     return (
       <Card title="AI 취약점 분석" titleColor="pink">
-        <p className="text-sm text-foreground/60">불러오는 중...</p>
+        <p className="text-sm text-muted">불러오는 중...</p>
       </Card>
     );
   }
@@ -36,7 +36,7 @@ export function WeaknessAnalysisCard() {
   if (!data.hasEnoughData) {
     return (
       <Card title="AI 취약점 분석" titleColor="pink">
-        <p className="text-sm text-foreground/60">
+        <p className="text-sm text-muted">
           아직 데이터가 더 필요해요. 문제를 조금 더 풀면 유형별 정답률과 AI 분석이 표시됩니다.
         </p>
       </Card>
@@ -58,11 +58,11 @@ export function WeaknessAnalysisCard() {
 
         {data.comment ? (
           <div className="border-2 border-pixel-ink bg-titlebar-pink/20 p-3">
-            <p className="text-xs font-bold text-foreground/60">AI 코멘트</p>
+            <p className="text-xs font-bold text-muted">AI 코멘트</p>
             <p className="mt-1 text-sm text-foreground">{data.comment}</p>
           </div>
         ) : (
-          <p className="text-xs text-foreground/50">
+          <p className="text-xs text-muted">
             AI 코멘트를 불러오지 못했어요. 잠시 후 다시 시도해주세요.
           </p>
         )}

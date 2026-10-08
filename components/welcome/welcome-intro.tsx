@@ -111,7 +111,7 @@ function Logo({ className }: { className?: string }) {
       <span className="font-bold text-foreground">
         kotoba<span className="text-primary">-</span>loop
       </span>
-      <span lang="ja" className="text-xs font-bold tracking-[0.15em] text-foreground/70">
+      <span lang="ja" className="text-xs font-bold tracking-[0.15em] text-muted">
         ことば・ループ
       </span>
     </span>
@@ -212,7 +212,7 @@ export function WelcomeIntro() {
             <button
               type="button"
               onClick={() => goTo(LAST_STEP)}
-              className="flex h-11 items-center px-2 text-sm font-bold text-foreground/70 underline underline-offset-[3px] hover:text-foreground"
+              className="flex h-11 items-center px-2 text-sm font-bold text-muted underline underline-offset-[3px] hover:text-foreground"
             >
               건너뛰기
             </button>
@@ -236,7 +236,7 @@ export function WelcomeIntro() {
                 <p className="text-4xl font-bold tracking-tight text-foreground">
                   kotoba<span className="text-primary">-</span>loop
                 </p>
-                <p lang="ja" className="text-[15px] font-bold tracking-[0.2em] text-foreground/70">
+                <p lang="ja" className="text-[15px] font-bold tracking-[0.2em] text-muted">
                   ことば・ループ
                 </p>
               </div>
@@ -256,7 +256,7 @@ export function WelcomeIntro() {
                   <br />
                   함께 자라는 일본어
                 </h1>
-                <p className="font-content text-[15px] leading-relaxed break-keep text-foreground/70 lg:text-lg lg:leading-[1.7]">
+                <p className="font-content text-[15px] leading-relaxed break-keep text-muted lg:text-lg lg:leading-[1.7]">
                   단어·한자를 잊기 전에 복습하는 학습 루프.
                   <br />
                   공부할수록 나만의 펫이 성장해요.
@@ -324,7 +324,7 @@ export function WelcomeIntro() {
                   <button
                     type="button"
                     onClick={() => goTo(LAST_STEP)}
-                    className="flex h-11 items-center px-1 text-[13px] font-bold text-foreground/70 underline underline-offset-[3px] hover:text-foreground lg:hidden"
+                    className="flex h-11 items-center px-1 text-[13px] font-bold text-muted underline underline-offset-[3px] hover:text-foreground lg:hidden"
                   >
                     건너뛰기
                   </button>
@@ -339,7 +339,7 @@ export function WelcomeIntro() {
                 >
                   {slide.headline}
                 </h1>
-                <p className="font-content text-[15px] leading-relaxed break-keep text-foreground/70 lg:text-lg lg:leading-[1.7]">
+                <p className="font-content text-[15px] leading-relaxed break-keep text-muted lg:text-lg lg:leading-[1.7]">
                   {slide.body}
                 </p>
               </div>
@@ -347,7 +347,7 @@ export function WelcomeIntro() {
               <div className="order-4 flex-1 lg:hidden" />
 
               {isLast && (
-                <p className="order-5 text-center font-content text-xs text-foreground/70 lg:text-left lg:text-sm">
+                <p className="order-5 text-center font-content text-xs text-muted lg:text-left lg:text-sm">
                   허용된 이메일로 가입할 수 있고, 관리자 승인 후 이용할 수 있어요.
                 </p>
               )}

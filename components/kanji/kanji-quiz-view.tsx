@@ -23,7 +23,7 @@ export function KanjiQuizView() {
   });
 
   if (isLoading) {
-    return <p className="text-sm text-foreground/60">불러오는 중...</p>;
+    return <p className="text-sm text-muted">불러오는 중...</p>;
   }
 
   if (isError) {

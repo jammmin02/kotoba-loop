@@ -77,7 +77,7 @@ export function NaturalSearchView() {
           <PixelSparkles className="size-5 text-accent" aria-hidden="true" />
           자연어 단어 검색
         </h1>
-        <p className="text-sm font-content text-foreground/60">
+        <p className="text-sm font-content text-muted">
           정확한 단어를 몰라도 상황이나 느낌을 한국어로 설명하면 AI가 가장 적절한 일본어 표현을
           찾아드려요. 정확한 단어를 알고 있다면{" "}
           <Link href="/search" className="font-bold text-primary hover:underline">
@@ -102,7 +102,7 @@ export function NaturalSearchView() {
       </form>
 
       {entries.length === 0 && (
-        <p className="py-16 text-center text-sm font-content text-foreground/60">
+        <p className="py-16 text-center text-sm font-content text-muted">
           궁금한 상황을 문장으로 설명해보세요.
         </p>
       )}
@@ -110,10 +110,10 @@ export function NaturalSearchView() {
       <div className="flex flex-col gap-4">
         {entries.map((entry) => (
           <Card key={entry.key} className="flex flex-col gap-3">
-            <p className="text-sm font-content text-foreground/70">Q. {entry.query}</p>
+            <p className="text-sm font-content text-muted">Q. {entry.query}</p>
 
             {!entry.data && entry.key === pendingKey && (
-              <p className="text-sm text-foreground/50">
+              <p className="text-sm text-muted">
                 AI가 찾고 있어요. 최대 45초 정도 걸릴 수 있어요.
               </p>
             )}
@@ -126,7 +126,7 @@ export function NaturalSearchView() {
                       {entry.data.result.explanation}
                     </p>
                     <p className="font-jp text-2xl text-foreground">{entry.data.result.word}</p>
-                    <p className="text-sm text-foreground/60">{entry.data.result.reading}</p>
+                    <p className="text-sm text-muted">{entry.data.result.reading}</p>
                   </div>
                   <div className="flex flex-wrap justify-end gap-1.5">
                     {entry.data.result.jlptLevel && (
@@ -150,7 +150,7 @@ export function NaturalSearchView() {
                   {entry.data.result.examples.map((example, i) => (
                     <div key={i} className="border-2 border-pixel-ink bg-background p-2">
                       <p className="font-jp text-sm text-foreground">{example.japanese}</p>
-                      <p className="text-xs text-foreground/60">{example.korean}</p>
+                      <p className="text-xs text-muted">{example.korean}</p>
                     </div>
                   ))}
                 </div>
@@ -180,11 +180,11 @@ export function NaturalSearchView() {
 
             {entry.data && !entry.data.result.found && (
               <div className="flex flex-col gap-1 border-2 border-dashed border-pixel-ink/40 bg-background p-3">
-                <p className="text-sm font-bold text-foreground/70">
+                <p className="text-sm font-bold text-muted">
                   {entry.data.result.explanation}
                 </p>
-                <p className="text-xs text-foreground/50">{entry.data.result.meanings[0]}</p>
-                <p className="text-xs text-foreground/40">다른 표현으로 다시 질문해보세요.</p>
+                <p className="text-xs text-muted">{entry.data.result.meanings[0]}</p>
+                <p className="text-xs text-muted">다른 표현으로 다시 질문해보세요.</p>
               </div>
             )}
           </Card>

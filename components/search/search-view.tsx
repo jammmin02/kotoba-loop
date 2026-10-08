@@ -76,14 +76,14 @@ export function SearchView({ initialQuery }: SearchViewProps) {
 
       <form onSubmit={handleSubmit} role="search" className="flex gap-2">
         <div className="flex h-11 min-w-0 flex-1 items-center gap-2 border-2 border-pixel-ink bg-background px-3 shadow-bevel-sunken focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary">
-          <PixelSearch className="size-4 shrink-0 text-foreground/50" aria-hidden="true" />
+          <PixelSearch className="size-4 shrink-0 text-muted" aria-hidden="true" />
           <input
             type="search"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="단어, 뜻, 태그, JLPT, 품사로 검색"
             aria-label="검색어"
-            className="h-full w-full min-w-0 bg-transparent text-sm text-foreground placeholder:text-foreground/40 focus:outline-none"
+            className="h-full w-full min-w-0 bg-transparent text-sm text-foreground placeholder:text-muted focus:outline-none"
           />
         </div>
         <VoiceInputButton onResult={submitQuery} />
@@ -94,7 +94,7 @@ export function SearchView({ initialQuery }: SearchViewProps) {
 
       {!trimmedQuery && recentQueries.length > 0 && (
         <div className="flex flex-col gap-2">
-          <p className="text-xs font-bold text-foreground/60">최근 검색어</p>
+          <p className="text-xs font-bold text-muted">최근 검색어</p>
           <div className="flex flex-wrap gap-1.5">
             {recentQueries.map((q) => (
               <span
@@ -119,12 +119,12 @@ export function SearchView({ initialQuery }: SearchViewProps) {
       )}
 
       {!trimmedQuery && recentQueries.length === 0 && (
-        <p className="py-16 text-center text-sm font-content text-foreground/60">
+        <p className="py-16 text-center text-sm font-content text-muted">
           검색어를 입력해주세요.
         </p>
       )}
 
-      {trimmedQuery && isLoading && <p className="text-sm text-foreground/60">검색 중...</p>}
+      {trimmedQuery && isLoading && <p className="text-sm text-muted">검색 중...</p>}
 
       {trimmedQuery && isError && (
         <p className="text-sm text-error">
@@ -134,16 +134,16 @@ export function SearchView({ initialQuery }: SearchViewProps) {
 
       {trimmedQuery && result && result.items.length === 0 && (
         <div className="flex flex-col items-center gap-1 py-16 text-center">
-          <p className="text-sm font-content text-foreground/70">
+          <p className="text-sm font-content text-muted">
             &apos;{trimmedQuery}&apos;에 대한 검색 결과가 없습니다.
           </p>
-          <p className="text-xs font-content text-foreground/50">다른 검색어를 입력해보세요.</p>
+          <p className="text-xs font-content text-muted">다른 검색어를 입력해보세요.</p>
         </div>
       )}
 
       {trimmedQuery && result && result.items.length > 0 && (
         <div className="flex flex-col gap-3">
-          <p className="text-xs text-foreground/50">총 {result.total}개 결과</p>
+          <p className="text-xs text-muted">총 {result.total}개 결과</p>
           {result.items.map((word) => (
             <WordListItem key={word.id} word={word} highlightQuery={trimmedQuery} />
           ))}
@@ -158,7 +158,7 @@ export function SearchView({ initialQuery }: SearchViewProps) {
               >
                 이전
               </Button>
-              <span className="text-sm text-foreground/60">
+              <span className="text-sm text-muted">
                 {page} / {result.totalPages}
               </span>
               <Button

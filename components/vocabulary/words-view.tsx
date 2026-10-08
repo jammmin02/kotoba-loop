@@ -141,7 +141,7 @@ export function WordsView({ initialBookId }: WordsViewProps) {
         <button
           type="button"
           onClick={() => setTagManagerOpen(true)}
-          className="h-10 border-2 border-pixel-ink bg-surface px-3 text-sm font-bold text-foreground/70 shadow-bevel-raised transition hover:bg-background"
+          className="h-10 border-2 border-pixel-ink bg-surface px-3 text-sm font-bold text-muted shadow-bevel-raised transition hover:bg-background"
         >
           태그 관리
         </button>
@@ -166,7 +166,7 @@ export function WordsView({ initialBookId }: WordsViewProps) {
 
       <TagManagerModal open={tagManagerOpen} onClose={() => setTagManagerOpen(false)} />
 
-      {isLoading && <p className="text-sm text-foreground/60">불러오는 중...</p>}
+      {isLoading && <p className="text-sm text-muted">불러오는 중...</p>}
 
       {isError && (
         <p className="text-sm text-error">
@@ -181,7 +181,7 @@ export function WordsView({ initialBookId }: WordsViewProps) {
             <p className="text-lg font-bold text-foreground">
               {hasFilters ? "조건에 맞는 단어가 없어요" : "아직 등록된 단어가 없어요"}
             </p>
-            <p className="text-sm font-content text-foreground/60">
+            <p className="text-sm font-content text-muted">
               첫 단어를 등록하고 학습을 시작해보세요!
             </p>
           </div>
@@ -195,7 +195,7 @@ export function WordsView({ initialBookId }: WordsViewProps) {
       )}
 
       {words && words.length > 0 && visibleWords.length === 0 && (
-        <p className="py-6 text-center text-sm text-foreground/50">검색 결과가 없어요.</p>
+        <p className="py-6 text-center text-sm text-muted">검색 결과가 없어요.</p>
       )}
 
       {visibleWords.length > 0 && (

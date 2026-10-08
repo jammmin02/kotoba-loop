@@ -2,7 +2,7 @@ import { PixelFlame } from "@/components/icons/pixel-icons";
 import { cn } from "@/lib/utils";
 
 function getStreakTierClassName(days: number) {
-  if (days <= 0) return "text-foreground/30";
+  if (days <= 0) return "text-subtle";
   if (days < 3) return "text-warning";
   return "text-accent";
 }
@@ -30,7 +30,7 @@ export function StreakIndicator({ days, freezeCount, className }: StreakIndicato
       <PixelFlame className={cn("size-4", tierClassName)} aria-hidden="true" />
       <span className={cn("text-sm font-bold", tierClassName)}>{clampedDays}일 연속</span>
       {!!freezeCount && freezeCount > 0 && (
-        <span className="text-xs font-bold text-foreground/50">❄️ {freezeCount}개</span>
+        <span className="text-xs font-bold text-muted">❄️ {freezeCount}개</span>
       )}
     </div>
   );

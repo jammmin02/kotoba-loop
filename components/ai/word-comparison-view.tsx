@@ -70,17 +70,17 @@ export function WordComparisonView() {
     <div className="flex w-full max-w-2xl flex-col gap-6">
       <div>
         <h1 className="text-xl font-bold text-foreground">표현 비교</h1>
-        <p className="mt-1 text-sm font-content text-foreground/60">
+        <p className="mt-1 text-sm font-content text-muted">
           헷갈리는 단어를 {COMPARE_WORDS_MIN}~{COMPARE_WORDS_MAX}개 골라 뉘앙스 차이를 비교해봐요.
         </p>
       </div>
 
       <Card className="flex flex-col gap-3">
-        <p className="text-sm font-bold text-foreground/70">
+        <p className="text-sm font-bold text-muted">
           선택한 단어 ({selected.length}/{COMPARE_WORDS_MAX})
         </p>
         {selected.length === 0 ? (
-          <p className="text-sm text-foreground/50">
+          <p className="text-sm text-muted">
             아래에서 단어를 선택하거나 직접 입력해주세요.
           </p>
         ) : (
@@ -95,7 +95,7 @@ export function WordComparisonView() {
                   type="button"
                   onClick={() => removeWord(word)}
                   aria-label={`${word} 선택 해제`}
-                  className="text-foreground/50 hover:text-error"
+                  className="text-muted hover:text-error"
                 >
                   ×
                 </button>
@@ -106,7 +106,7 @@ export function WordComparisonView() {
       </Card>
 
       <Card className="flex flex-col gap-3">
-        <p className="text-sm font-bold text-foreground/70">직접 입력</p>
+        <p className="text-sm font-bold text-muted">직접 입력</p>
         <div className="flex gap-2">
           <input
             value={manualInput}
@@ -134,7 +134,7 @@ export function WordComparisonView() {
       </Card>
 
       <Card className="flex flex-col gap-3">
-        <p className="text-sm font-bold text-foreground/70">내 단어장에서 선택</p>
+        <p className="text-sm font-bold text-muted">내 단어장에서 선택</p>
         <input
           value={pickerQuery}
           onChange={(e) => setPickerQuery(e.target.value)}
@@ -143,11 +143,11 @@ export function WordComparisonView() {
           className={inputClassName}
         />
         {vocabQuery.isLoading ? (
-          <p className="text-sm text-foreground/60">불러오는 중...</p>
+          <p className="text-sm text-muted">불러오는 중...</p>
         ) : vocabQuery.isError ? (
           <p className="text-sm text-error">단어장을 불러오지 못했습니다.</p>
         ) : filteredVocab.length === 0 ? (
-          <p className="text-sm text-foreground/50">표시할 단어가 없어요.</p>
+          <p className="text-sm text-muted">표시할 단어가 없어요.</p>
         ) : (
           <ul className="flex max-h-64 flex-col gap-1.5 overflow-y-auto">
             {filteredVocab.map((word) => (
@@ -160,9 +160,9 @@ export function WordComparisonView() {
                 >
                   <span className="flex items-baseline gap-2">
                     <span className="font-jp font-bold text-foreground">{word.word}</span>
-                    <span className="font-jp text-xs text-foreground/60">{word.reading}</span>
+                    <span className="font-jp text-xs text-muted">{word.reading}</span>
                   </span>
-                  <PixelPlus className="size-3.5 shrink-0 text-foreground/50" aria-hidden="true" />
+                  <PixelPlus className="size-3.5 shrink-0 text-muted" aria-hidden="true" />
                 </button>
               </li>
             ))}
@@ -196,7 +196,7 @@ export function WordComparisonView() {
       {data && (
         <Card title="비교 결과" titleColor="pink" className="flex flex-col gap-4">
           {data.cached && (
-            <span className="w-fit border-2 border-pixel-ink bg-surface px-2 py-0.5 text-xs font-bold text-foreground/60">
+            <span className="w-fit border-2 border-pixel-ink bg-surface px-2 py-0.5 text-xs font-bold text-muted">
               캐시됨
             </span>
           )}
@@ -211,7 +211,7 @@ export function WordComparisonView() {
                 <p className="text-sm font-content text-foreground/80">{item.nuance}</p>
                 <div className="border-2 border-pixel-ink bg-background p-2.5">
                   <p className="font-jp text-sm text-foreground">{item.example.japanese}</p>
-                  <p className="text-xs font-content text-foreground/60">{item.example.korean}</p>
+                  <p className="text-xs font-content text-muted">{item.example.korean}</p>
                 </div>
               </div>
             ))}

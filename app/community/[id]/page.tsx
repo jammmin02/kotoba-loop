@@ -48,14 +48,14 @@ export default async function CommunityBookDetailPage(props: PageProps<"/communi
       <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
         <Link
           href="/community"
-          className="text-sm font-bold text-foreground/60 hover:text-foreground"
+          className="text-sm font-bold text-muted hover:text-foreground"
         >
           ← 커뮤니티 단어장
         </Link>
         <Card className="flex flex-col items-center gap-3 py-10 text-center">
           <PixelLock className="size-12 text-foreground/30" aria-hidden="true" />
           <p className="text-sm font-bold text-foreground">{HIDDEN_BOOK_NAME}</p>
-          <p className="text-xs text-foreground/50">이 단어장은 볼 수 없어요.</p>
+          <p className="text-xs text-muted">이 단어장은 볼 수 없어요.</p>
         </Card>
       </main>
     );
@@ -65,7 +65,7 @@ export default async function CommunityBookDetailPage(props: PageProps<"/communi
     <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
       <Link
         href="/community"
-        className="text-sm font-bold text-foreground/60 hover:text-foreground"
+        className="text-sm font-bold text-muted hover:text-foreground"
       >
         ← 커뮤니티 단어장
       </Link>
@@ -82,7 +82,7 @@ export default async function CommunityBookDetailPage(props: PageProps<"/communi
             <BookEmblem color={toBookColor(book.color) ?? "mint"} />
             <div className="min-w-0 flex-1">
               <h1 className="truncate text-lg font-bold text-foreground">{book.name}</h1>
-              <p className="text-xs text-foreground/50">{book.user.nickname}</p>
+              <p className="text-xs text-muted">{book.user.nickname}</p>
             </div>
             {!isOwner && (
               <div className="flex shrink-0 flex-wrap justify-end gap-2">
@@ -102,15 +102,15 @@ export default async function CommunityBookDetailPage(props: PageProps<"/communi
             </p>
           )}
           {book.description && (
-            <p className="font-content text-sm text-foreground/70">{book.description}</p>
+            <p className="font-content text-sm text-muted">{book.description}</p>
           )}
-          <p className="text-xs text-foreground/50">
+          <p className="text-xs text-muted">
             단어 {book._count.items}개 · {formatKstISOString(book.created_at).slice(0, 10)}
           </p>
         </div>
       </div>
 
-      <h2 className="text-sm font-bold text-foreground/70">단어 목록</h2>
+      <h2 className="text-sm font-bold text-muted">단어 목록</h2>
 
       {words.length === 0 ? (
         <Card className="flex flex-col items-center gap-3 py-10 text-center">
@@ -123,9 +123,9 @@ export default async function CommunityBookDetailPage(props: PageProps<"/communi
             <Card key={word.id} className="flex items-center justify-between gap-2">
               <div className="min-w-0">
                 <p className="font-jp text-base font-bold text-foreground">{word.word}</p>
-                <p className="text-xs text-foreground/50">{word.reading}</p>
+                <p className="text-xs text-muted">{word.reading}</p>
               </div>
-              <p className="truncate text-right text-sm font-content text-foreground/70">
+              <p className="truncate text-right text-sm font-content text-muted">
                 {word.meanings.map((m) => m.meaning).join(", ")}
               </p>
             </Card>

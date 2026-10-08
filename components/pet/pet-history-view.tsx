@@ -31,7 +31,7 @@ export function PetHistoryView() {
   });
 
   if (isLoading) {
-    return <p className="text-sm text-foreground/60">불러오는 중...</p>;
+    return <p className="text-sm text-muted">불러오는 중...</p>;
   }
 
   if (isError || !pets) {
@@ -47,7 +47,7 @@ export function PetHistoryView() {
       <h1 className="text-lg font-extrabold text-foreground">내 펫</h1>
 
       {pets.length === 0 ? (
-        <p className="text-sm text-foreground/60">
+        <p className="text-sm text-muted">
           아직 키우는 펫이 없어요. 홈 화면에서 펫을 선택해보세요.
         </p>
       ) : (
@@ -69,7 +69,7 @@ export function PetHistoryView() {
                     )}
                     {pet.isGraduated && <span className="text-xs font-bold text-accent">졸업</span>}
                   </div>
-                  <p className="text-xs text-foreground/60">
+                  <p className="text-xs text-muted">
                     {PET_STAGE_LABELS[pet.stage]} · {formatDate(pet.startedAt)} 시작
                     {pet.graduatedAt && ` · ${formatDate(pet.graduatedAt)} 졸업`}
                   </p>

@@ -29,7 +29,7 @@ export function BarChart({
     <figure className="flex flex-col gap-2">
       <figcaption className="flex items-baseline justify-between gap-2 text-xs">
         <span className="font-bold">{title}</span>
-        <span className="text-foreground/60">
+        <span className="text-muted">
           합계 {total.toLocaleString("ko-KR")}
           {unit}
         </span>
@@ -52,7 +52,7 @@ export function BarChart({
           </div>
         ))}
       </div>
-      <div className="flex justify-between text-[10px] text-foreground/50">
+      <div className="flex justify-between text-[10px] text-muted">
         <span>{first}</span>
         <span>{last}</span>
       </div>

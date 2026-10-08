@@ -97,7 +97,7 @@ export function InstallPromptBanner() {
         <PixelDownload className="mt-0.5 size-6 shrink-0 text-primary" aria-hidden="true" />
         <div className="flex-1">
           <p className="text-sm font-bold text-foreground">홈 화면에 추가</p>
-          <p className="mt-1 text-xs font-content text-foreground/70">
+          <p className="mt-1 text-xs font-content text-muted">
             {isIOS && !installEvent
               ? "공유 버튼을 누르고 '홈 화면에 추가'를 선택하면 앱처럼 사용할 수 있어요."
               : "홈 화면에 추가하면 앱처럼 빠르게 열 수 있어요."}
@@ -112,7 +112,7 @@ export function InstallPromptBanner() {
           type="button"
           onClick={dismiss}
           aria-label="설치 안내 닫기"
-          className="shrink-0 text-foreground/50 transition hover:text-foreground"
+          className="shrink-0 text-muted transition hover:text-foreground"
         >
           <PixelX className="size-4" aria-hidden="true" />
         </button>

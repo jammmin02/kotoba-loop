@@ -95,7 +95,7 @@ export function Toaster() {
               type="button"
               onClick={() => dismiss(item.id)}
               aria-label="알림 닫기"
-              className="px-2.5 text-foreground/50 transition hover:text-foreground"
+              className="px-2.5 text-muted transition hover:text-foreground"
             >
               <PixelX className="size-4" aria-hidden="true" />
             </button>

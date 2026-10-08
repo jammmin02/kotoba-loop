@@ -178,13 +178,13 @@ export function KanjiPracticeView() {
         <div className="flex flex-col gap-4 border-t-2 border-pixel-ink p-4">
           {mode === "fullRandom" && (
             <div className="flex flex-col gap-2">
-              <p className="text-sm leading-relaxed text-foreground/70">
+              <p className="text-sm leading-relaxed text-muted">
                 지금까지 한 번이라도 리뷰한 한자
                 {poolQuery.isLoading ? "" : ` (총 ${poolItems.length}자)`} 중에서 완전히 무작위로
                 뽑아요. 아직 배우지 않은 한자는 오늘의 학습에서 순서대로 만나요.
               </p>
               {!poolQuery.isLoading && poolItems.length === 0 && (
-                <p className="text-sm text-foreground/50">
+                <p className="text-sm text-muted">
                   아직 리뷰한 한자가 없어요. 오늘의 학습을 먼저 시작해보세요!
                 </p>
               )}
@@ -214,7 +214,7 @@ export function KanjiPracticeView() {
                       "-mb-0.5 border-b-2 px-3 py-1.5 text-sm font-bold transition",
                       axis === t.key
                         ? "border-primary text-primary"
-                        : "border-transparent text-foreground/50 hover:text-foreground",
+                        : "border-transparent text-muted hover:text-foreground",
                     )}
                   >
                     {t.label}
@@ -249,18 +249,18 @@ export function KanjiPracticeView() {
               )}
 
               {!poolEnabled && (
-                <p className="text-xs text-foreground/50">먼저 학년이나 JLPT 급수를 골라주세요.</p>
+                <p className="text-xs text-muted">먼저 학년이나 JLPT 급수를 골라주세요.</p>
               )}
               {poolEnabled && poolQuery.isLoading && (
-                <p className="text-xs text-foreground/50">불러오는 중...</p>
+                <p className="text-xs text-muted">불러오는 중...</p>
               )}
               {poolEnabled && !poolQuery.isLoading && poolItems.length > 0 && (
-                <p className="text-xs text-foreground/50">
+                <p className="text-xs text-muted">
                   지금까지 리뷰한 한자 중 지금 조건: 약 {poolItems.length}자
                 </p>
               )}
               {poolEnabled && !poolQuery.isLoading && poolItems.length === 0 && (
-                <p className="text-xs text-foreground/50">
+                <p className="text-xs text-muted">
                   이 조건에서 아직 리뷰한 한자가 없어요. 오늘의 학습을 먼저 시작해보세요!
                 </p>
               )}
@@ -270,19 +270,19 @@ export function KanjiPracticeView() {
           {mode === "custom" && (
             <div className="flex flex-col gap-3">
               <div className="flex h-11 items-center gap-2 border-2 border-pixel-ink bg-background px-3 shadow-bevel-sunken focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary">
-                <PixelSearch className="size-4 shrink-0 text-foreground/50" aria-hidden="true" />
+                <PixelSearch className="size-4 shrink-0 text-muted" aria-hidden="true" />
                 <input
                   type="search"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="한자, 뜻, 읽기로 검색"
                   aria-label="한자 검색어"
-                  className="h-full w-full min-w-0 bg-transparent font-jp text-sm text-foreground placeholder:text-foreground/40 focus:outline-none"
+                  className="h-full w-full min-w-0 bg-transparent font-jp text-sm text-foreground placeholder:text-muted focus:outline-none"
                 />
               </div>
 
               <div className="flex items-center justify-between gap-2">
-                <span className="text-xs text-foreground/60">
+                <span className="text-xs text-muted">
                   직접 고르거나 즐겨찾기에서 골라보세요
                 </span>
                 <ChipButton
@@ -296,15 +296,15 @@ export function KanjiPracticeView() {
               </div>
 
               {!poolEnabled && (
-                <p className="py-4 text-center text-sm text-foreground/50">
+                <p className="py-4 text-center text-sm text-muted">
                   검색하거나 즐겨찾기만 보기를 켜면 여기에 한자가 나와요.
                 </p>
               )}
               {poolEnabled && poolQuery.isLoading && (
-                <p className="text-sm text-foreground/60">불러오는 중...</p>
+                <p className="text-sm text-muted">불러오는 중...</p>
               )}
               {poolEnabled && !poolQuery.isLoading && poolItems.length === 0 && (
-                <p className="py-4 text-center text-sm text-foreground/50">
+                <p className="py-4 text-center text-sm text-muted">
                   조건에 맞는 한자가 없어요.
                 </p>
               )}
@@ -345,7 +345,7 @@ export function KanjiPracticeView() {
                 </div>
               )}
               {poolItems.length > CUSTOM_GRID_LIMIT && (
-                <p className="text-xs text-foreground/50">
+                <p className="text-xs text-muted">
                   검색 결과가 {poolItems.length}자예요 · 검색어를 더 좁혀보세요
                 </p>
               )}
@@ -405,8 +405,8 @@ export function KanjiPracticeView() {
           )}
 
           <div className="flex items-start gap-2 border-2 border-dashed border-pixel-ink/40 bg-background/60 p-2.5">
-            <PixelInfo className="mt-0.5 size-3.5 shrink-0 text-foreground/50" aria-hidden="true" />
-            <p className="text-xs leading-relaxed text-foreground/60">
+            <PixelInfo className="mt-0.5 size-3.5 shrink-0 text-muted" aria-hidden="true" />
+            <p className="text-xs leading-relaxed text-muted">
               이 연습 문제도 정답/오답이 학습 상태(취약 한자 판정 등)에 그대로 반영돼요.
             </p>
           </div>

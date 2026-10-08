@@ -114,14 +114,14 @@ export function SentencePracticeCard({ vocabularyId, initialSentence }: Sentence
       {hasSavedSentence && (
         <div className="flex flex-col gap-1.5 border-t border-pixel-ink/20 pt-2 text-sm">
           {feedbackMutation.isPending && (
-            <p className="flex items-center gap-1.5 text-foreground/60">
+            <p className="flex items-center gap-1.5 text-muted">
               <PixelSpinner className="size-3.5 animate-spin" aria-hidden="true" />
               AI 첨삭을 확인하는 중...
             </p>
           )}
           {feedbackMutation.isError && (
             <div className="flex items-center justify-between gap-2">
-              <p className="text-foreground/60">
+              <p className="text-muted">
                 {feedbackMutation.error instanceof ApiClientError
                   ? feedbackMutation.error.message
                   : "AI 첨삭을 불러오지 못했습니다."}
@@ -143,7 +143,7 @@ export function SentencePracticeCard({ vocabularyId, initialSentence }: Sentence
                   첨삭: <span className="font-jp">{feedbackMutation.data.result.corrected}</span>
                 </p>
               )}
-              <p className="text-foreground/60">{feedbackMutation.data.result.explanation}</p>
+              <p className="text-muted">{feedbackMutation.data.result.explanation}</p>
               {!feedbackMutation.data.result.isAlreadyNatural && (
                 <div className="mt-0.5 flex items-center gap-4">
                   <button

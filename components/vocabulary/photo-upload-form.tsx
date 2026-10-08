@@ -301,7 +301,7 @@ export function PhotoUploadForm() {
               />
               <div className="flex flex-col gap-0.5">
                 <p className="text-sm font-bold text-foreground">텍스트를 추출하고 있어요</p>
-                <p className="text-xs font-content text-foreground/60">
+                <p className="text-xs font-content text-muted">
                   사진 크기와 글자 수에 따라 최대 1분 정도 걸릴 수 있어요.
                 </p>
               </div>
@@ -337,7 +337,7 @@ export function PhotoUploadForm() {
           <PixelCheck className="size-10 text-success" aria-hidden="true" />
           <div className="flex flex-col gap-1">
             <p className="text-lg font-bold text-foreground">텍스트 추출이 완료됐어요</p>
-            <p className="text-sm font-content text-foreground/60">
+            <p className="text-sm font-content text-muted">
               다음 단계에서 AI가 오류를 교정하고 단어를 찾아드려요.
             </p>
           </div>

@@ -65,7 +65,7 @@ function StatTile({
 }) {
   return (
     <div className={cn(cardVariants(), "flex flex-col gap-1 p-3")}>
-      <span className="text-xs font-bold text-foreground/60">{label}</span>
+      <span className="text-xs font-bold text-muted">{label}</span>
       <span className={cn("text-2xl font-extrabold text-foreground", accentClassName)}>
         {value}
       </span>
@@ -82,7 +82,7 @@ export function StatsSummaryView() {
   const animatedTotal = useCountUp(data?.words.total ?? 0);
 
   if (isLoading) {
-    return <p className="text-sm text-foreground/60">불러오는 중...</p>;
+    return <p className="text-sm text-muted">불러오는 중...</p>;
   }
 
   if (isError || !data) {
@@ -106,7 +106,7 @@ export function StatsSummaryView() {
           label="학습 완료 비율"
         />
         <div className="flex flex-col gap-1">
-          <span className="text-xs font-bold text-foreground/60">총 등록 단어</span>
+          <span className="text-xs font-bold text-muted">총 등록 단어</span>
           <span className="text-4xl font-extrabold text-foreground">{animatedTotal}개</span>
         </div>
       </Card>
@@ -121,15 +121,15 @@ export function StatsSummaryView() {
       <Card title="기간별 학습량" titleColor="mint">
         <div className="grid grid-cols-3 gap-3 text-center">
           <div className="flex flex-col gap-1">
-            <span className="text-xs font-bold text-foreground/60">오늘</span>
+            <span className="text-xs font-bold text-muted">오늘</span>
             <span className="text-2xl font-extrabold text-foreground">{studyCounts.today}</span>
           </div>
           <div className="flex flex-col gap-1">
-            <span className="text-xs font-bold text-foreground/60">이번 주</span>
+            <span className="text-xs font-bold text-muted">이번 주</span>
             <span className="text-2xl font-extrabold text-foreground">{studyCounts.week}</span>
           </div>
           <div className="flex flex-col gap-1">
-            <span className="text-xs font-bold text-foreground/60">이번 달</span>
+            <span className="text-xs font-bold text-muted">이번 달</span>
             <span className="text-2xl font-extrabold text-foreground">{studyCounts.month}</span>
           </div>
         </div>

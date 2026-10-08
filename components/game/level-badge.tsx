@@ -31,7 +31,7 @@ export function LevelBadge({
         className,
       )}
     >
-      <span className="text-[0.5em] leading-none font-medium text-foreground/50">Lv.</span>
+      <span className="text-[0.5em] leading-none font-medium text-muted">Lv.</span>
       <span className="leading-none">{level}</span>
     </div>
   );

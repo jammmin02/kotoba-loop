@@ -81,7 +81,7 @@ function SettingsForm({ settings }: { settings: AdminSettings }) {
           rows={3}
           onChange={(e) => setMessage(e.target.value)}
         />
-        <p className="text-xs text-foreground/50">
+        <p className="text-xs text-muted">
           켜면 관리자를 제외한 모든 사용자가 점검 안내 화면을 봅니다. 로그인 화면은 계속 열려 있어
           관리자가 로그인할 수 있습니다. 설정 변경은 몇 초 안에 반영됩니다.
         </p>
@@ -98,7 +98,7 @@ function SettingsForm({ settings }: { settings: AdminSettings }) {
 
       <section className="flex flex-col gap-3 border-t-2 border-pixel-ink pt-4">
         <h2 className="text-base font-bold">허용 이메일 도메인</h2>
-        <p className="text-xs text-foreground/50">
+        <p className="text-xs text-muted">
           새로 가입할 수 있는 이메일 도메인입니다. 이미 가입한 계정에는 영향이 없습니다.
         </p>
         <ul className="flex flex-wrap gap-2">
@@ -185,7 +185,7 @@ export function AdminSettingsView() {
       className="flex flex-col gap-6 p-4"
     >
       <h1 className="text-lg font-bold">운영 설정</h1>
-      {isLoading && <p className="text-sm text-foreground/60">불러오는 중...</p>}
+      {isLoading && <p className="text-sm text-muted">불러오는 중...</p>}
       {isError && (
         <p role="alert" className="text-sm text-error">
           {error instanceof ApiClientError ? error.message : "불러오지 못했습니다."}

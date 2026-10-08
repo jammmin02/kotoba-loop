@@ -18,7 +18,7 @@ function shortDate(key: string): string {
 function Counter({ label, value }: { label: string; value: number }) {
   return (
     <div className="flex flex-col items-center gap-1 border-2 border-pixel-ink bg-background p-3">
-      <span className="text-xs font-bold text-foreground/60">{label}</span>
+      <span className="text-xs font-bold text-muted">{label}</span>
       <span className="text-2xl font-bold">{value.toLocaleString("ko-KR")}</span>
     </div>
   );
@@ -40,7 +40,7 @@ export function AdminStatsView() {
     >
       <h1 className="text-lg font-bold">운영 통계</h1>
 
-      {isLoading && <p className="text-sm text-foreground/60">불러오는 중...</p>}
+      {isLoading && <p className="text-sm text-muted">불러오는 중...</p>}
       {isError && (
         <p role="alert" className="text-sm text-error">
           {error instanceof ApiClientError ? error.message : "불러오지 못했습니다."}
@@ -84,7 +84,7 @@ export function AdminStatsView() {
 
           <section className="flex flex-col gap-3 border-t-2 border-pixel-ink pt-4">
             <h2 className="text-base font-bold">학습 활성 사용자</h2>
-            <p className="text-xs text-foreground/50">퀴즈·복습 기록이 있는 사용자 기준입니다.</p>
+            <p className="text-xs text-muted">퀴즈·복습 기록이 있는 사용자 기준입니다.</p>
             <div className="grid grid-cols-3 gap-3">
               <Counter label="최근 24시간" value={data.active.today} />
               <Counter label="최근 7일" value={data.active.last7} />

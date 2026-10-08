@@ -56,7 +56,7 @@ const FILL_BUTTON_CLASS =
   "flex items-center gap-1 text-xs font-bold text-primary hover:underline disabled:pointer-events-none disabled:opacity-40";
 const ADD_BUTTON_CLASS = "flex items-center gap-1 text-xs font-bold text-primary hover:underline";
 const REMOVE_BUTTON_CLASS =
-  "flex size-9 shrink-0 items-center justify-center border-2 border-pixel-ink bg-surface text-foreground/60 shadow-bevel-raised transition hover:bg-background";
+  "flex size-9 shrink-0 items-center justify-center border-2 border-pixel-ink bg-surface text-muted shadow-bevel-raised transition hover:bg-background";
 
 export function isWordNotFound(err: unknown): err is ApiClientError {
   return err instanceof ApiClientError && err.code === "WORD_NOT_FOUND";
@@ -331,7 +331,7 @@ export function WordFields({
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <p className="text-sm font-bold text-foreground">✨ AI로 전체 자동 완성</p>
-              <p className="text-xs text-foreground/70">
+              <p className="text-xs text-muted">
                 단어만 입력하면 읽기 · 품사 · JLPT · 뜻 · 예문 · 관련 표현까지 한 번에 채워드려요
               </p>
             </div>
@@ -348,7 +348,7 @@ export function WordFields({
             </Button>
           </div>
           {analyzing && (
-            <p role="status" className="text-xs text-foreground/50">
+            <p role="status" className="text-xs text-muted">
               AI가 분석하고 있어요. 최대 30초 정도 걸릴 수 있어요.
             </p>
           )}
@@ -484,7 +484,7 @@ export function WordFields({
           </div>
         </div>
         {draft.examples.length === 0 && (
-          <p className="text-xs text-foreground/50">선택 사항이에요. 필요하면 추가해보세요.</p>
+          <p className="text-xs text-muted">선택 사항이에요. 필요하면 추가해보세요.</p>
         )}
         {draft.examples.map((example, index) => (
           <div key={index} className="flex flex-col gap-1">
@@ -537,7 +537,7 @@ export function WordFields({
           </div>
         </div>
         {draft.relatedExpressions.length === 0 && (
-          <p className="text-xs text-foreground/50">
+          <p className="text-xs text-muted">
             선택 사항이에요. 유사어·반대말·파생어처럼 이 단어와 관계된 표현을 추가해보세요.
           </p>
         )}
@@ -595,7 +595,7 @@ export function WordFields({
       >
         <div className="flex flex-col gap-4">
           <p className="text-sm text-foreground">{notFound?.message}</p>
-          <p className="text-xs text-foreground/60">
+          <p className="text-xs text-muted">
             단어를 고쳐 다시 분석하거나, 그대로 직접 입력해 등록할 수도 있어요.
           </p>
           <div className="flex flex-wrap justify-end gap-2">
@@ -620,7 +620,7 @@ export function WordFields({
           <p className="text-sm text-foreground">
             직접 입력한 <b>{overwriteSections.join(", ")}</b>이(가) AI 결과로 바뀌어요.
           </p>
-          <p className="text-xs text-foreground/60">
+          <p className="text-xs text-muted">
             바꾸지 않으려면 취소하고, 비어 있는 항목만 직접 채워도 돼요.
           </p>
           <div className="flex justify-end gap-2">

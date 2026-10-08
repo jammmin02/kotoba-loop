@@ -51,7 +51,7 @@ export function FavoriteButton({ vocabularyId, isFavorite, className }: Favorite
       aria-label={favorite ? "즐겨찾기 해제" : "즐겨찾기 추가"}
       className={cn(
         "flex shrink-0 items-center justify-center transition hover:scale-110",
-        favorite ? "text-warning" : "text-foreground/25 hover:text-foreground/50",
+        favorite ? "text-warning" : "text-subtle hover:text-muted",
         className,
       )}
     >

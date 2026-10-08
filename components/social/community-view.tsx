@@ -69,7 +69,7 @@ export function CommunityView({ initialSort, initialUserId, initialNickname }: C
       <div className="flex flex-col gap-1">
         <h1 className="text-xl font-bold text-foreground">커뮤니티 단어장</h1>
         {userId && (
-          <div className="flex items-center gap-2 text-sm text-foreground/60">
+          <div className="flex items-center gap-2 text-sm text-muted">
             <span>{nickname ? `${nickname}님의 공개 단어장` : "필터링된 공개 단어장"}</span>
             <button
               type="button"
@@ -91,7 +91,7 @@ export function CommunityView({ initialSort, initialUserId, initialNickname }: C
         </ChipButton>
       </div>
 
-      {isLoading && <p className="text-sm text-foreground/60">불러오는 중...</p>}
+      {isLoading && <p className="text-sm text-muted">불러오는 중...</p>}
 
       {isError && (
         <p className="text-sm text-error">
@@ -102,13 +102,13 @@ export function CommunityView({ initialSort, initialUserId, initialNickname }: C
       {data && data.items.length === 0 && (
         <Card variant="elevated" className="flex flex-col items-center gap-3 py-12 text-center">
           <PixelGlobe className="size-12 text-foreground/30" aria-hidden="true" />
-          <p className="text-sm font-content text-foreground/60">아직 공개된 단어장이 없어요.</p>
+          <p className="text-sm font-content text-muted">아직 공개된 단어장이 없어요.</p>
         </Card>
       )}
 
       {data && data.items.length > 0 && (
         <div className="flex flex-col gap-4">
-          <p className="text-xs text-foreground/50">총 {data.total}개</p>
+          <p className="text-xs text-muted">총 {data.total}개</p>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {data.items.map((book, index) => (
@@ -138,16 +138,16 @@ export function CommunityView({ initialSort, initialUserId, initialNickname }: C
                       <BookEmblem color={slotColorForBook(book.color, index)} />
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-base font-bold text-foreground">{book.name}</p>
-                        <p className="text-xs text-foreground/50">{book.ownerNickname}</p>
+                        <p className="text-xs text-muted">{book.ownerNickname}</p>
                       </div>
                     </div>
                     {book.description && (
-                      <p className="line-clamp-2 text-sm font-content text-foreground/60">
+                      <p className="line-clamp-2 text-sm font-content text-muted">
                         {book.description}
                       </p>
                     )}
                     {!book.hidden && (
-                      <div className="mt-auto flex items-center justify-between gap-2 text-xs text-foreground/50">
+                      <div className="mt-auto flex items-center justify-between gap-2 text-xs text-muted">
                         <span>단어 {book.wordCount}개</span>
                         <span>{formatDate(book.createdAt)}</span>
                       </div>
@@ -168,7 +168,7 @@ export function CommunityView({ initialSort, initialUserId, initialNickname }: C
               >
                 이전
               </Button>
-              <span className="text-sm text-foreground/60">
+              <span className="text-sm text-muted">
                 {page} / {data.totalPages}
               </span>
               <Button

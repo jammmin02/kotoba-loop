@@ -31,7 +31,7 @@ export function AchievementBadge({ title, category, locked, className }: Achieve
         className={cn(
           "flex size-12 items-center justify-center rounded-full border-2 border-pixel-ink",
           locked
-            ? "bg-foreground/10 text-foreground/40"
+            ? "bg-foreground/10 text-subtle"
             : "bg-accent text-accent-foreground shadow-pixel-sm",
         )}
       >

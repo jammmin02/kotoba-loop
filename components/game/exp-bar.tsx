@@ -17,7 +17,7 @@ export function ExpBar({ currentExp, requiredExp, className }: ExpBarProps) {
   return (
     <div className={cn("flex flex-col gap-1", className)}>
       <ProgressBar value={clampedCurrent} max={safeRequired} />
-      <p className="text-xs font-bold text-foreground/60">
+      <p className="text-xs font-bold text-muted">
         {clampedCurrent} / {safeRequired} EXP · 다음 레벨까지 {remaining} EXP
       </p>
     </div>

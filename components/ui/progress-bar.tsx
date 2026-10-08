@@ -13,7 +13,7 @@ export function ProgressBar({ value, max = 100, label, className }: ProgressBarP
   return (
     <div className={cn("flex flex-col gap-1", className)}>
       {label && (
-        <div className="flex items-center justify-between text-xs font-bold text-foreground/70">
+        <div className="flex items-center justify-between text-xs font-bold text-muted">
           <span>{label}</span>
           <span>{Math.round(percent)}%</span>
         </div>

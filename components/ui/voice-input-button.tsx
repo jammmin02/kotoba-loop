@@ -72,8 +72,8 @@ export function VoiceInputButton({ onResult, lang = "ja-JP", className }: VoiceI
         <div className="flex flex-col items-center gap-4 text-center">
           {status === "idle" && (
             <>
-              <PixelMic className="size-10 text-foreground/60" aria-hidden="true" />
-              <p className="text-sm text-foreground/70">
+              <PixelMic className="size-10 text-muted" aria-hidden="true" />
+              <p className="text-sm text-muted">
                 마이크로 단어를 말하면 자동으로 입력돼요. 시작하면 브라우저가 마이크 사용 권한을
                 물어볼 수 있어요.
               </p>
@@ -122,7 +122,7 @@ export function VoiceInputButton({ onResult, lang = "ja-JP", className }: VoiceI
           {status === "error" && (
             <>
               <PixelMic className="size-10 text-error" aria-hidden="true" />
-              <p className="text-sm text-foreground/70">{ERROR_MESSAGES[errorReason ?? "other"]}</p>
+              <p className="text-sm text-muted">{ERROR_MESSAGES[errorReason ?? "other"]}</p>
               <Button type="button" onClick={start} className="w-full">
                 다시 시도
               </Button>

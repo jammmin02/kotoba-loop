@@ -32,15 +32,15 @@ function WrongNoteRow({ item }: { item: WrongNoteItem }) {
         <Link href={`/words/${item.vocabularyId}`} className="flex min-w-0 flex-1 flex-col gap-1">
           <div className="flex items-baseline gap-2">
             <span className="font-jp text-lg font-bold text-foreground">{item.word}</span>
-            <span className="font-jp text-sm text-foreground/60">{item.reading}</span>
+            <span className="font-jp text-sm text-muted">{item.reading}</span>
           </div>
-          <p className="truncate text-sm font-content text-foreground/60">
+          <p className="truncate text-sm font-content text-muted">
             {item.meanings.join(", ")}
           </p>
         </Link>
         <StatusBadge status={item.learningStatus} className="shrink-0" />
       </div>
-      <div className="flex flex-wrap items-center justify-between gap-1 border-t-2 border-pixel-ink pt-2 text-xs text-foreground/60">
+      <div className="flex flex-wrap items-center justify-between gap-1 border-t-2 border-pixel-ink pt-2 text-xs text-muted">
         <span>
           총 {item.totalCount}문제 · 정답 {item.correctCount} · 오답{" "}
           <span className="font-bold text-error">{item.wrongCount}</span> · 정답률{" "}
@@ -99,7 +99,7 @@ export function WrongNotesView() {
       </div>
 
       {isLoading ? (
-        <p className="text-sm text-foreground/60">불러오는 중...</p>
+        <p className="text-sm text-muted">불러오는 중...</p>
       ) : isError ? (
         <p className="text-sm text-error">
           {error instanceof ApiClientError ? error.message : "오답노트를 불러오지 못했습니다."}
@@ -114,7 +114,7 @@ export function WrongNotesView() {
           <p className="text-lg font-bold text-foreground">
             {period === "week" ? "이번 주 오답이 없어요!" : "오답이 없어요!"}
           </p>
-          <p className="text-sm font-content text-foreground/60">
+          <p className="text-sm font-content text-muted">
             꾸준히 학습하고 있네요. 이대로 계속해봐요.
           </p>
           <Link href="/" className={cn(buttonVariants({ variant: "outline" }))}>

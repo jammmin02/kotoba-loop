@@ -17,7 +17,7 @@ export default async function LoginPage({
       <OAuthErrorToast error={error} />
       <div className="flex flex-col gap-1 text-center">
         <h1 className="text-xl font-bold text-foreground">로그인</h1>
-        <p className="text-sm font-content text-foreground/60">
+        <p className="text-sm font-content text-muted">
           kotoba-loop에서 일본어 학습을 이어가세요.
         </p>
       </div>
@@ -26,13 +26,13 @@ export default async function LoginPage({
 
       <div className="flex items-center gap-3">
         <div className="h-0.5 flex-1 bg-pixel-ink" />
-        <span className="text-xs font-bold text-foreground/50">또는</span>
+        <span className="text-xs font-bold text-muted">또는</span>
         <div className="h-0.5 flex-1 bg-pixel-ink" />
       </div>
 
       <GoogleSignInButton callbackUrl={callbackUrl} />
 
-      <p className="text-center text-sm text-foreground/60">
+      <p className="text-center text-sm text-muted">
         계정이 없으신가요?{" "}
         <Link href="/register" className="font-medium text-primary hover:underline">
           회원가입

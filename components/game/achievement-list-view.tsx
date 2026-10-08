@@ -23,7 +23,7 @@ export function AchievementListView() {
   });
 
   if (isLoading) {
-    return <p className="text-sm text-foreground/60">불러오는 중...</p>;
+    return <p className="text-sm text-muted">불러오는 중...</p>;
   }
 
   if (isError || !data) {
@@ -42,12 +42,12 @@ export function AchievementListView() {
       <h1 className="text-lg font-extrabold text-foreground">업적</h1>
 
       <section className="flex flex-col gap-2">
-        <h2 className="text-sm font-bold text-foreground/70">단어 업적</h2>
+        <h2 className="text-sm font-bold text-muted">단어 업적</h2>
         <CollectionGrid items={toCollectionItems(wordAchievements)} />
       </section>
 
       <section className="flex flex-col gap-2">
-        <h2 className="text-sm font-bold text-foreground/70">한자 업적</h2>
+        <h2 className="text-sm font-bold text-muted">한자 업적</h2>
         <CollectionGrid items={toCollectionItems(kanjiAchievements)} />
       </section>
     </div>

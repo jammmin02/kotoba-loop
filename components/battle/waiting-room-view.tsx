@@ -20,7 +20,7 @@ export function WaitingRoomView({ room, currentUserId, onStart, starting }: Wait
     <div className="flex w-full max-w-md flex-col gap-6">
       <Card variant="elevated" title="대기실" className="flex flex-col gap-2">
         <p className="text-sm font-bold text-foreground">{room.bookName}</p>
-        <p className="text-xs text-foreground/60">
+        <p className="text-xs text-muted">
           방 코드 <span className="font-mono text-sm font-bold text-primary">{room.roomCode}</span>
           를 친구에게 공유해서 초대하세요.
         </p>
@@ -54,7 +54,7 @@ export function WaitingRoomView({ room, currentUserId, onStart, starting }: Wait
           {canStart ? "대결 시작" : `참가자 ${BATTLE_MIN_PARTICIPANTS}명 이상 필요해요`}
         </Button>
       ) : (
-        <p className="text-center text-sm text-foreground/60">방장이 시작하기를 기다리는 중...</p>
+        <p className="text-center text-sm text-muted">방장이 시작하기를 기다리는 중...</p>
       )}
     </div>
   );

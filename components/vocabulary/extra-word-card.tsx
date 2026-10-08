@@ -49,12 +49,12 @@ export function ExtraWordCard({
           aria-label={entry.expanded ? "카드 접기" : "카드 펼치기"}
           className="flex min-h-11 min-w-0 flex-1 items-center gap-2 text-left"
         >
-          <span className="text-xs font-bold text-foreground/60" aria-hidden="true">
+          <span className="text-xs font-bold text-muted" aria-hidden="true">
             {entry.expanded ? "▾" : "▸"}
           </span>
           <span className="shrink-0 text-sm font-medium text-foreground">단어 {index + 2}</span>
           {!entry.expanded && (
-            <span className="min-w-0 flex-1 truncate text-sm text-foreground/70">
+            <span className="min-w-0 flex-1 truncate text-sm text-muted">
               {entry.word || "(단어 없음)"}
               {summaryMeaning ? ` — ${summaryMeaning}` : ""}
             </span>
@@ -67,7 +67,7 @@ export function ExtraWordCard({
           type="button"
           onClick={onRemove}
           aria-label="추가 단어 삭제"
-          className="flex size-11 shrink-0 items-center justify-center border-2 border-pixel-ink bg-surface text-foreground/60 shadow-bevel-raised transition hover:bg-background"
+          className="flex size-11 shrink-0 items-center justify-center border-2 border-pixel-ink bg-surface text-muted shadow-bevel-raised transition hover:bg-background"
         >
           <PixelX className="size-3.5" aria-hidden="true" />
         </button>

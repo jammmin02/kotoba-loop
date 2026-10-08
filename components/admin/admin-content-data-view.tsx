@@ -83,7 +83,7 @@ function VocabularyEditModal({ row, onClose }: { row: AdminVocabularyRow; onClos
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-xs text-foreground/60">
+      <p className="text-xs text-muted">
         단어는 모든 사용자가 공유합니다. 수정하면 전체에 반영됩니다.
       </p>
       <Input label="단어" value={word} onChange={(e) => setWord(e.target.value)} />
@@ -155,7 +155,7 @@ function KanjiEditModal({ row, onClose }: { row: AdminKanjiRow; onClose: () => v
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-xs text-foreground/60">글자({row.character}) 자체는 바꿀 수 없습니다.</p>
+      <p className="text-xs text-muted">글자({row.character}) 자체는 바꿀 수 없습니다.</p>
       <Input
         label="음독 (쉼표로 구분)"
         value={onyomi}
@@ -268,14 +268,14 @@ export function AdminContentDataView() {
         </Button>
       </form>
 
-      {isLoading && <p className="text-sm text-foreground/60">불러오는 중...</p>}
+      {isLoading && <p className="text-sm text-muted">불러오는 중...</p>}
       {isError && (
         <p role="alert" className="text-sm text-error">
           {error instanceof ApiClientError ? error.message : "불러오지 못했습니다."}
         </p>
       )}
       {data && data.rows.length === 0 && (
-        <p className="text-sm text-foreground/60">검색 결과가 없습니다.</p>
+        <p className="text-sm text-muted">검색 결과가 없습니다.</p>
       )}
 
       {data && data.rows.length > 0 && (
@@ -286,9 +286,9 @@ export function AdminContentDataView() {
                   <div className="min-w-0 flex-1">
                     <p className="font-jp text-base font-bold">
                       {v.word}{" "}
-                      <span className="text-xs font-normal text-foreground/60">{v.reading}</span>
+                      <span className="text-xs font-normal text-muted">{v.reading}</span>
                     </p>
-                    <p className="truncate text-xs text-foreground/70">
+                    <p className="truncate text-xs text-muted">
                       {v.partOfSpeech} · {v.meanings.join(", ")}
                     </p>
                   </div>
@@ -309,7 +309,7 @@ export function AdminContentDataView() {
                     <p className="truncate text-sm font-bold">
                       {k.meaning} · {k.koreanReading}
                     </p>
-                    <p className="truncate text-xs text-foreground/70">
+                    <p className="truncate text-xs text-muted">
                       음 {k.onyomi.join("・") || "-"} / 훈 {k.kunyomi.join("・") || "-"} ·{" "}
                       {k.strokeCount}획
                     </p>

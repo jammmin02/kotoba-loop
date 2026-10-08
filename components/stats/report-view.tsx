@@ -22,7 +22,7 @@ const KIND_OPTIONS: { key: ReportKind; label: string }[] = [
 function StatTile({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-1 border-2 border-pixel-ink bg-surface p-3">
-      <span className="text-xs font-bold text-foreground/60">{label}</span>
+      <span className="text-xs font-bold text-muted">{label}</span>
       <span className="text-xl font-extrabold text-foreground">{value}</span>
     </div>
   );
@@ -59,7 +59,7 @@ export function ReportView() {
               "border-2 px-3 py-1.5 text-sm font-bold transition",
               kind === option.key
                 ? "border-pixel-ink bg-primary text-primary-foreground shadow-bevel-sunken"
-                : "border-pixel-ink bg-surface text-foreground/70 hover:bg-background",
+                : "border-pixel-ink bg-surface text-muted hover:bg-background",
             )}
           >
             {option.label}
@@ -87,7 +87,7 @@ export function ReportView() {
         </Button>
       </div>
 
-      {isLoading && <p className="text-sm text-foreground/60">불러오는 중...</p>}
+      {isLoading && <p className="text-sm text-muted">불러오는 중...</p>}
 
       {isError && !isLoading && (
         <p className="text-sm text-error">
@@ -97,7 +97,7 @@ export function ReportView() {
 
       {data && !data.hasActivityData && (
         <Card title="리포트" titleColor="mint">
-          <p className="text-sm text-foreground/60">
+          <p className="text-sm text-muted">
             이 기간에는 학습 기록이 없어요. 학습을 시작하면 다음 리포트부터 수치가 채워집니다.
           </p>
         </Card>
@@ -126,14 +126,14 @@ export function ReportView() {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-foreground/60">
+                <p className="text-sm text-muted">
                   아직 데이터가 더 필요해요. 문제를 조금 더 풀면 유형별 정답률이 표시됩니다.
                 </p>
               )}
 
               {data.weakKanji.length > 0 && (
                 <div className="flex flex-col gap-2">
-                  <p className="text-xs font-bold text-foreground/60">최근 자주 틀리는 한자</p>
+                  <p className="text-xs font-bold text-muted">최근 자주 틀리는 한자</p>
                   <div className="flex flex-wrap gap-2">
                     {data.weakKanji.map((k) => (
                       <span
@@ -156,7 +156,7 @@ export function ReportView() {
                 <p className="text-sm text-foreground">{data.comment}</p>
               </div>
             ) : (
-              <p className="text-xs text-foreground/50">
+              <p className="text-xs text-muted">
                 AI 코멘트를 불러오지 못했어요. 잠시 후 다시 시도해주세요.
               </p>
             )}

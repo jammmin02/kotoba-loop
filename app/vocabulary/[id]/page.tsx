@@ -71,7 +71,7 @@ export default async function VocabularyBookDetailPage(props: PageProps<"/vocabu
     <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
       <Link
         href="/vocabulary"
-        className="text-sm font-bold text-foreground/60 hover:text-foreground"
+        className="text-sm font-bold text-muted hover:text-foreground"
       >
         ← 단어장 목록
       </Link>
@@ -86,19 +86,19 @@ export default async function VocabularyBookDetailPage(props: PageProps<"/vocabu
             <div className="min-w-0 flex-1">
               <h1 className="truncate text-lg font-bold text-foreground">{book.name}</h1>
               {book.description && (
-                <p className="font-content text-sm text-foreground/70">{book.description}</p>
+                <p className="font-content text-sm text-muted">{book.description}</p>
               )}
             </div>
           </div>
           <BookProgressGauge masteredCount={masteredCount} wordCount={wordCount} />
-          <p className="text-xs text-foreground/50">
+          <p className="text-xs text-muted">
             완료 {masteredCount}개 · 단어 {wordCount}개
           </p>
         </div>
       </div>
 
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-sm font-bold text-foreground/70">단어 목록</h2>
+        <h2 className="text-sm font-bold text-muted">단어 목록</h2>
         <Link href={addWordHref}>
           <Button type="button" size="sm">
             <PixelPlus className="size-3.5" aria-hidden="true" />
@@ -111,7 +111,7 @@ export default async function VocabularyBookDetailPage(props: PageProps<"/vocabu
         <Card className="flex flex-col items-center gap-3 py-10 text-center">
           <PixelBookOpen className="size-12 text-foreground/30" aria-hidden="true" />
           <p className="text-sm font-bold text-foreground">아직 등록된 단어가 없어요</p>
-          <p className="text-xs font-content text-foreground/50">
+          <p className="text-xs font-content text-muted">
             이 단어장에 첫 단어를 추가해보세요.
           </p>
           <Link href={addWordHref}>

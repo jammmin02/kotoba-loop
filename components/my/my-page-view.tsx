@@ -19,6 +19,7 @@ import type { PixelIconComponent } from "@/components/icons/pixel-icons";
 import { ExamGoalSettings } from "@/components/my/exam-goal-settings";
 import { OnboardingSettingsForm } from "@/components/my/onboarding-settings-form";
 import { Card, cardVariants } from "@/components/ui/card";
+import { ThemeSelector } from "@/components/ui/theme-selector";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
 import { isAdminRole } from "@/lib/auth-admin";
 import { cn } from "@/lib/utils";
@@ -53,7 +54,7 @@ function MenuCard({
     >
       <Icon className="size-5 shrink-0" aria-hidden="true" />
       <span className="flex-1 text-sm font-bold text-foreground">{label}</span>
-      {disabled && <span className="text-xs font-bold text-foreground/50">준비 중</span>}
+      {disabled && <span className="text-xs font-bold text-muted">준비 중</span>}
     </div>
   );
 
@@ -74,7 +75,7 @@ export function MyPageView() {
   });
 
   if (isLoading) {
-    return <p className="text-sm text-foreground/60">불러오는 중...</p>;
+    return <p className="text-sm text-muted">불러오는 중...</p>;
   }
 
   if (isError || !profile) {
@@ -92,8 +93,8 @@ export function MyPageView() {
       <Card variant="elevated" title="PROFILE.EXE" className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">
           <p className="text-lg font-extrabold text-foreground">{profile.nickname}</p>
-          <p className="text-sm text-foreground/60">{profile.email}</p>
-          <p className="text-xs text-foreground/50">{formatJoinDate(profile.createdAt)}</p>
+          <p className="text-sm text-muted">{profile.email}</p>
+          <p className="text-xs text-muted">{formatJoinDate(profile.createdAt)}</p>
         </div>
         <GameProfileHeader />
       </Card>
@@ -109,6 +110,16 @@ export function MyPageView() {
           <MenuCard icon={PixelLock} label="관리자" href="/admin" />
         )}
       </div>
+
+      <Card title="DISPLAY.EXE" className="flex flex-col gap-3">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-sm font-extrabold text-foreground">화면 테마</h2>
+          <p className="text-xs text-muted">
+            이 기기의 브라우저에 저장돼요. &apos;시스템&apos;은 기기 설정을 따라가요.
+          </p>
+        </div>
+        <ThemeSelector />
+      </Card>
 
       <OnboardingSettingsForm profile={profile} />
 

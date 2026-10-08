@@ -63,7 +63,7 @@ export function ProgressRing({
           {Math.round(percent)}%
         </text>
       </svg>
-      {label && <span className="text-xs text-foreground/60">{label}</span>}
+      {label && <span className="text-xs text-muted">{label}</span>}
     </div>
   );
 }

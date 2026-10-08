@@ -32,7 +32,7 @@ function UsageSection() {
   return (
     <section className="flex flex-col gap-4">
       <h2 className="text-base font-bold">사용량 (최근 {data?.days ?? 30}일)</h2>
-      {isLoading && <p className="text-sm text-foreground/60">불러오는 중...</p>}
+      {isLoading && <p className="text-sm text-muted">불러오는 중...</p>}
       {isError && (
         <p role="alert" className="text-sm text-error">
           {error instanceof ApiClientError ? error.message : "불러오지 못했습니다."}
@@ -42,15 +42,15 @@ function UsageSection() {
         <>
           <div className="grid grid-cols-3 gap-3">
             <div className="flex flex-col items-center border-2 border-pixel-ink bg-background p-3">
-              <span className="text-xs font-bold text-foreground/60">호출</span>
+              <span className="text-xs font-bold text-muted">호출</span>
               <span className="text-xl font-bold">{n(data.totals.calls)}</span>
             </div>
             <div className="flex flex-col items-center border-2 border-pixel-ink bg-background p-3">
-              <span className="text-xs font-bold text-foreground/60">입력 토큰</span>
+              <span className="text-xs font-bold text-muted">입력 토큰</span>
               <span className="text-xl font-bold">{n(data.totals.inputTokens)}</span>
             </div>
             <div className="flex flex-col items-center border-2 border-pixel-ink bg-background p-3">
-              <span className="text-xs font-bold text-foreground/60">출력 토큰</span>
+              <span className="text-xs font-bold text-muted">출력 토큰</span>
               <span className="text-xl font-bold">{n(data.totals.outputTokens)}</span>
             </div>
           </div>
@@ -72,13 +72,13 @@ function UsageSection() {
           <div className="flex flex-col gap-2">
             <h3 className="text-sm font-bold">기능별</h3>
             {data.byFeature.length === 0 ? (
-              <p className="text-xs text-foreground/60">기록이 없습니다.</p>
+              <p className="text-xs text-muted">기록이 없습니다.</p>
             ) : (
               <ul className="flex flex-col divide-y-2 divide-pixel-ink border-2 border-pixel-ink text-sm">
                 {data.byFeature.map((f) => (
                   <li key={f.feature} className="flex justify-between gap-2 bg-surface p-2">
                     <span className="min-w-0 truncate font-bold">{f.feature}</span>
-                    <span className="shrink-0 text-xs text-foreground/70">
+                    <span className="shrink-0 text-xs text-muted">
                       {n(f.calls)}회 · {n(f.inputTokens + f.outputTokens)} 토큰
                     </span>
                   </li>
@@ -90,16 +90,16 @@ function UsageSection() {
           <div className="flex flex-col gap-2">
             <h3 className="text-sm font-bold">사용자별 상위 10명</h3>
             {data.topUsers.length === 0 ? (
-              <p className="text-xs text-foreground/60">기록이 없습니다.</p>
+              <p className="text-xs text-muted">기록이 없습니다.</p>
             ) : (
               <ul className="flex flex-col divide-y-2 divide-pixel-ink border-2 border-pixel-ink text-sm">
                 {data.topUsers.map((u) => (
                   <li key={u.userId} className="flex justify-between gap-2 bg-surface p-2">
                     <span className="min-w-0 truncate">
                       <span className="font-bold">{u.nickname}</span>{" "}
-                      <span className="text-xs text-foreground/60">{u.email}</span>
+                      <span className="text-xs text-muted">{u.email}</span>
                     </span>
-                    <span className="shrink-0 text-xs text-foreground/70">
+                    <span className="shrink-0 text-xs text-muted">
                       {n(u.calls)}회 · {n(u.inputTokens + u.outputTokens)} 토큰
                     </span>
                   </li>
@@ -149,7 +149,7 @@ function AnalysesSection() {
   return (
     <section className="flex flex-col gap-3 border-t-2 border-pixel-ink pt-4">
       <h2 className="text-base font-bold">AI 생성 결과 점검</h2>
-      <p className="text-xs text-foreground/50">
+      <p className="text-xs text-muted">
         차단하면 저장된 결과가 삭제되고, 같은 요청이 들어올 때 AI가 다시 생성합니다.
       </p>
 
@@ -185,14 +185,14 @@ function AnalysesSection() {
         </Button>
       </form>
 
-      {isLoading && <p className="text-sm text-foreground/60">불러오는 중...</p>}
+      {isLoading && <p className="text-sm text-muted">불러오는 중...</p>}
       {isError && (
         <p role="alert" className="text-sm text-error">
           {error instanceof ApiClientError ? error.message : "불러오지 못했습니다."}
         </p>
       )}
       {data && data.rows.length === 0 && (
-        <p className="text-sm text-foreground/60">저장된 결과가 없습니다.</p>
+        <p className="text-sm text-muted">저장된 결과가 없습니다.</p>
       )}
 
       {data?.rows.map((r) => (
@@ -208,14 +208,14 @@ function AnalysesSection() {
               차단
             </Button>
           </div>
-          <p className="text-xs text-foreground/60">
+          <p className="text-xs text-muted">
             {r.user.nickname} ({r.user.email}) ·{" "}
             {new Date(r.createdAt).toLocaleString("ko-KR", {
               dateStyle: "short",
               timeStyle: "short",
             })}
           </p>
-          <p className="break-all font-mono text-[11px] text-foreground/70">{r.preview}</p>
+          <p className="break-all font-mono text-[11px] text-muted">{r.preview}</p>
         </div>
       ))}
 
@@ -233,7 +233,7 @@ function AnalysesSection() {
           <div className="flex flex-col gap-4">
             <p className="text-sm">
               {blocking.user.email}의 「{blocking.inputRef}」 결과를 차단할까요?
-              <span className="mt-1 block text-xs text-foreground/60">
+              <span className="mt-1 block text-xs text-muted">
                 저장된 결과가 삭제되며 되돌릴 수 없습니다.
               </span>
             </p>

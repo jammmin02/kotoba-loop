@@ -240,7 +240,7 @@ export function AdminMembersView({ initialStatus }: { initialStatus: Tab }) {
             checked={selected.size === members.length}
             onChange={toggleAll}
           />
-          <span className="text-xs text-foreground/60">{selected.size}명 선택</span>
+          <span className="text-xs text-muted">{selected.size}명 선택</span>
           <div className="ml-auto flex gap-2">
             {selectableActions.map((action) => (
               <Button
@@ -257,14 +257,14 @@ export function AdminMembersView({ initialStatus }: { initialStatus: Tab }) {
         </div>
       )}
 
-      {isLoading && <p className="text-sm text-foreground/60">불러오는 중...</p>}
+      {isLoading && <p className="text-sm text-muted">불러오는 중...</p>}
       {isError && (
         <p role="alert" className="text-sm text-error">
           {error instanceof ApiClientError ? error.message : "불러오지 못했습니다."}
         </p>
       )}
       {data && members.length === 0 && (
-        <p className="text-sm text-foreground/60">해당하는 회원이 없습니다.</p>
+        <p className="text-sm text-muted">해당하는 회원이 없습니다.</p>
       )}
 
       {members.length > 0 && (
@@ -284,8 +284,8 @@ export function AdminMembersView({ initialStatus }: { initialStatus: Tab }) {
                 className="flex min-w-0 flex-1 flex-col items-start text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               >
                 <span className="max-w-full truncate text-sm font-bold">{m.nickname}</span>
-                <span className="max-w-full truncate text-xs text-foreground/60">{m.email}</span>
-                <span className="text-xs text-foreground/50">
+                <span className="max-w-full truncate text-xs text-muted">{m.email}</span>
+                <span className="text-xs text-muted">
                   {m.signupMethod === "GOOGLE" ? "Google" : "이메일"} · {formatDate(m.createdAt)}
                 </span>
               </button>
@@ -379,7 +379,7 @@ export function AdminMembersView({ initialStatus }: { initialStatus: Tab }) {
           <div className="flex flex-col gap-4">
             <p className="text-sm">
               {deleteTarget.email} 계정을 삭제할까요?
-              <span className="mt-1 block text-xs text-foreground/60">
+              <span className="mt-1 block text-xs text-muted">
                 삭제된 계정은 로그인할 수 없고 같은 이메일로 다시 가입할 수 없습니다. 데이터는 남아
                 있어 &quot;삭제됨&quot; 탭에서 복구할 수 있습니다.
               </span>

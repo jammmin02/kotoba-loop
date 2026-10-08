@@ -207,7 +207,7 @@ export function PetWidget() {
           <PetSprite species={pet.species} stage={pet.stage} expression={expression} size={220} />
         </button>
         <p className="text-lg font-extrabold text-foreground">{PET_STAGE_LABELS[pet.stage]}</p>
-        <p className="text-xs text-foreground/60">
+        <p className="text-xs text-muted">
           {pet.levelsUntilNextStage > 0
             ? `다음 단계까지 레벨 ${pet.levelsUntilNextStage}`
             : "곧 다음 단계로 자라요"}
@@ -217,7 +217,7 @@ export function PetWidget() {
 
       {isAdmin && (
         <div className="flex flex-col gap-2 border-2 border-dashed border-pixel-ink/40 p-2">
-          <p className="text-xs font-bold text-foreground/60">ADMIN 풀테스트</p>
+          <p className="text-xs font-bold text-muted">ADMIN 풀테스트</p>
           <div className="flex gap-2">
             <Button
               type="button"

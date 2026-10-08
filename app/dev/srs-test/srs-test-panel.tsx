@@ -97,7 +97,7 @@ export function SrsTestPanel({ words }: SrsTestPanelProps) {
           }))}
         />
 
-        <label className="flex items-center gap-2 text-xs text-foreground/60">
+        <label className="flex items-center gap-2 text-xs text-muted">
           <input
             type="checkbox"
             checked={useCustomId}
@@ -120,7 +120,7 @@ export function SrsTestPanel({ words }: SrsTestPanelProps) {
         )}
 
         {selectedWord && !useCustomId && (
-          <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-foreground/70">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted">
             <span>correct_count: {selectedWord.correctCount}</span>
             <span>wrong_count: {selectedWord.wrongCount}</span>
             <span>last_reviewed_at: {selectedWord.lastReviewedAt ?? "-"}</span>

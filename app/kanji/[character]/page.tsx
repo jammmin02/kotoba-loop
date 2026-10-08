@@ -90,7 +90,7 @@ export default async function KanjiDetailPage(props: PageProps<"/kanji/[characte
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
-      <Link href="/kanji" className="text-sm font-bold text-foreground/60 hover:text-foreground">
+      <Link href="/kanji" className="text-sm font-bold text-muted hover:text-foreground">
         ← 한자 목록
       </Link>
 
@@ -105,35 +105,35 @@ export default async function KanjiDetailPage(props: PageProps<"/kanji/[characte
 
         <dl className="grid grid-cols-2 gap-x-4 gap-y-3 border-t-2 border-pixel-ink pt-4 text-sm">
           <div className="col-span-2">
-            <dt className="text-xs font-bold text-foreground/50">음독</dt>
+            <dt className="text-xs font-bold text-muted">음독</dt>
             <dd>
               <KanjiReadingList readings={kanji.onyomi} />
             </dd>
           </div>
           <div className="col-span-2">
-            <dt className="text-xs font-bold text-foreground/50">훈독</dt>
+            <dt className="text-xs font-bold text-muted">훈독</dt>
             <dd>
               <KanjiReadingList readings={kanji.kunyomi} />
             </dd>
           </div>
           <div>
-            <dt className="text-xs font-bold text-foreground/50">한국 한자음</dt>
+            <dt className="text-xs font-bold text-muted">한국 한자음</dt>
             <dd className="text-foreground">{kanji.korean_reading}</dd>
           </div>
           <div>
-            <dt className="text-xs font-bold text-foreground/50">획수</dt>
+            <dt className="text-xs font-bold text-muted">획수</dt>
             <dd className="text-foreground">{kanji.stroke_count}획</dd>
           </div>
           <div>
-            <dt className="text-xs font-bold text-foreground/50">부수</dt>
+            <dt className="text-xs font-bold text-muted">부수</dt>
             <dd className="font-jp text-foreground">{kanji.radical}</dd>
           </div>
           <div>
-            <dt className="text-xs font-bold text-foreground/50">학년</dt>
+            <dt className="text-xs font-bold text-muted">학년</dt>
             <dd className="text-foreground">{formatSchoolGrade(kanji.school_grade)}</dd>
           </div>
           <div className="col-span-2">
-            <dt className="text-xs font-bold text-foreground/50">뜻</dt>
+            <dt className="text-xs font-bold text-muted">뜻</dt>
             <dd className="font-content text-foreground">{kanji.meaning}</dd>
           </div>
         </dl>
@@ -144,9 +144,9 @@ export default async function KanjiDetailPage(props: PageProps<"/kanji/[characte
       <KanjiMnemonicCard character={kanji.character} />
 
       <Card className="flex flex-col gap-3">
-        <h2 className="text-sm font-bold text-foreground/70">대표 단어</h2>
+        <h2 className="text-sm font-bold text-muted">대표 단어</h2>
         {representativeWords.length === 0 ? (
-          <p className="text-sm text-foreground/50">이 한자를 포함한 단어가 아직 없어요.</p>
+          <p className="text-sm text-muted">이 한자를 포함한 단어가 아직 없어요.</p>
         ) : (
           <div className="flex flex-col gap-3">
             {representativeWords.map((word) => (
@@ -161,9 +161,9 @@ export default async function KanjiDetailPage(props: PageProps<"/kanji/[characte
       </Card>
 
       <Card className="flex flex-col gap-3">
-        <h2 className="text-sm font-bold text-foreground/70">내 단어장에 등록한 단어</h2>
+        <h2 className="text-sm font-bold text-muted">내 단어장에 등록한 단어</h2>
         {words.length === 0 ? (
-          <p className="text-sm text-foreground/50">아직 등록된 관련 단어가 없어요.</p>
+          <p className="text-sm text-muted">아직 등록된 관련 단어가 없어요.</p>
         ) : (
           <div className="flex flex-col gap-3">
             {words.map((word) => (

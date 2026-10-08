@@ -137,7 +137,7 @@ export function Sidebar({ className }: { className?: string }) {
               collapsed ? "w-11 justify-center px-0" : "px-3",
               active
                 ? "border-pixel-ink bg-primary text-primary-foreground shadow-bevel-sunken"
-                : "border-transparent text-foreground/70 hover:border-pixel-ink hover:bg-background hover:text-foreground",
+                : "border-transparent text-muted hover:border-pixel-ink hover:bg-background hover:text-foreground",
             )}
           >
             <Icon className="size-5 shrink-0" aria-hidden="true" />
@@ -172,7 +172,7 @@ export function BottomTabBar({ className }: { className?: string }) {
               "flex flex-1 flex-col items-center gap-1 border-t-2 py-2 text-xs font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
               active
                 ? "-mt-0.5 border-primary text-primary"
-                : "-mt-0.5 border-transparent text-foreground/60 hover:text-foreground",
+                : "-mt-0.5 border-transparent text-muted hover:text-foreground",
             )}
           >
             <Icon className="size-5" aria-hidden="true" />

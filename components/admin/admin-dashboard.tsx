@@ -18,7 +18,7 @@ function Counter({
 }) {
   return (
     <div className="flex flex-col items-center gap-1 border-2 border-pixel-ink bg-background p-4">
-      <span className="text-xs font-bold text-foreground/60">{label}</span>
+      <span className="text-xs font-bold text-muted">{label}</span>
       <span className={highlight ? "text-3xl font-bold text-primary" : "text-3xl font-bold"}>
         {value}
       </span>
@@ -41,7 +41,7 @@ export function AdminDashboard() {
     >
       <h1 className="text-lg font-bold">가입 현황</h1>
 
-      {isLoading && <p className="text-sm text-foreground/60">불러오는 중...</p>}
+      {isLoading && <p className="text-sm text-muted">불러오는 중...</p>}
       {isError && (
         <p role="alert" className="text-sm text-error">
           {error instanceof ApiClientError ? error.message : "불러오지 못했습니다."}

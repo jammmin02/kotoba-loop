@@ -20,7 +20,7 @@ export default async function MaintenancePage() {
     >
       <div className="flex flex-col gap-2 text-center">
         <h1 className="text-xl font-bold text-foreground">서비스 점검 중</h1>
-        <p className="whitespace-pre-line text-sm font-content text-foreground/70">{message}</p>
+        <p className="whitespace-pre-line text-sm font-content text-muted">{message}</p>
       </div>
     </Card>
   );

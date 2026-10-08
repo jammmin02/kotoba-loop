@@ -16,7 +16,7 @@ export function CollectionGrid({ items, className }: CollectionGridProps) {
 
   return (
     <div className={cn("flex flex-col gap-3", className)}>
-      <p className="text-xs font-bold text-foreground/60">
+      <p className="text-xs font-bold text-muted">
         {unlockedCount} / {items.length} 수집 완료
       </p>
       <div className="grid grid-cols-4 gap-3 sm:grid-cols-6 lg:grid-cols-8">
@@ -28,7 +28,7 @@ export function CollectionGrid({ items, className }: CollectionGridProps) {
               "flex aspect-square flex-col items-center justify-center gap-1 rounded-none border-2 border-pixel-ink p-2 text-center transition",
               item.unlocked
                 ? "bg-surface text-foreground shadow-pixel-sm"
-                : "bg-surface text-foreground/30 grayscale",
+                : "bg-surface text-subtle grayscale",
             )}
           >
             <span

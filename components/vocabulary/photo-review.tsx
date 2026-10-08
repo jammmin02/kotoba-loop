@@ -366,7 +366,7 @@ export function PhotoReview({ photoId }: PhotoReviewProps) {
       )}
 
       {job && (
-        <details className="text-xs text-foreground/60">
+        <details className="text-xs text-muted">
           <summary className="cursor-pointer font-bold">OCR 원본 텍스트 보기</summary>
           <pre className="mt-2 max-h-40 overflow-y-auto whitespace-pre-wrap break-words border-2 border-pixel-ink bg-surface p-3 font-content text-foreground">
             {job.rawText}
@@ -393,7 +393,7 @@ export function PhotoReview({ photoId }: PhotoReviewProps) {
           <p className="text-base font-bold text-foreground">
             이 사진에서는 학습할 단어를 찾지 못했어요.
           </p>
-          <p className="text-sm text-foreground/60">더 선명한 사진으로 다시 시도해보세요.</p>
+          <p className="text-sm text-muted">더 선명한 사진으로 다시 시도해보세요.</p>
           <div className="flex gap-2">
             <Link href="/vocabulary/photos/new">
               <Button variant="outline">사진 다시 올리기</Button>
@@ -410,7 +410,7 @@ export function PhotoReview({ photoId }: PhotoReviewProps) {
           <p className="text-lg font-bold text-foreground">
             사진에서 {job.total}개의 단어를 발견했습니다
           </p>
-          <p className="text-sm text-foreground/60">
+          <p className="text-sm text-muted">
             AI가 각 단어의 후리가나·뜻·예문을 분석해요. 단어 수가 많으면 시간이 걸릴 수 있어요.
           </p>
           <Button onClick={runAnalyze} loading={analyzing}>
@@ -451,7 +451,7 @@ export function PhotoReview({ photoId }: PhotoReviewProps) {
               <button
                 type="button"
                 onClick={deselectAll}
-                className="text-foreground/60 hover:underline"
+                className="text-muted hover:underline"
               >
                 선택 해제
               </button>
@@ -494,7 +494,7 @@ export function PhotoReview({ photoId }: PhotoReviewProps) {
                           {candidate.result?.word ?? candidate.corrected}
                         </span>
                         {candidate.result?.reading && (
-                          <span className="text-sm text-foreground/60">
+                          <span className="text-sm text-muted">
                             ({candidate.result.reading})
                           </span>
                         )}
@@ -510,7 +510,7 @@ export function PhotoReview({ photoId }: PhotoReviewProps) {
                       </div>
 
                       {isDiffering && (
-                        <p className="text-xs text-foreground/50">
+                        <p className="text-xs text-muted">
                           OCR 원본: <span className="line-through">{candidate.original}</span> →{" "}
                           {candidate.corrected}
                         </p>
@@ -520,7 +520,7 @@ export function PhotoReview({ photoId }: PhotoReviewProps) {
                         <p className="text-sm text-foreground/80">{candidate.result.meanings[0]}</p>
                       )}
                       {candidate.status === "pending" && (
-                        <p className="text-xs text-foreground/50">분석 중이에요...</p>
+                        <p className="text-xs text-muted">분석 중이에요...</p>
                       )}
                       {candidate.status === "failed" && (
                         <p className="text-xs text-error">
@@ -535,7 +535,7 @@ export function PhotoReview({ photoId }: PhotoReviewProps) {
                         onClick={() => setEditingIndex(index)}
                         disabled={!!saved || candidate.status === "pending"}
                         aria-label="수정"
-                        className="flex size-8 items-center justify-center border-2 border-pixel-ink bg-surface text-foreground/60 shadow-bevel-raised transition hover:bg-background disabled:pointer-events-none disabled:opacity-40"
+                        className="flex size-8 items-center justify-center border-2 border-pixel-ink bg-surface text-muted shadow-bevel-raised transition hover:bg-background disabled:pointer-events-none disabled:opacity-40"
                       >
                         <PixelPenTool className="size-3.5" aria-hidden="true" />
                       </button>
@@ -543,7 +543,7 @@ export function PhotoReview({ photoId }: PhotoReviewProps) {
                         type="button"
                         onClick={() => removeItem(index)}
                         aria-label="삭제"
-                        className="flex size-8 items-center justify-center border-2 border-pixel-ink bg-surface text-foreground/60 shadow-bevel-raised transition hover:bg-background"
+                        className="flex size-8 items-center justify-center border-2 border-pixel-ink bg-surface text-muted shadow-bevel-raised transition hover:bg-background"
                       >
                         <PixelTrash className="size-3.5" aria-hidden="true" />
                       </button>
@@ -559,7 +559,7 @@ export function PhotoReview({ photoId }: PhotoReviewProps) {
               단어장<span className="text-error"> *</span>
             </span>
             {books && books.length === 0 && (
-              <p className="text-xs text-foreground/60">
+              <p className="text-xs text-muted">
                 먼저 단어장을 만들어주세요.{" "}
                 <Link href="/vocabulary" className="font-bold text-primary hover:underline">
                   단어장 만들러 가기

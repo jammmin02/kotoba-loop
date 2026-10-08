@@ -17,20 +17,20 @@ function WeakKanjiRow({ item }: { item: WeakKanjiItem }) {
           className="flex min-w-0 flex-1 items-baseline gap-2"
         >
           <span className="font-jp text-3xl font-bold text-foreground">{item.character}</span>
-          <span className="truncate text-sm font-content text-foreground/60">{item.meaning}</span>
+          <span className="truncate text-sm font-content text-muted">{item.meaning}</span>
         </Link>
         <StatusBadge status="WEAK" className="shrink-0" />
       </div>
-      <p className="border-t-2 border-pixel-ink pt-2 text-xs text-foreground/60">
+      <p className="border-t-2 border-pixel-ink pt-2 text-xs text-muted">
         최근 {item.recentCount}회 중{" "}
         <span className="font-bold text-error">{item.recentWrongCount}회</span> 오답 · 오답률{" "}
         {item.wrongRate}%
       </p>
 
       <div className="flex flex-col gap-1.5">
-        <p className="text-xs font-bold text-foreground/60">추천 단어</p>
+        <p className="text-xs font-bold text-muted">추천 단어</p>
         {item.recommendations.length === 0 ? (
-          <p className="text-xs text-foreground/50">추천할 새 단어가 없어요.</p>
+          <p className="text-xs text-muted">추천할 새 단어가 없어요.</p>
         ) : (
           <ul className="flex flex-wrap gap-1.5">
             {item.recommendations.map((word) => (
@@ -39,7 +39,7 @@ function WeakKanjiRow({ item }: { item: WeakKanjiItem }) {
                 className="flex items-baseline gap-1.5 border-2 border-pixel-ink bg-background px-2 py-1"
               >
                 <span className="font-jp text-sm font-bold text-foreground">{word.word}</span>
-                <span className="font-jp text-xs text-foreground/60">{word.reading}</span>
+                <span className="font-jp text-xs text-muted">{word.reading}</span>
               </li>
             ))}
           </ul>
@@ -60,7 +60,7 @@ export function WeakKanjiCard() {
   if (isLoading) {
     return (
       <Card title="취약 한자 분석" titleColor="pink">
-        <p className="text-sm text-foreground/60">불러오는 중...</p>
+        <p className="text-sm text-muted">불러오는 중...</p>
       </Card>
     );
   }
@@ -80,7 +80,7 @@ export function WeakKanjiCard() {
   if (data.items.length === 0) {
     return (
       <Card title="취약 한자 분석" titleColor="pink">
-        <p className="text-sm text-foreground/60">
+        <p className="text-sm text-muted">
           아직 반복 오답이 발생한 한자가 없어요. 이대로 꾸준히 학습해봐요.
         </p>
       </Card>

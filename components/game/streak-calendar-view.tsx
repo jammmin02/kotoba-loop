@@ -65,7 +65,7 @@ export function StreakCalendarView({ showHeading = true }: StreakCalendarViewPro
 
       <Card variant="elevated" title="STREAK.EXE" className="flex flex-col items-center gap-3">
         {isProfileLoading ? (
-          <p className="text-sm text-foreground/60">불러오는 중...</p>
+          <p className="text-sm text-muted">불러오는 중...</p>
         ) : isProfileError || !profile ? (
           <p className="text-sm text-error">
             {profileError instanceof ApiClientError
@@ -75,7 +75,7 @@ export function StreakCalendarView({ showHeading = true }: StreakCalendarViewPro
         ) : (
           <>
             <StreakIndicator days={profile.currentStreak} freezeCount={profile.streakFreezeCount} />
-            <p className="text-xs font-bold text-foreground/50">
+            <p className="text-xs font-bold text-muted">
               최고 기록 {profile.longestStreak}일
             </p>
             {showRiskNotice && (
@@ -90,7 +90,7 @@ export function StreakCalendarView({ showHeading = true }: StreakCalendarViewPro
 
       <Card title="학습 캘린더" titleColor="mint">
         {isCalendarLoading || !calendar ? (
-          <p className="text-sm text-foreground/60">불러오는 중...</p>
+          <p className="text-sm text-muted">불러오는 중...</p>
         ) : isCalendarError ? (
           <p className="text-sm text-error">
             {calendarError instanceof ApiClientError

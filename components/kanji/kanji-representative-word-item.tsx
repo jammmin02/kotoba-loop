@@ -46,16 +46,16 @@ export function KanjiRepresentativeWordItem({
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex items-baseline gap-2">
           <span className="font-jp text-lg font-bold text-foreground">{word.word}</span>
-          <span className="font-jp text-sm text-foreground/60">{word.reading}</span>
+          <span className="font-jp text-sm text-muted">{word.reading}</span>
         </div>
-        <p className="truncate text-sm font-content text-foreground/60">
+        <p className="truncate text-sm font-content text-muted">
           {word.meanings.join(", ")}
         </p>
       </div>
       <div className="flex shrink-0 items-center gap-2">
         {word.jlptLevel && <JlptBadge level={word.jlptLevel} />}
         {added ? (
-          <span className="text-xs font-bold text-foreground/40">단어장에 있음</span>
+          <span className="text-xs font-bold text-muted">단어장에 있음</span>
         ) : (
           <Button type="button" size="sm" variant="outline" onClick={() => setModalOpen(true)}>
             + 단어장에 추가
@@ -125,9 +125,9 @@ function AddToBookModal({
   return (
     <Modal open onClose={onClose} title="단어장에 추가">
       <div className="flex flex-col gap-4">
-        {isLoading && <p className="text-sm text-foreground/60">단어장을 불러오는 중...</p>}
+        {isLoading && <p className="text-sm text-muted">단어장을 불러오는 중...</p>}
         {books && books.length === 0 && (
-          <p className="text-sm text-foreground/60">
+          <p className="text-sm text-muted">
             먼저 단어장을 만들어주세요.{" "}
             <Link href="/vocabulary" className="font-bold text-primary hover:underline">
               단어장 만들러 가기

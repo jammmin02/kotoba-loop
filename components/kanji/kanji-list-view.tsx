@@ -104,14 +104,14 @@ export function KanjiListView({ initialQuery, initialGrade, initialJlpt }: Kanji
 
       <form onSubmit={handleSubmit} role="search" className="flex gap-2">
         <div className="flex h-11 flex-1 items-center gap-2 border-2 border-pixel-ink bg-background px-3 shadow-bevel-sunken focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary">
-          <PixelSearch className="size-4 shrink-0 text-foreground/50" aria-hidden="true" />
+          <PixelSearch className="size-4 shrink-0 text-muted" aria-hidden="true" />
           <input
             type="search"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="한자, 음독/훈독, 한국 한자음, 뜻으로 검색"
             aria-label="한자 검색어"
-            className="h-full w-full min-w-0 bg-transparent font-jp text-sm text-foreground placeholder:text-foreground/40 focus:outline-none"
+            className="h-full w-full min-w-0 bg-transparent font-jp text-sm text-foreground placeholder:text-muted focus:outline-none"
           />
         </div>
         <Button type="submit">검색</Button>
@@ -138,7 +138,7 @@ export function KanjiListView({ initialQuery, initialGrade, initialJlpt }: Kanji
               "-mb-0.5 border-b-2 px-3 py-2 text-sm font-bold transition",
               tab === t.key
                 ? "border-primary text-primary"
-                : "border-transparent text-foreground/50 hover:text-foreground",
+                : "border-transparent text-muted hover:text-foreground",
             )}
           >
             {t.label}
@@ -178,7 +178,7 @@ export function KanjiListView({ initialQuery, initialGrade, initialJlpt }: Kanji
         </div>
       )}
 
-      {isLoading && <p className="text-sm text-foreground/60">불러오는 중...</p>}
+      {isLoading && <p className="text-sm text-muted">불러오는 중...</p>}
 
       {isError && (
         <p className="text-sm text-error">
@@ -188,8 +188,8 @@ export function KanjiListView({ initialQuery, initialGrade, initialJlpt }: Kanji
 
       {data && data.items.length === 0 && (
         <div className="flex flex-col items-center gap-1 py-16 text-center">
-          <p className="text-sm font-content text-foreground/70">조건에 맞는 한자가 없습니다.</p>
-          <p className="text-xs font-content text-foreground/50">
+          <p className="text-sm font-content text-muted">조건에 맞는 한자가 없습니다.</p>
+          <p className="text-xs font-content text-muted">
             다른 검색어나 분류를 선택해보세요.
           </p>
         </div>
@@ -197,7 +197,7 @@ export function KanjiListView({ initialQuery, initialGrade, initialJlpt }: Kanji
 
       {data && data.items.length > 0 && (
         <div className="flex flex-col gap-3">
-          <p className="text-xs text-foreground/50">총 {data.total}자</p>
+          <p className="text-xs text-muted">총 {data.total}자</p>
 
           <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 lg:grid-cols-8">
             {data.items.map((kanji) => (
@@ -209,7 +209,7 @@ export function KanjiListView({ initialQuery, initialGrade, initialJlpt }: Kanji
                 <span className="font-jp text-2xl font-bold text-foreground">
                   {kanji.character}
                 </span>
-                <span className="truncate text-[10px] text-foreground/60">
+                <span className="truncate text-[10px] text-muted">
                   {kanji.koreanReading}
                 </span>
               </Link>
@@ -226,7 +226,7 @@ export function KanjiListView({ initialQuery, initialGrade, initialJlpt }: Kanji
               >
                 이전
               </Button>
-              <span className="text-sm text-foreground/60">
+              <span className="text-sm text-muted">
                 {page} / {data.totalPages}
               </span>
               <Button
