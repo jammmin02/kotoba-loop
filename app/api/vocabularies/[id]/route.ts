@@ -6,6 +6,13 @@ import { db } from "@/lib/db";
 import { vocabularySchema } from "@/lib/validations/vocabulary";
 import { syncVocabularyKanji } from "@/lib/vocabulary-kanji";
 import { requireOwnedVocabulary } from "@/lib/vocabulary-ownership";
+import { planVocabularyEdit } from "@/lib/vocabulary-sharing/plan";
+import {
+  deleteCallerBookItems,
+  forkVocabularyForUser,
+  isVocabularyShared,
+  removeVocabulariesForUser,
+} from "@/lib/vocabulary-sharing/service";
 import type { RelatedExpressionRecord, VocabularyDetail } from "@/types/vocabulary";
 
 import type { NextRequest } from "next/server";
@@ -32,8 +39,15 @@ export const GET = withApiHandler(
           orderBy: { order: "asc" },
           select: { id: true, relation_type: true, expression: true, meaning: true },
         },
-        bookItems: { select: { vocabulary_book_id: true } },
-        tags: { select: { tag: { select: { id: true, name: true } } } },
+        // 공유 단어일 수 있으므로 다른 사용자의 단어장/태그는 응답에 섞이지 않게 호출자 것만 담는다.
+        bookItems: {
+          where: { book: { user_id: session.user.id } },
+          select: { vocabulary_book_id: true },
+        },
+        tags: {
+          where: { tag: { user_id: session.user.id } },
+          select: { tag: { select: { id: true, name: true } } },
+        },
       },
     });
 
@@ -99,14 +113,20 @@ export const PATCH = withApiHandler(
     }
 
     const vocabulary = await db.$transaction(async (tx) => {
-      await tx.vocabularyMeaning.deleteMany({ where: { vocabulary_id: id } });
-      await tx.exampleSentence.deleteMany({ where: { vocabulary_id: id } });
-      await tx.vocabularyRelatedExpression.deleteMany({ where: { vocabulary_id: id } });
-      await tx.vocabularyBookItem.deleteMany({ where: { vocabulary_id: id } });
-      await syncVocabularyKanji(tx, id, word);
+      // 공유 중인 단어(다른 사용자도 연결됨)는 공용 행을 고치면 모두에게 번지므로, 호출자 전용
+      // 사본을 만들어 거기에 반영한다(copy-on-write). 응답의 id가 새 id가 될 수 있다.
+      const mode = planVocabularyEdit(await isVocabularyShared(tx, id, session.user.id));
+      const targetId = mode === "copy-on-write" ? await forkVocabularyForUser(tx, id, session.user.id) : id;
+
+      await tx.vocabularyMeaning.deleteMany({ where: { vocabulary_id: targetId } });
+      await tx.exampleSentence.deleteMany({ where: { vocabulary_id: targetId } });
+      await tx.vocabularyRelatedExpression.deleteMany({ where: { vocabulary_id: targetId } });
+      // 단어장 연결은 호출자 단어장 것만 다시 만든다(다른 사용자의 단어장 항목은 그대로 둔다).
+      await deleteCallerBookItems(tx, targetId, session.user.id);
+      await syncVocabularyKanji(tx, targetId, word);
 
       return tx.vocabulary.update({
-        where: { id },
+        where: { id: targetId },
         data: {
           word,
           reading,
@@ -132,7 +152,10 @@ export const PATCH = withApiHandler(
           },
         },
         include: {
-          tags: { select: { tag: { select: { id: true, name: true } } } },
+          tags: {
+            where: { tag: { user_id: session.user.id } },
+            select: { tag: { select: { id: true, name: true } } },
+          },
           relatedExpressions: {
             orderBy: { order: "asc" },
             select: { id: true, relation_type: true, expression: true, meaning: true },
@@ -181,11 +204,12 @@ export const DELETE = withApiHandler(
     }
 
     const { id } = await ctx.params;
-    await requireOwnedVocabulary(id, session.user.id);
+    const userId = session.user.id;
+    await requireOwnedVocabulary(id, userId);
 
-    // Cascades to VocabularyMeaning/ExampleSentence/Image/VocabularyBookItem/UserVocabulary —
-    // safe because, until word reuse/sharing ships, only the registering user ever links to this row.
-    await db.vocabulary.delete({ where: { id } });
+    // 다른 사용자도 이 단어를 쓰고 있으면(커뮤니티 단어장 가져오기는 행을 공유한다) 호출자의
+    // 연결만 끊고 행은 남긴다. 아무도 안 쓸 때만 행을 지운다(DB cascade로 뜻/예문/학습 기록 포함).
+    await db.$transaction((tx) => removeVocabulariesForUser(tx, [id], userId));
 
     return { id };
   },
