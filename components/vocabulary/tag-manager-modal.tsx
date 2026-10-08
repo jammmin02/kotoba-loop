@@ -106,9 +106,7 @@ export function TagManagerModal({ open, onClose }: TagManagerModalProps) {
           </p>
         )}
 
-        {tags && tags.length === 0 && (
-          <p className="text-sm text-muted">등록된 태그가 없어요.</p>
-        )}
+        {tags && tags.length === 0 && <p className="text-sm text-muted">등록된 태그가 없어요.</p>}
 
         {tags && tags.length > 0 && (
           <ul className="flex flex-col gap-2">

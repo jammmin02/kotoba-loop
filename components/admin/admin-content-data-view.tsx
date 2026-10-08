@@ -285,8 +285,7 @@ export function AdminContentDataView() {
                 <li key={v.id} className="flex items-center gap-3 bg-surface p-3">
                   <div className="min-w-0 flex-1">
                     <p className="font-jp text-base font-bold">
-                      {v.word}{" "}
-                      <span className="text-xs font-normal text-muted">{v.reading}</span>
+                      {v.word} <span className="text-xs font-normal text-muted">{v.reading}</span>
                     </p>
                     <p className="truncate text-xs text-muted">
                       {v.partOfSpeech} · {v.meanings.join(", ")}

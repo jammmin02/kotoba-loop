@@ -47,7 +47,9 @@ export function SpeakButton({
 
   if (!isSupported || !text.trim()) return null;
 
-  const hint = isVoiceMissing ? "일본어 음성이 설치되어 있지 않습니다. 눌러서 설치 방법 보기" : error;
+  const hint = isVoiceMissing
+    ? "일본어 음성이 설치되어 있지 않습니다. 눌러서 설치 방법 보기"
+    : error;
 
   return (
     <Button

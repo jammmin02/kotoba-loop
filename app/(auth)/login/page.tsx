@@ -17,9 +17,7 @@ export default async function LoginPage({
       <OAuthErrorToast error={error} />
       <div className="flex flex-col gap-1 text-center">
         <h1 className="text-xl font-bold text-foreground">로그인</h1>
-        <p className="text-sm font-content text-muted">
-          kotoba-loop에서 일본어 학습을 이어가세요.
-        </p>
+        <p className="text-sm font-content text-muted">kotoba-loop에서 일본어 학습을 이어가세요.</p>
       </div>
 
       <LoginForm callbackUrl={callbackUrl} />

@@ -150,13 +150,9 @@ export function AdminContentView() {
             </div>
           </div>
           {book.description && (
-            <p className="line-clamp-2 text-sm font-content text-muted">
-              {book.description}
-            </p>
+            <p className="line-clamp-2 text-sm font-content text-muted">{book.description}</p>
           )}
-          {book.hideReason && (
-            <p className="text-xs text-muted">숨김 사유: {book.hideReason}</p>
-          )}
+          {book.hideReason && <p className="text-xs text-muted">숨김 사유: {book.hideReason}</p>}
           <div className="flex justify-end gap-2">
             {book.hidden ? (
               <Button size="sm" variant="secondary" onClick={() => request(book, "RESTORE")}>

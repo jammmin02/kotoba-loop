@@ -94,9 +94,7 @@ export function ExamGoalSettings() {
         </p>
       )}
       {goals && goals.length === 0 && (
-        <p className="text-sm text-muted">
-          등록된 시험 목표가 없어요. 아래에서 추가해보세요.
-        </p>
+        <p className="text-sm text-muted">등록된 시험 목표가 없어요. 아래에서 추가해보세요.</p>
       )}
       {goals && goals.length > 0 && (
         <ul className="flex flex-col gap-2">

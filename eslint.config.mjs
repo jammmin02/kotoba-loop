@@ -44,6 +44,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Claude Code가 작업용으로 만드는 git worktree(저장소 전체의 사본). 이 폴더가 있으면 같은 파일이
+    // 두 번 검사돼 `npm run lint`가 엉뚱한 오류로 실패한다.
+    ".claude/**",
   ]),
 ]);
 

@@ -119,9 +119,7 @@ export function SearchView({ initialQuery }: SearchViewProps) {
       )}
 
       {!trimmedQuery && recentQueries.length === 0 && (
-        <p className="py-16 text-center text-sm font-content text-muted">
-          검색어를 입력해주세요.
-        </p>
+        <p className="py-16 text-center text-sm font-content text-muted">검색어를 입력해주세요.</p>
       )}
 
       {trimmedQuery && isLoading && <p className="text-sm text-muted">검색 중...</p>}

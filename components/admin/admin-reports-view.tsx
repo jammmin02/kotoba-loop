@@ -130,9 +130,7 @@ export function AdminReportsView() {
           </ChipButton>
         ))}
       </div>
-      <p className="text-xs text-muted">
-        같은 단어장의 신고는 하나로 묶여 건수 순으로 표시됩니다.
-      </p>
+      <p className="text-xs text-muted">같은 단어장의 신고는 하나로 묶여 건수 순으로 표시됩니다.</p>
 
       {isLoading && <p className="text-sm text-muted">불러오는 중...</p>}
       {isError && (
@@ -239,9 +237,7 @@ export function AdminReportsView() {
                 />
               </>
             ) : (
-              <p className="text-xs text-muted">
-                대상이 이미 삭제되어 신고만 기각할 수 있습니다.
-              </p>
+              <p className="text-xs text-muted">대상이 이미 삭제되어 신고만 기각할 수 있습니다.</p>
             )}
 
             <Textarea

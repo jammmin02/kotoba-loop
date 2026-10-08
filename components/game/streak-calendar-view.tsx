@@ -75,9 +75,7 @@ export function StreakCalendarView({ showHeading = true }: StreakCalendarViewPro
         ) : (
           <>
             <StreakIndicator days={profile.currentStreak} freezeCount={profile.streakFreezeCount} />
-            <p className="text-xs font-bold text-muted">
-              최고 기록 {profile.longestStreak}일
-            </p>
+            <p className="text-xs font-bold text-muted">최고 기록 {profile.longestStreak}일</p>
             {showRiskNotice && (
               <p className="text-center text-xs font-bold text-warning">
                 지금 {profile.currentStreak}일째 이어가는 중이에요. 오늘 학습을 마치면 스트릭이

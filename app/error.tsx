@@ -34,9 +34,7 @@ export default function Error({
             일시적인 오류일 수 있어요. 다시 시도해도 안 되면 잠시 후에 이용해주세요.
           </p>
           {error.digest && (
-            <p className="mt-1 text-xs font-content text-muted">
-              오류 코드: {error.digest}
-            </p>
+            <p className="mt-1 text-xs font-content text-muted">오류 코드: {error.digest}</p>
           )}
         </div>
         <div className="flex w-full flex-col gap-2">

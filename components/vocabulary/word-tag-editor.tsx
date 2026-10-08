@@ -97,9 +97,7 @@ export function WordTagEditor({ vocabularyId, initialTags }: WordTagEditorProps)
         {pickerOpen && (
           <div className="absolute left-0 top-full z-10 mt-1 flex min-w-32 flex-col gap-0.5 border-2 border-pixel-ink bg-surface p-1.5 shadow-pixel-sm">
             {isTagsLoading ? (
-              <p className="whitespace-nowrap px-1.5 py-1 text-xs text-muted">
-                불러오는 중...
-              </p>
+              <p className="whitespace-nowrap px-1.5 py-1 text-xs text-muted">불러오는 중...</p>
             ) : isTagsError ? (
               <p className="whitespace-nowrap px-1.5 py-1 text-xs text-error">
                 태그를 불러오지 못했어요

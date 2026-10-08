@@ -83,9 +83,7 @@ export function AdminAuditView() {
           {error instanceof ApiClientError ? error.message : "불러오지 못했습니다."}
         </p>
       )}
-      {data && data.logs.length === 0 && (
-        <p className="text-sm text-muted">기록이 없습니다.</p>
-      )}
+      {data && data.logs.length === 0 && <p className="text-sm text-muted">기록이 없습니다.</p>}
 
       {data && data.logs.length > 0 && (
         <ul className="flex flex-col divide-y-2 divide-pixel-ink border-2 border-pixel-ink">

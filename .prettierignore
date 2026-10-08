@@ -6,3 +6,6 @@ package-lock.json
 # pre-existing planning docs, not part of the generated codebase
 kotoba-loop-roadmap.md
 *.txt
+
+# Claude Code worktrees (full copies of the repo)
+.claude

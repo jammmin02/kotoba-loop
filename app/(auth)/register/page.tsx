@@ -11,9 +11,7 @@ export default async function RegisterPage() {
     <Card variant="elevated" title="SIGNUP.EXE" titleColor="mint" className="flex flex-col gap-6">
       <div className="flex flex-col gap-1 text-center">
         <h1 className="text-xl font-bold text-foreground">회원가입</h1>
-        <p className="text-sm font-content text-muted">
-          이메일 또는 Google로 시작해보세요.
-        </p>
+        <p className="text-sm font-content text-muted">이메일 또는 Google로 시작해보세요.</p>
         <p className="text-xs font-content text-muted">
           현재는 {domains.join(", ")} 이메일만 가입할 수 있습니다.
         </p>

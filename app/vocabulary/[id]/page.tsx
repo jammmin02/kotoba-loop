@@ -69,10 +69,7 @@ export default async function VocabularyBookDetailPage(props: PageProps<"/vocabu
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
-      <Link
-        href="/vocabulary"
-        className="text-sm font-bold text-muted hover:text-foreground"
-      >
+      <Link href="/vocabulary" className="text-sm font-bold text-muted hover:text-foreground">
         ← 단어장 목록
       </Link>
 
@@ -111,9 +108,7 @@ export default async function VocabularyBookDetailPage(props: PageProps<"/vocabu
         <Card className="flex flex-col items-center gap-3 py-10 text-center">
           <PixelBookOpen className="size-12 text-foreground/30" aria-hidden="true" />
           <p className="text-sm font-bold text-foreground">아직 등록된 단어가 없어요</p>
-          <p className="text-xs font-content text-muted">
-            이 단어장에 첫 단어를 추가해보세요.
-          </p>
+          <p className="text-xs font-content text-muted">이 단어장에 첫 단어를 추가해보세요.</p>
           <Link href={addWordHref}>
             <Button type="button" size="sm">
               <PixelPlus className="size-3.5" aria-hidden="true" />

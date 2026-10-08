@@ -44,9 +44,7 @@ export function QuestCard({
         )}
       </div>
       <ProgressBar value={clampedCurrent} max={safeTarget} />
-      {rewardExp !== undefined && (
-        <p className="text-xs text-muted">보상 +{rewardExp} EXP</p>
-      )}
+      {rewardExp !== undefined && <p className="text-xs text-muted">보상 +{rewardExp} EXP</p>}
     </Card>
   );
 }
