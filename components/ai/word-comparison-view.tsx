@@ -12,7 +12,7 @@ import { COMPARE_WORDS_MAX, COMPARE_WORDS_MIN } from "@/lib/validations/ai";
 import type { VocabularySummary } from "@/types/vocabulary";
 
 const inputClassName =
-  "h-11 flex-1 border-2 border-pixel-ink bg-background px-3 text-sm text-foreground shadow-bevel-sunken focus:outline-none disabled:opacity-50";
+  "h-11 flex-1 border-2 border-pixel-ink bg-background px-3 text-sm text-foreground shadow-bevel-sunken focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50";
 
 export function WordComparisonView() {
   const [selected, setSelected] = useState<string[]>([]);
@@ -80,13 +80,12 @@ export function WordComparisonView() {
           선택한 단어 ({selected.length}/{COMPARE_WORDS_MAX})
         </p>
         {selected.length === 0 ? (
-          <p className="text-sm text-muted">
-            아래에서 단어를 선택하거나 직접 입력해주세요.
-          </p>
+          <p className="text-sm text-muted">아래에서 단어를 선택하거나 직접 입력해주세요.</p>
         ) : (
           <div className="flex flex-wrap gap-1.5">
             {selected.map((word) => (
               <span
+                lang="ja"
                 key={word}
                 className="inline-flex items-center gap-1.5 border-2 border-pixel-ink bg-surface px-2.5 py-1 font-jp text-sm font-bold text-foreground"
               >
@@ -159,8 +158,12 @@ export function WordComparisonView() {
                   className="flex w-full items-center justify-between gap-2 border-2 border-pixel-ink bg-background px-3 py-2 text-left transition hover:bg-surface disabled:opacity-50"
                 >
                   <span className="flex items-baseline gap-2">
-                    <span className="font-jp font-bold text-foreground">{word.word}</span>
-                    <span className="font-jp text-xs text-muted">{word.reading}</span>
+                    <span lang="ja" className="font-jp font-bold text-foreground">
+                      {word.word}
+                    </span>
+                    <span lang="ja" className="font-jp text-xs text-muted">
+                      {word.reading}
+                    </span>
                   </span>
                   <PixelPlus className="size-3.5 shrink-0 text-muted" aria-hidden="true" />
                 </button>
@@ -207,10 +210,14 @@ export function WordComparisonView() {
                 key={`${item.word}-${index}`}
                 className="flex flex-col gap-1.5 border-t-2 border-pixel-ink pt-3 first:border-t-0 first:pt-0"
               >
-                <p className="font-jp text-lg font-bold text-foreground">{item.word}</p>
+                <p lang="ja" className="font-jp text-lg font-bold text-foreground">
+                  {item.word}
+                </p>
                 <p className="text-sm font-content text-foreground/80">{item.nuance}</p>
                 <div className="border-2 border-pixel-ink bg-background p-2.5">
-                  <p className="font-jp text-sm text-foreground">{item.example.japanese}</p>
+                  <p lang="ja" className="font-jp text-sm text-foreground">
+                    {item.example.japanese}
+                  </p>
                   <p className="text-xs font-content text-muted">{item.example.korean}</p>
                 </div>
               </div>

@@ -8,6 +8,7 @@ import {
   ModalDemo,
   NavigationDemo,
   ProgressBarDemo,
+  StateDemo,
   TooltipDemo,
   ToastDemo,
 } from "@/app/dev/style-guide/component-demos";
@@ -284,6 +285,13 @@ export default function StyleGuidePage() {
           Toast
         </h2>
         <ToastDemo />
+      </section>
+
+      <section aria-labelledby="state-heading" className="flex flex-col gap-4">
+        <h2 id="state-heading" className="text-xl font-semibold">
+          상태 (Loading / Error / Empty)
+        </h2>
+        <StateDemo />
       </section>
 
       <section aria-labelledby="tooltip-heading" className="flex flex-col gap-4">

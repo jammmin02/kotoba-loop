@@ -113,9 +113,7 @@ export function NaturalSearchView() {
             <p className="text-sm font-content text-muted">Q. {entry.query}</p>
 
             {!entry.data && entry.key === pendingKey && (
-              <p className="text-sm text-muted">
-                AI가 찾고 있어요. 최대 45초 정도 걸릴 수 있어요.
-              </p>
+              <p className="text-sm text-muted">AI가 찾고 있어요. 최대 45초 정도 걸릴 수 있어요.</p>
             )}
 
             {entry.data && entry.data.result.found && (
@@ -125,7 +123,9 @@ export function NaturalSearchView() {
                     <p className="text-sm font-bold text-primary">
                       {entry.data.result.explanation}
                     </p>
-                    <p className="font-jp text-2xl text-foreground">{entry.data.result.word}</p>
+                    <p lang="ja" className="font-jp text-2xl text-foreground">
+                      {entry.data.result.word}
+                    </p>
                     <p className="text-sm text-muted">{entry.data.result.reading}</p>
                   </div>
                   <div className="flex flex-wrap justify-end gap-1.5">
@@ -149,7 +149,9 @@ export function NaturalSearchView() {
                 <div className="flex flex-col gap-2">
                   {entry.data.result.examples.map((example, i) => (
                     <div key={i} className="border-2 border-pixel-ink bg-background p-2">
-                      <p className="font-jp text-sm text-foreground">{example.japanese}</p>
+                      <p lang="ja" className="font-jp text-sm text-foreground">
+                        {example.japanese}
+                      </p>
                       <p className="text-xs text-muted">{example.korean}</p>
                     </div>
                   ))}
@@ -180,9 +182,7 @@ export function NaturalSearchView() {
 
             {entry.data && !entry.data.result.found && (
               <div className="flex flex-col gap-1 border-2 border-dashed border-pixel-ink/40 bg-background p-3">
-                <p className="text-sm font-bold text-muted">
-                  {entry.data.result.explanation}
-                </p>
+                <p className="text-sm font-bold text-muted">{entry.data.result.explanation}</p>
                 <p className="text-xs text-muted">{entry.data.result.meanings[0]}</p>
                 <p className="text-xs text-muted">다른 표현으로 다시 질문해보세요.</p>
               </div>

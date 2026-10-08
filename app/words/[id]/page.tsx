@@ -147,7 +147,7 @@ export default async function WordDetailPage(props: PageProps<"/words/[id]">) {
                 className="mt-1"
               />
               <div>
-                <p className="font-jp text-3xl font-bold text-foreground">
+                <p lang="ja" className="font-jp text-3xl font-bold text-foreground">
                   {Array.from(vocabulary.word).map((char, index) =>
                     kanjiCharacters.has(char) ? (
                       <Link
@@ -162,7 +162,9 @@ export default async function WordDetailPage(props: PageProps<"/words/[id]">) {
                     ),
                   )}
                 </p>
-                <p className="font-jp text-lg text-muted">{vocabulary.reading}</p>
+                <p lang="ja" className="font-jp text-lg text-muted">
+                  {vocabulary.reading}
+                </p>
               </div>
               <SpeakButton text={vocabulary.reading || vocabulary.word} className="mt-1" />
             </div>
@@ -224,7 +226,9 @@ export default async function WordDetailPage(props: PageProps<"/words/[id]">) {
                     </span>
                   )}
                   <div className="flex items-start justify-between gap-2">
-                    <p className="font-jp text-foreground">{example.japanese}</p>
+                    <p lang="ja" className="font-jp text-foreground">
+                      {example.japanese}
+                    </p>
                     <SpeakButton text={example.japanese} label="예문 듣기" />
                   </div>
                   <p className="font-content text-sm text-muted">{example.korean}</p>
@@ -261,12 +265,13 @@ export default async function WordDetailPage(props: PageProps<"/words/[id]">) {
                     {linkedId ? (
                       <Link
                         href={`/words/${linkedId}`}
+                        lang="ja"
                         className="font-jp font-bold text-primary hover:underline"
                       >
                         {related.expression}
                       </Link>
                     ) : (
-                      <span className="font-jp font-bold text-foreground">
+                      <span lang="ja" className="font-jp font-bold text-foreground">
                         {related.expression}
                       </span>
                     )}

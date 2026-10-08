@@ -16,7 +16,9 @@ function WeakKanjiRow({ item }: { item: WeakKanjiItem }) {
           href={`/kanji/${encodeURIComponent(item.character)}`}
           className="flex min-w-0 flex-1 items-baseline gap-2"
         >
-          <span className="font-jp text-3xl font-bold text-foreground">{item.character}</span>
+          <span lang="ja" className="font-jp text-3xl font-bold text-foreground">
+            {item.character}
+          </span>
           <span className="truncate text-sm font-content text-muted">{item.meaning}</span>
         </Link>
         <StatusBadge status="WEAK" className="shrink-0" />
@@ -38,8 +40,12 @@ function WeakKanjiRow({ item }: { item: WeakKanjiItem }) {
                 key={word.vocabularyId}
                 className="flex items-baseline gap-1.5 border-2 border-pixel-ink bg-background px-2 py-1"
               >
-                <span className="font-jp text-sm font-bold text-foreground">{word.word}</span>
-                <span className="font-jp text-xs text-muted">{word.reading}</span>
+                <span lang="ja" className="font-jp text-sm font-bold text-foreground">
+                  {word.word}
+                </span>
+                <span lang="ja" className="font-jp text-xs text-muted">
+                  {word.reading}
+                </span>
               </li>
             ))}
           </ul>

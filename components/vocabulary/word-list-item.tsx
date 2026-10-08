@@ -48,12 +48,14 @@ export const WordListItem = memo(function WordListItem({
         </span>
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <div className="flex items-baseline gap-2">
-            <span className="font-jp text-lg font-bold text-foreground">{word.word}</span>
-            <span className="font-jp text-sm text-muted">{word.reading}</span>
+            <span lang="ja" className="font-jp text-lg font-bold text-foreground">
+              {word.word}
+            </span>
+            <span lang="ja" className="font-jp text-sm text-muted">
+              {word.reading}
+            </span>
           </div>
-          <p className="truncate text-sm font-content text-muted">
-            {word.meanings.join(", ")}
-          </p>
+          <p className="truncate text-sm font-content text-muted">{word.meanings.join(", ")}</p>
         </div>
         <StatusBadge status={word.learningStatus} />
       </Card>
@@ -66,10 +68,10 @@ export const WordListItem = memo(function WordListItem({
       <div className="flex items-center justify-between gap-3">
         <Link href={detailHref} className="flex min-w-0 flex-1 flex-col gap-1">
           <div className="flex items-baseline gap-2">
-            <span className="font-jp text-lg font-bold text-foreground">
+            <span lang="ja" className="font-jp text-lg font-bold text-foreground">
               <HighlightText text={word.word} query={highlightQuery} />
             </span>
-            <span className="font-jp text-sm text-muted">
+            <span lang="ja" className="font-jp text-sm text-muted">
               <HighlightText text={word.reading} query={highlightQuery} />
             </span>
           </div>

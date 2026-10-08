@@ -162,9 +162,7 @@ export function DictionaryView() {
       </form>
 
       {lookupMutation.isPending && (
-        <p className="text-sm text-muted">
-          AI가 분석하고 있어요. 최대 45초 정도 걸릴 수 있어요.
-        </p>
+        <p className="text-sm text-muted">AI가 분석하고 있어요. 최대 45초 정도 걸릴 수 있어요.</p>
       )}
 
       {!activeWord && !lookupMutation.isPending && (
@@ -177,7 +175,9 @@ export function DictionaryView() {
         <Card className="flex flex-col gap-4">
           <div className="flex items-start justify-between gap-3">
             <div className="flex flex-col gap-0.5">
-              <p className="font-jp text-2xl text-foreground">{activeWord}</p>
+              <p lang="ja" className="font-jp text-2xl text-foreground">
+                {activeWord}
+              </p>
               <p className="text-sm text-muted">{analysis.result.reading}</p>
             </div>
             <div className="flex flex-wrap justify-end gap-1.5">
@@ -209,7 +209,9 @@ export function DictionaryView() {
           <div className="flex flex-col gap-2">
             {analysis.result.examples.map((example, i) => (
               <div key={i} className="border-2 border-pixel-ink bg-background p-2">
-                <p className="font-jp text-sm text-foreground">{example.japanese}</p>
+                <p lang="ja" className="font-jp text-sm text-foreground">
+                  {example.japanese}
+                </p>
                 <p className="text-xs text-muted">{example.korean}</p>
               </div>
             ))}

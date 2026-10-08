@@ -8,7 +8,10 @@ import { useState } from "react";
 import { PixelPenTool, PixelSearch } from "@/components/icons/pixel-icons";
 import { Button } from "@/components/ui/button";
 import { ChipButton } from "@/components/ui/chip-button";
-import { ApiClientError, apiFetch } from "@/lib/api/client";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ErrorState } from "@/components/ui/error-state";
+import { SkeletonList } from "@/components/ui/skeleton";
+import { apiFetch } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
 import { KANJI_SCHOOL_GRADES } from "@/lib/validations/kanji";
 import { JLPT_LEVEL_OPTIONS } from "@/lib/validations/vocabulary";
@@ -52,7 +55,7 @@ export function KanjiListView({ initialQuery, initialGrade, initialJlpt }: Kanji
     setInputValue(query);
   }
 
-  const { data, isLoading, isError, error } = useQuery({
+  const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
     queryKey: ["kanji", trimmedQuery, grade, jlpt, page],
     queryFn: () => {
       const params = new URLSearchParams();
@@ -178,21 +181,29 @@ export function KanjiListView({ initialQuery, initialGrade, initialJlpt }: Kanji
         </div>
       )}
 
-      {isLoading && <p className="text-sm text-muted">불러오는 중...</p>}
+      {isLoading && <SkeletonList variant="tile" label="한자를 불러오는 중" />}
 
       {isError && (
-        <p className="text-sm text-error">
-          {error instanceof ApiClientError ? error.message : "한자를 불러오지 못했습니다."}
-        </p>
+        <ErrorState
+          error={error}
+          fallbackMessage="한자를 불러오지 못했습니다."
+          onRetry={() => refetch()}
+          retrying={isFetching}
+        />
       )}
 
       {data && data.items.length === 0 && (
-        <div className="flex flex-col items-center gap-1 py-16 text-center">
-          <p className="text-sm font-content text-muted">조건에 맞는 한자가 없습니다.</p>
-          <p className="text-xs font-content text-muted">
-            다른 검색어나 분류를 선택해보세요.
-          </p>
-        </div>
+        <EmptyState
+          variant="inline"
+          announce
+          icon={PixelSearch}
+          title="조건에 맞는 한자가 없어요"
+          description="다른 검색어나 분류를 선택해보세요."
+        >
+          <Button type="button" variant="outline" size="sm" onClick={() => goTo("", {})}>
+            검색·분류 초기화
+          </Button>
+        </EmptyState>
       )}
 
       {data && data.items.length > 0 && (
@@ -206,12 +217,10 @@ export function KanjiListView({ initialQuery, initialGrade, initialJlpt }: Kanji
                 href={`/kanji/${encodeURIComponent(kanji.character)}`}
                 className="flex flex-col items-center gap-1 border-2 border-pixel-ink bg-surface p-2 shadow-pixel-sm transition hover:bg-background"
               >
-                <span className="font-jp text-2xl font-bold text-foreground">
+                <span lang="ja" className="font-jp text-2xl font-bold text-foreground">
                   {kanji.character}
                 </span>
-                <span className="truncate text-[10px] text-muted">
-                  {kanji.koreanReading}
-                </span>
+                <span className="truncate text-[10px] text-muted">{kanji.koreanReading}</span>
               </Link>
             ))}
           </div>

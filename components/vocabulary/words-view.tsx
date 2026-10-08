@@ -4,15 +4,23 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
-import { PixelBookOpen, PixelPlus, PixelStar } from "@/components/icons/pixel-icons";
+import {
+  PixelBookOpen,
+  PixelCamera,
+  PixelPlus,
+  PixelSearch,
+  PixelStar,
+} from "@/components/icons/pixel-icons";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ErrorState } from "@/components/ui/error-state";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { SkeletonList } from "@/components/ui/skeleton";
 import { TagManagerModal } from "@/components/vocabulary/tag-manager-modal";
 import { TagStudyButton } from "@/components/vocabulary/tag-study-button";
 import { WordListItem } from "@/components/vocabulary/word-list-item";
-import { ApiClientError, apiFetch } from "@/lib/api/client";
+import { apiFetch } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
 import {
   matchesWordQuery,
@@ -61,6 +69,8 @@ export function WordsView({ initialBookId }: WordsViewProps) {
     isLoading,
     isError,
     error,
+    refetch,
+    isFetching,
   } = useQuery({
     queryKey: ["vocabularies", bookId, status, tagId, favoriteOnly],
     queryFn: () => {
@@ -76,6 +86,13 @@ export function WordsView({ initialBookId }: WordsViewProps) {
 
   const newWordHref = bookId ? `/words/new?bookId=${bookId}` : "/words/new";
   const hasFilters = !!(bookId || status || tagId || favoriteOnly);
+
+  function resetFilters() {
+    setBookId("");
+    setStatus("");
+    setTagId("");
+    setFavoriteOnly(false);
+  }
 
   const visibleWords = useMemo(() => {
     const matched = (words ?? []).filter((word) => matchesWordQuery(word, query));
@@ -166,36 +183,66 @@ export function WordsView({ initialBookId }: WordsViewProps) {
 
       <TagManagerModal open={tagManagerOpen} onClose={() => setTagManagerOpen(false)} />
 
-      {isLoading && <p className="text-sm text-muted">불러오는 중...</p>}
+      {isLoading && <SkeletonList variant="row" label="단어를 불러오는 중" />}
 
       {isError && (
-        <p className="text-sm text-error">
-          {error instanceof ApiClientError ? error.message : "단어를 불러오지 못했습니다."}
-        </p>
+        <ErrorState
+          error={error}
+          fallbackMessage="단어를 불러오지 못했습니다."
+          onRetry={() => refetch()}
+          retrying={isFetching}
+        />
       )}
 
-      {words && words.length === 0 && (
-        <Card variant="elevated" className="flex flex-col items-center gap-4 py-12 text-center">
-          <PixelBookOpen className="size-16 text-primary" aria-hidden="true" />
-          <div className="flex flex-col gap-1">
-            <p className="text-lg font-bold text-foreground">
-              {hasFilters ? "조건에 맞는 단어가 없어요" : "아직 등록된 단어가 없어요"}
-            </p>
-            <p className="text-sm font-content text-muted">
-              첫 단어를 등록하고 학습을 시작해보세요!
-            </p>
-          </div>
+      {/* 서버 결과가 비었을 때: 아직 단어가 없는 경우와 필터에 걸러진 경우를 구분한다. */}
+      {words && words.length === 0 && !hasFilters && (
+        <EmptyState
+          icon={PixelBookOpen}
+          title="아직 등록된 단어가 없어요"
+          description="직접 입력하거나, 교재 사진으로 한 번에 가져와 보세요."
+        >
           <Link href={newWordHref}>
             <Button type="button">
               <PixelPlus className="size-4" aria-hidden="true" />
               단어 등록하기
             </Button>
           </Link>
-        </Card>
+          <Link href="/vocabulary/photos/new">
+            <Button type="button" variant="outline">
+              <PixelCamera className="size-4" aria-hidden="true" />
+              사진으로 가져오기
+            </Button>
+          </Link>
+        </EmptyState>
       )}
 
+      {words && words.length === 0 && hasFilters && (
+        <EmptyState
+          variant="inline"
+          announce
+          icon={PixelSearch}
+          title="조건에 맞는 단어가 없어요"
+          description="선택한 단어장, 상태, 태그, 즐겨찾기 조건을 조정해 보세요."
+        >
+          <Button type="button" variant="outline" size="sm" onClick={resetFilters}>
+            필터 초기화
+          </Button>
+        </EmptyState>
+      )}
+
+      {/* 서버 결과는 있지만 검색어에 걸러져 모두 사라진 경우. */}
       {words && words.length > 0 && visibleWords.length === 0 && (
-        <p className="py-6 text-center text-sm text-muted">검색 결과가 없어요.</p>
+        <EmptyState
+          variant="inline"
+          announce
+          icon={PixelSearch}
+          title="검색 결과가 없어요"
+          description={`"${query.trim()}"와 일치하는 단어, 읽기, 뜻이 없어요.`}
+        >
+          <Button type="button" variant="outline" size="sm" onClick={() => setQuery("")}>
+            검색어 지우기
+          </Button>
+        </EmptyState>
       )}
 
       {visibleWords.length > 0 && (

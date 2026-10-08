@@ -53,6 +53,21 @@ function getDisplayCorrectAnswer(question: QuizQuestion): string {
   return question.correctAnswer;
 }
 
+/** 문제 본문이 일본어로 출제되는 유형 — 스크린리더가 일본어 음성으로 읽게 lang을 붙이는 데 쓴다. */
+const JAPANESE_PROMPT_TYPES: ReadonlySet<QuizType> = new Set([
+  "JA_TO_KO",
+  "FURIGANA",
+  "SENTENCE_TRANSLATION",
+  "KANJI_MEANING",
+  "KANJI_READING",
+]);
+
+function getFeedbackMessage(question: QuizQuestion, feedback: QuizFeedback): string {
+  return feedback.isCorrect
+    ? "정답이에요!"
+    : `오답이에요. 정답: ${getDisplayCorrectAnswer(question)}`;
+}
+
 function textAnswerPlaceholder(quizType: QuizType): string {
   switch (quizType) {
     case "KO_TO_JA":
@@ -548,15 +563,18 @@ export function QuizSession({
           feedback && !feedback.isCorrect && "animate-quiz-flash border-error",
         )}
       >
-        <span className="text-xs font-bold text-muted">
-          {QUIZ_TYPE_LABELS[current.quizType]}
-        </span>
+        <span className="text-xs font-bold text-muted">{QUIZ_TYPE_LABELS[current.quizType]}</span>
         <div className="flex items-center gap-2">
-          <p className="font-jp text-2xl font-bold whitespace-pre-wrap text-foreground">
+          <p
+            lang={JAPANESE_PROMPT_TYPES.has(current.quizType) ? "ja" : undefined}
+            className="font-jp text-2xl font-bold whitespace-pre-wrap text-foreground"
+          >
             {current.prompt}
           </p>
           {/* 일본어 단어를 보여주고 한국어 뜻을 묻는 유형만 — 읽기를 묻는 유형에서는 정답이 새어나간다. */}
-          {current.quizType === "JA_TO_KO" && <SpeakButton text={current.speechText || current.prompt} size="md" />}
+          {current.quizType === "JA_TO_KO" && (
+            <SpeakButton text={current.speechText || current.prompt} size="md" />
+          )}
         </div>
 
         <QuizAnswerArea
@@ -566,8 +584,15 @@ export function QuizSession({
           onSubmit={submit}
         />
 
+        {/* 정오답 결과를 스크린리더에도 알린다. 라이브 영역은 내용이 바뀌기 전에 이미 있어야 읽히므로
+            항상 렌더하고, 화면에 보이는 박스는 같은 문장이 두 번 읽히지 않게 aria-hidden으로 둔다. */}
+        <p role="status" aria-live="polite" className="sr-only">
+          {feedback ? getFeedbackMessage(current, feedback) : ""}
+        </p>
+
         {feedback && (
           <div
+            aria-hidden="true"
             className={cn(
               "flex w-full items-center justify-center gap-2 border-2 border-pixel-ink px-3 py-2 text-sm font-bold",
               feedback.isCorrect
@@ -580,9 +605,7 @@ export function QuizSession({
             ) : (
               <PixelX className="size-4" aria-hidden="true" />
             )}
-            {feedback.isCorrect
-              ? "정답이에요!"
-              : `오답이에요. 정답: ${getDisplayCorrectAnswer(current)}`}
+            {getFeedbackMessage(current, feedback)}
           </div>
         )}
 

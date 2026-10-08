@@ -278,6 +278,32 @@ body {
   background-size: 20px 20px;
 }
 
+/**
+ * 움직임 줄이기 설정을 켠 사용자에게는 장식용 모션(보상 연출, 펫 흔들림, 퀴즈 깜빡임 등)을 끄고
+ * 전환을 사실상 즉시로 만든다. 이 규칙은 레이어 밖이라 Tailwind 유틸리티보다 항상 우선한다.
+ * 스피너(`animate-spin`)처럼 "진행 중"을 알리는 기능적 움직임은 남긴다.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .animate-level-up,
+  .animate-quiz-flash,
+  .animate-quest-complete,
+  .animate-exp-toast,
+  .animate-pet-idle,
+  .animate-pet-happy,
+  .animate-pet-levelup,
+  .animate-pulse {
+    animation: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto;
+    transition-duration: 0.01ms;
+    transition-delay: 0s;
+  }
+}
+
 /* Japanese text automatically switches to Noto Sans JP, wherever it appears. */
 :lang(ja) {
   font-family: var(--font-jp);

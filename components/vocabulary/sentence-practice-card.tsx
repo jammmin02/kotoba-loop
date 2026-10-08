@@ -140,7 +140,10 @@ export function SentencePracticeCard({ vocabularyId, initialSentence }: Sentence
             <div className="flex flex-col gap-1">
               {!feedbackMutation.data.result.isAlreadyNatural && (
                 <p className="font-medium text-foreground">
-                  첨삭: <span className="font-jp">{feedbackMutation.data.result.corrected}</span>
+                  첨삭:{" "}
+                  <span lang="ja" className="font-jp">
+                    {feedbackMutation.data.result.corrected}
+                  </span>
                 </p>
               )}
               <p className="text-muted">{feedbackMutation.data.result.explanation}</p>

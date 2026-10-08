@@ -46,10 +46,7 @@ export default async function CommunityBookDetailPage(props: PageProps<"/communi
   if (hidden && !canViewHiddenBook(viewer, book.user_id)) {
     return (
       <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
-        <Link
-          href="/community"
-          className="text-sm font-bold text-muted hover:text-foreground"
-        >
+        <Link href="/community" className="text-sm font-bold text-muted hover:text-foreground">
           ← 커뮤니티 단어장
         </Link>
         <Card className="flex flex-col items-center gap-3 py-10 text-center">
@@ -63,10 +60,7 @@ export default async function CommunityBookDetailPage(props: PageProps<"/communi
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
-      <Link
-        href="/community"
-        className="text-sm font-bold text-muted hover:text-foreground"
-      >
+      <Link href="/community" className="text-sm font-bold text-muted hover:text-foreground">
         ← 커뮤니티 단어장
       </Link>
 
@@ -122,7 +116,9 @@ export default async function CommunityBookDetailPage(props: PageProps<"/communi
           {words.map((word) => (
             <Card key={word.id} className="flex items-center justify-between gap-2">
               <div className="min-w-0">
-                <p className="font-jp text-base font-bold text-foreground">{word.word}</p>
+                <p lang="ja" className="font-jp text-base font-bold text-foreground">
+                  {word.word}
+                </p>
                 <p className="text-xs text-muted">{word.reading}</p>
               </div>
               <p className="truncate text-right text-sm font-content text-muted">

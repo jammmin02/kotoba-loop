@@ -6,11 +6,13 @@ import { useState } from "react";
 
 import { PixelBookOpen, PixelCamera, PixelPlus } from "@/components/icons/pixel-icons";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ErrorState } from "@/components/ui/error-state";
+import { SkeletonList } from "@/components/ui/skeleton";
 import { DeleteVocabularyBookModal } from "@/components/vocabulary/delete-vocabulary-book-modal";
 import { VocabularyBookCard } from "@/components/vocabulary/vocabulary-book-card";
 import { VocabularyBookFormModal } from "@/components/vocabulary/vocabulary-book-form-modal";
-import { ApiClientError, apiFetch } from "@/lib/api/client";
+import { apiFetch } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
 import type { VocabularyBookSummary } from "@/types/vocabulary-book";
 
@@ -38,6 +40,8 @@ export function VocabularyBooksView() {
     isLoading,
     isError,
     error,
+    refetch,
+    isFetching,
   } = useQuery({
     queryKey: ["vocabulary-books"],
     queryFn: () => apiFetch<VocabularyBookSummary[]>("/api/vocabulary-books"),
@@ -70,28 +74,34 @@ export function VocabularyBooksView() {
         </div>
       </div>
 
-      {isLoading && <p className="text-sm text-muted">불러오는 중...</p>}
+      {isLoading && <SkeletonList variant="card" label="단어장을 불러오는 중" />}
 
       {isError && (
-        <p className="text-sm text-error">
-          {error instanceof ApiClientError ? error.message : "단어장을 불러오지 못했습니다."}
-        </p>
+        <ErrorState
+          error={error}
+          fallbackMessage="단어장을 불러오지 못했습니다."
+          onRetry={() => refetch()}
+          retrying={isFetching}
+        />
       )}
 
       {books && books.length === 0 && (
-        <Card variant="elevated" className="flex flex-col items-center gap-4 py-12 text-center">
-          <PixelBookOpen className="size-16 text-primary" aria-hidden="true" />
-          <div className="flex flex-col gap-1">
-            <p className="text-lg font-bold text-foreground">아직 단어장이 없어요</p>
-            <p className="text-sm font-content text-muted">
-              첫 단어장을 만들고 나만의 학습 여정을 시작해보세요!
-            </p>
-          </div>
+        <EmptyState
+          icon={PixelBookOpen}
+          title="아직 단어장이 없어요"
+          description="첫 단어장을 만들고 나만의 학습 여정을 시작해보세요!"
+        >
           <Button type="button" onClick={() => setCreateOpen(true)}>
             <PixelPlus className="size-4" aria-hidden="true" />
             단어장 만들기
           </Button>
-        </Card>
+          <Link href="/vocabulary/photos/new">
+            <Button type="button" variant="outline">
+              <PixelCamera className="size-4" aria-hidden="true" />
+              사진으로 등록
+            </Button>
+          </Link>
+        </EmptyState>
       )}
 
       {books && books.length > 0 && (
@@ -121,9 +131,11 @@ export function VocabularyBooksView() {
         visibleBooks &&
         visibleBooks.length === 0 &&
         filter !== "all" && (
-          <p className="py-8 text-center text-sm font-content text-muted">
-            {FILTER_EMPTY_MESSAGE[filter]}
-          </p>
+          <EmptyState variant="inline" announce title={FILTER_EMPTY_MESSAGE[filter]}>
+            <Button type="button" variant="outline" size="sm" onClick={() => setFilter("all")}>
+              전체 보기
+            </Button>
+          </EmptyState>
         )}
 
       {visibleBooks && visibleBooks.length > 0 && (

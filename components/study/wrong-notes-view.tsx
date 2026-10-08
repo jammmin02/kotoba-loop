@@ -31,12 +31,14 @@ function WrongNoteRow({ item }: { item: WrongNoteItem }) {
       <div className="flex items-start justify-between gap-3">
         <Link href={`/words/${item.vocabularyId}`} className="flex min-w-0 flex-1 flex-col gap-1">
           <div className="flex items-baseline gap-2">
-            <span className="font-jp text-lg font-bold text-foreground">{item.word}</span>
-            <span className="font-jp text-sm text-muted">{item.reading}</span>
+            <span lang="ja" className="font-jp text-lg font-bold text-foreground">
+              {item.word}
+            </span>
+            <span lang="ja" className="font-jp text-sm text-muted">
+              {item.reading}
+            </span>
           </div>
-          <p className="truncate text-sm font-content text-muted">
-            {item.meanings.join(", ")}
-          </p>
+          <p className="truncate text-sm font-content text-muted">{item.meanings.join(", ")}</p>
         </Link>
         <StatusBadge status={item.learningStatus} className="shrink-0" />
       </div>

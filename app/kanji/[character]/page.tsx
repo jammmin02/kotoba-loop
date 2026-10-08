@@ -96,7 +96,9 @@ export default async function KanjiDetailPage(props: PageProps<"/kanji/[characte
 
       <Card variant="elevated" title="KANJI.EXE" titleColor="mint" className="flex flex-col gap-4">
         <div className="flex flex-wrap items-end justify-between gap-2">
-          <p className="font-jp text-6xl font-bold text-foreground">{kanji.character}</p>
+          <p lang="ja" className="font-jp text-6xl font-bold text-foreground">
+            {kanji.character}
+          </p>
           <div className="flex gap-2">
             <StatusBadge status={userKanji?.learning_status ?? "NEW"} />
             {kanji.jlpt_level_ref && <JlptBadge level={kanji.jlpt_level_ref} />}
@@ -126,7 +128,9 @@ export default async function KanjiDetailPage(props: PageProps<"/kanji/[characte
           </div>
           <div>
             <dt className="text-xs font-bold text-muted">부수</dt>
-            <dd className="font-jp text-foreground">{kanji.radical}</dd>
+            <dd lang="ja" className="font-jp text-foreground">
+              {kanji.radical}
+            </dd>
           </div>
           <div>
             <dt className="text-xs font-bold text-muted">학년</dt>

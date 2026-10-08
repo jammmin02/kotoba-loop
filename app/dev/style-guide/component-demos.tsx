@@ -2,14 +2,18 @@
 
 import { useState } from "react";
 
+import { PixelBookOpen, PixelSearch } from "@/components/icons/pixel-icons";
 import { JlptBadge, StatusBadge, type JlptLevel, type WordStatus } from "@/components/ui/badge";
 import { Button, type ButtonProps } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ErrorState } from "@/components/ui/error-state";
 import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import { BottomTabBar, Sidebar } from "@/components/ui/navigation";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { Select } from "@/components/ui/select";
+import { SkeletonList } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/toast";
 import { Tooltip } from "@/components/ui/tooltip";
@@ -110,6 +114,7 @@ export function InputDemo() {
 
 export function ModalDemo() {
   const [open, setOpen] = useState(false);
+  const [nestedOpen, setNestedOpen] = useState(false);
 
   return (
     <div>
@@ -120,10 +125,19 @@ export function ModalDemo() {
           시트로 표시됩니다.
         </p>
         <div className="mt-6 flex justify-end gap-2">
+          <Button variant="ghost" onClick={() => setNestedOpen(true)}>
+            겹친 모달
+          </Button>
           <Button variant="ghost" onClick={() => setOpen(false)}>
             취소
           </Button>
           <Button onClick={() => setOpen(false)}>확인</Button>
+        </div>
+      </Modal>
+      <Modal open={nestedOpen} onClose={() => setNestedOpen(false)} title="두 번째 모달">
+        <p className="text-sm text-foreground/80">Esc와 Tab은 맨 위 모달에만 적용됩니다.</p>
+        <div className="mt-6 flex justify-end">
+          <Button onClick={() => setNestedOpen(false)}>닫기</Button>
         </div>
       </Modal>
     </div>
@@ -158,6 +172,17 @@ export function ToastDemo() {
       </Button>
       <Button variant="outline" onClick={() => toast.info("새로운 업데이트가 있습니다")}>
         Info 토스트
+      </Button>
+      <Button
+        variant="outline"
+        onClick={() =>
+          toast.success("단어를 삭제했어요", {
+            action: { label: "실행 취소", onClick: () => toast.info("삭제를 취소했어요") },
+            durationMs: 8000,
+          })
+        }
+      >
+        액션 토스트
       </Button>
     </div>
   );
@@ -200,6 +225,55 @@ export function NavigationDemo() {
           Mobile Bottom Tab (4개 메뉴)
         </p>
         <BottomTabBar className="static !flex w-full" />
+      </div>
+    </div>
+  );
+}
+
+export function StateDemo() {
+  const [retrying, setRetrying] = useState(false);
+
+  return (
+    <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-3">
+        <h3 className="text-sm font-semibold text-muted">Skeleton (row / card / tile)</h3>
+        <SkeletonList variant="row" count={2} label="단어를 불러오는 중" />
+        <SkeletonList variant="card" count={3} label="단어장을 불러오는 중" />
+        <SkeletonList variant="tile" count={8} label="한자를 불러오는 중" />
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <h3 className="text-sm font-semibold text-muted">ErrorState</h3>
+        <ErrorState
+          fallbackMessage="단어를 불러오지 못했습니다."
+          onRetry={() => {
+            setRetrying(true);
+            setTimeout(() => setRetrying(false), 1200);
+          }}
+          retrying={retrying}
+        />
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <h3 className="text-sm font-semibold text-muted">EmptyState (card / inline)</h3>
+        <EmptyState
+          icon={PixelBookOpen}
+          title="아직 등록된 단어가 없어요"
+          description="직접 입력하거나, 교재 사진으로 한 번에 가져와 보세요."
+        >
+          <Button>단어 등록하기</Button>
+          <Button variant="outline">사진으로 가져오기</Button>
+        </EmptyState>
+        <EmptyState
+          variant="inline"
+          icon={PixelSearch}
+          title="검색 결과가 없어요"
+          description="다른 검색어로 다시 찾아보세요."
+        >
+          <Button variant="outline" size="sm">
+            검색어 지우기
+          </Button>
+        </EmptyState>
       </div>
     </div>
   );

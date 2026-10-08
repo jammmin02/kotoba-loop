@@ -63,12 +63,10 @@ export function HandwritingSearchView() {
                 href={`/kanji/${encodeURIComponent(kanji.character)}`}
                 className="flex flex-col items-center gap-1 border-2 border-pixel-ink bg-surface p-2 shadow-pixel-sm transition hover:bg-background"
               >
-                <span className="font-jp text-2xl font-bold text-foreground">
+                <span lang="ja" className="font-jp text-2xl font-bold text-foreground">
                   {kanji.character}
                 </span>
-                <span className="truncate text-[10px] text-muted">
-                  {kanji.koreanReading}
-                </span>
+                <span className="truncate text-[10px] text-muted">{kanji.koreanReading}</span>
               </Link>
             ))}
           </div>

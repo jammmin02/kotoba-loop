@@ -282,9 +282,7 @@ export function KanjiPracticeView() {
               </div>
 
               <div className="flex items-center justify-between gap-2">
-                <span className="text-xs text-muted">
-                  직접 고르거나 즐겨찾기에서 골라보세요
-                </span>
+                <span className="text-xs text-muted">직접 고르거나 즐겨찾기에서 골라보세요</span>
                 <ChipButton
                   selected={favoritesOnly}
                   onClick={() => setFavoritesOnly((v) => !v)}
@@ -304,9 +302,7 @@ export function KanjiPracticeView() {
                 <p className="text-sm text-muted">불러오는 중...</p>
               )}
               {poolEnabled && !poolQuery.isLoading && poolItems.length === 0 && (
-                <p className="py-4 text-center text-sm text-muted">
-                  조건에 맞는 한자가 없어요.
-                </p>
+                <p className="py-4 text-center text-sm text-muted">조건에 맞는 한자가 없어요.</p>
               )}
 
               {poolItems.length > 0 && (
@@ -326,6 +322,7 @@ export function KanjiPracticeView() {
                           }
                         }}
                         aria-pressed={isSelected}
+                        lang="ja"
                         className={cn(
                           "relative flex aspect-square cursor-pointer items-center justify-center border-2 border-pixel-ink font-jp text-lg font-bold shadow-pixel-sm transition",
                           isSelected

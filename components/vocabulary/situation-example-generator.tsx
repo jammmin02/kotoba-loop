@@ -112,7 +112,9 @@ export function SituationExampleGenerator({ vocabularyId }: SituationExampleGene
             {preview.situation}
             {preview.cached && " · 캐시됨"}
           </span>
-          <p className="font-jp text-foreground">{preview.result.japanese}</p>
+          <p lang="ja" className="font-jp text-foreground">
+            {preview.result.japanese}
+          </p>
           <p className="font-content text-sm text-muted">{preview.result.korean}</p>
           <Button
             type="button"

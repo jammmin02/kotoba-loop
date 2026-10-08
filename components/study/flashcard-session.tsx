@@ -275,9 +275,7 @@ export function FlashcardSession({
   return (
     <div className="flex w-full max-w-md flex-col gap-4">
       {mode === "tag" && tagName && (
-        <p className="text-center text-sm font-bold text-muted">
-          『{tagName}』 태그 학습 중
-        </p>
+        <p className="text-center text-sm font-bold text-muted">『{tagName}』 태그 학습 중</p>
       )}
 
       <div className="flex items-center justify-end">
@@ -317,7 +315,9 @@ export function FlashcardSession({
             style={{ backfaceVisibility: "hidden" }}
           >
             <div className="flex items-center gap-2">
-              <p className="font-jp text-4xl font-bold text-foreground">{currentCard?.word}</p>
+              <p lang="ja" className="font-jp text-4xl font-bold text-foreground">
+                {currentCard?.word}
+              </p>
               {currentCard && (
                 <SpeakButton text={currentCard.reading || currentCard.word} size="md" />
               )}
@@ -335,8 +335,12 @@ export function FlashcardSession({
             style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
           >
             <div>
-              <p className="font-jp text-2xl font-bold text-foreground">{currentCard?.word}</p>
-              <p className="font-jp text-base text-muted">{currentCard?.reading}</p>
+              <p lang="ja" className="font-jp text-2xl font-bold text-foreground">
+                {currentCard?.word}
+              </p>
+              <p lang="ja" className="font-jp text-base text-muted">
+                {currentCard?.reading}
+              </p>
             </div>
             <ul className="flex flex-col gap-1">
               {currentCard?.meanings.map((meaning) => (
@@ -348,14 +352,12 @@ export function FlashcardSession({
             {currentCard && currentCard.examples.length > 0 && (
               <div className="flex flex-col gap-1 border-t-2 border-pixel-ink pt-2">
                 <div className="flex items-center justify-center gap-2">
-                  <p className="font-jp text-sm text-foreground">
+                  <p lang="ja" className="font-jp text-sm text-foreground">
                     {currentCard.examples[0].japanese}
                   </p>
                   <SpeakButton text={currentCard.examples[0].japanese} label="예문 듣기" />
                 </div>
-                <p className="font-content text-xs text-muted">
-                  {currentCard.examples[0].korean}
-                </p>
+                <p className="font-content text-xs text-muted">{currentCard.examples[0].korean}</p>
               </div>
             )}
           </div>

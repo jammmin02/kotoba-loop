@@ -27,6 +27,7 @@ export function KanjiReadingList({ readings }: { readings: string[] }) {
         const { base, okurigana } = parseKanjiReading(reading);
         return (
           <span
+            lang="ja"
             key={`${reading}-${index}`}
             className="inline-flex items-baseline rounded-none border-2 border-pixel-ink bg-surface px-1.5 py-0.5 font-jp text-xs text-foreground"
           >
