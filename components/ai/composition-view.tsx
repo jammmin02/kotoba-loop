@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
 import { useRef, useState } from "react";
 
 import type { CompositionGradeResponse } from "@/app/api/ai/composition/grade/route";
@@ -364,9 +365,17 @@ export function CompositionView() {
         </Card>
 
         <section aria-labelledby="composition-history" className="flex flex-col gap-2">
-          <h2 id="composition-history" className="text-sm font-bold text-muted">
-            최근 작문 기록
-          </h2>
+          <div className="flex items-center justify-between gap-2">
+            <h2 id="composition-history" className="text-sm font-bold text-muted">
+              최근 작문 기록
+            </h2>
+            <Link
+              href="/ai/composition/stats"
+              className="text-sm font-bold text-primary underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            >
+              통계 보기
+            </Link>
+          </div>
           {historyQuery.isLoading && <p className="text-sm text-muted">불러오는 중…</p>}
           {historyQuery.data?.length === 0 && (
             <p className="text-sm font-content text-muted">
