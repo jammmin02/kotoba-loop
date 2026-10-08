@@ -10,6 +10,7 @@ import {
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 
 import { AI_MAX_RETRIES, AI_MODEL, AI_TIMEOUT_MS, anthropic } from "@/lib/ai/client";
+import { estimateCostUsd } from "@/lib/ai/pricing";
 import { withRetry } from "@/lib/ai/retry";
 import { enforceAiUsageLimit } from "@/lib/ai/usage-limit";
 import { recordAiUsage } from "@/lib/ai/usage-log";
@@ -39,20 +40,6 @@ function isRetryableError(err: unknown): boolean {
   return false;
 }
 
-// Rough per-1M-token USD pricing, only used for the cost estimate in usage
-// logs — not billing-accurate. Update alongside AI_MODEL if it changes.
-const PRICING_PER_MILLION_TOKENS: Record<string, { input: number; output: number }> = {
-  "claude-opus-5": { input: 5, output: 25 },
-  "claude-sonnet-5": { input: 3, output: 15 },
-  "claude-haiku-4-5": { input: 1, output: 5 },
-};
-
-function estimateCostUsd(model: string, inputTokens: number, outputTokens: number): number {
-  const pricing =
-    PRICING_PER_MILLION_TOKENS[model] ?? PRICING_PER_MILLION_TOKENS["claude-sonnet-5"];
-  return (inputTokens * pricing.input + outputTokens * pricing.output) / 1_000_000;
-}
-
 export interface UsageLog {
   analysisType: string;
   model: string;
@@ -60,6 +47,7 @@ export interface UsageLog {
   inputTokens: number;
   outputTokens: number;
   cacheReadInputTokens: number;
+  cacheCreationInputTokens: number;
   estimatedCostUsd: number;
 }
 
@@ -72,6 +60,11 @@ export interface StructuredAnalysisParams<Schema extends z.ZodType> {
   maxTokens?: number;
   timeoutMs?: number;
   maxRetries?: number;
+  /**
+   * system 프롬프트를 prompt cache에 올린다(5분). 같은 system을 짧은 간격으로 반복해 부르는 기능(회화 턴 등)이
+   * 켠다 — 캐시 읽기는 입력 단가의 10%다. system이 모델별 최소 길이보다 짧으면 캐시는 조용히 무시된다.
+   */
+  cacheSystem?: boolean;
 }
 
 export interface StructuredAnalysisResult<T> {
@@ -88,6 +81,7 @@ export async function runStructuredAnalysis<Schema extends z.ZodType>({
   maxTokens = 4096,
   timeoutMs = AI_TIMEOUT_MS,
   maxRetries = AI_MAX_RETRIES,
+  cacheSystem = false,
 }: StructuredAnalysisParams<Schema>): Promise<StructuredAnalysisResult<z.infer<Schema>>> {
   // 한도 초과는 재시도·AI 오류 매핑 대상이 아니므로 try 밖에서 먼저 검사한다.
   await enforceAiUsageLimit();
@@ -103,7 +97,9 @@ export async function runStructuredAnalysis<Schema extends z.ZodType>({
           {
             model,
             max_tokens: maxTokens,
-            system,
+            system: cacheSystem
+              ? [{ type: "text", text: system, cache_control: { type: "ephemeral" } }]
+              : system,
             messages: [{ role: "user", content: user }],
             output_config: { format: zodOutputFormat(schema) },
           },
@@ -116,7 +112,9 @@ export async function runStructuredAnalysis<Schema extends z.ZodType>({
         recordAiUsage({
           feature: analysisType,
           model,
-          inputTokens: usage.inputTokens,
+          // 한도·기록용 입력 토큰은 캐시 읽기/쓰기분을 포함한 실제 처리량이다(캐시돼도 한도는 동일하게 센다).
+          inputTokens:
+            usage.inputTokens + usage.cacheReadInputTokens + usage.cacheCreationInputTokens,
           outputTokens: usage.outputTokens,
         });
 
@@ -158,13 +156,21 @@ function buildUsageLog(
 ): UsageLog {
   const inputTokens = response.usage.input_tokens ?? 0;
   const outputTokens = response.usage.output_tokens ?? 0;
+  const cacheReadInputTokens = response.usage.cache_read_input_tokens ?? 0;
+  const cacheCreationInputTokens = response.usage.cache_creation_input_tokens ?? 0;
   return {
     analysisType,
     model,
     attempts,
     inputTokens,
     outputTokens,
-    cacheReadInputTokens: response.usage.cache_read_input_tokens ?? 0,
-    estimatedCostUsd: estimateCostUsd(model, inputTokens, outputTokens),
+    cacheReadInputTokens,
+    cacheCreationInputTokens,
+    estimatedCostUsd: estimateCostUsd(model, {
+      inputTokens,
+      outputTokens,
+      cacheReadInputTokens,
+      cacheCreationInputTokens,
+    }),
   };
 }
