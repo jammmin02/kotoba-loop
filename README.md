@@ -70,6 +70,11 @@ npm run db:seed              # 개발용 샘플 단어 1개와 시드 계정(로
 npm run dev                  # http://localhost:3000
 ```
 
+참고
+
+- `npm install` 중 `npm warn allow-scripts …` 경고는 의존성의 설치 스크립트에 대한 안내라 무시해도 된다(`prisma generate`는 이 저장소의 `postinstall`로 정상 실행된다).
+- DB 없이도 `npm run typecheck` · `npm run lint` · `npm test` · `npm run build`는 통과한다. 빌드 중 "허용 도메인 조회 실패, 기본값 사용" 로그가 한 번 나오는 것은 정상이다(가입 화면이 DB를 못 읽으면 기본 도메인을 쓴다).
+
 ### 관리자 계정
 
 가입은 관리자 승인이 필요하므로, 처음에는 관리자를 직접 만들어야 한다.
