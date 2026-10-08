@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { config } from "dotenv";
 
 import { PrismaClient } from "../lib/generated/prisma/client";
+import { assertTestSeedAllowed } from "../lib/seed-guard";
 
 // 독립 실행 스크립트라 prisma/seed.ts와 동일한 방식으로 env를 직접 로드한다.
 config({ path: ".env" });
@@ -516,6 +517,14 @@ async function seedBook(
 }
 
 async function main() {
+  // 비밀번호가 저장소에 공개된 계정을 만드는 스크립트라, DB에 접속하기 전에 실행해도 되는 DB인지 먼저
+  // 확인한다(기본은 내 컴퓨터의 DB만 허용, 원격 DB는 --allow-remote 필요 — lib/seed-guard.ts).
+  assertTestSeedAllowed({
+    databaseUrl: process.env.DATABASE_URL,
+    nodeEnv: process.env.NODE_ENV,
+    argv: process.argv,
+  });
+
   const existing = await db.user.findUnique({ where: { email: TEST_EMAIL } });
   if (existing) {
     throw new Error(

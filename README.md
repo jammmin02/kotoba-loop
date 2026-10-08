@@ -90,14 +90,16 @@ npm run db:set-admin -- <email> --revoke
 
 ### 선택 데이터 스크립트 (`prisma/`)
 
-| 명령                                                             | 용도                                                                                      |
-| ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `npx tsx prisma/seed-jlpt-books.ts`                              | 커뮤니티에 노출할 공식 JLPT N5~N1 단어장(관리자 계정 소유라 관리자 시드 뒤에 실행)        |
-| `npx tsx prisma/seed-gap-vocab.ts`                               | 단어와 연결되지 않은 한자를 위한 대표 단어 1,981개                                        |
-| `npm run db:backfill:vocabulary-kanji`                           | 단어 ↔ 한자 연결 재계산(위 스크립트 뒤에 실행)                                            |
-| `npm run db:backfill:imported-book-user-vocabulary`              | 커뮤니티 단어장 가져오기 버그로 빠진 "내 단어" 등록을 한 번 채워 넣는 과거 데이터 보정    |
-| `npm run db:validate:kanji`                                      | 한자 시드 데이터 검증                                                                     |
-| `npx tsx prisma/seed-test-account.ts`, `seed-multi-book-test.ts` | 수동 테스트용 계정. **비밀번호가 코드에 고정**이라 로컬 DB에서만 쓴다(공유·운영 DB 금지). |
+| 명령                                                             | 용도                                                                                             |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `npx tsx prisma/seed-jlpt-books.ts`                              | 커뮤니티에 노출할 공식 JLPT N5~N1 단어장(관리자 계정 소유라 관리자 시드 뒤에 실행)               |
+| `npx tsx prisma/seed-gap-vocab.ts`                               | 단어와 연결되지 않은 한자를 위한 대표 단어 1,981개                                               |
+| `npm run db:backfill:vocabulary-kanji`                           | 단어 ↔ 한자 연결 재계산(위 스크립트 뒤에 실행)                                                   |
+| `npm run db:backfill:imported-book-user-vocabulary`              | 커뮤니티 단어장 가져오기 버그로 빠진 "내 단어" 등록을 한 번 채워 넣는 과거 데이터 보정           |
+| `npm run db:validate:kanji`                                      | 한자 시드 데이터 검증                                                                            |
+| `npx tsx prisma/seed-test-account.ts`, `seed-multi-book-test.ts` | 수동 테스트용 계정. **비밀번호가 코드에 고정**이라 기본은 로컬 DB에서만 실행된다(아래 안전장치). |
+
+> **테스트 계정 시드의 안전장치**: 위 두 스크립트는 비밀번호가 저장소에 공개된 계정을 만들기 때문에, `DATABASE_URL`의 호스트가 `localhost`/`127.0.0.1`/`::1`이 아니면 DB에 접속하기 전에 실행을 거절한다. 일회용 개발 DB(Neon 등)라고 확신할 때만 `--allow-remote`를 붙여 실행하고(`npx tsx prisma/seed-test-account.ts --allow-remote`), 끝나면 계정을 지운다. `NODE_ENV=production`에서는 플래그가 있어도 실행되지 않는다. 판정 규칙은 [lib/seed-guard.ts](lib/seed-guard.ts).
 
 > **주의**: `npm run db:migrate`(`prisma migrate dev`)는 개발용이다. 이미 데이터가 있는 공유·운영 DB에는 `npx prisma migrate deploy`를 쓰고, 적용 전에 `npx prisma migrate status`로 대기 중인 마이그레이션을 확인한다.
 
