@@ -4,6 +4,7 @@ import {
   BadgeDemo,
   ButtonDemo,
   CardDemo,
+  FlashcardDemo,
   InputDemo,
   ModalDemo,
   NavigationDemo,
@@ -285,6 +286,13 @@ export default function StyleGuidePage() {
           Toast
         </h2>
         <ToastDemo />
+      </section>
+
+      <section aria-labelledby="flashcard-heading" className="flex flex-col gap-4">
+        <h2 id="flashcard-heading" className="text-xl font-semibold">
+          플래시카드 (단축키 · 다음 복습 간격)
+        </h2>
+        <FlashcardDemo />
       </section>
 
       <section aria-labelledby="state-heading" className="flex flex-col gap-4">

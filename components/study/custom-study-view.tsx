@@ -42,6 +42,7 @@ function toSessionCard(word: VocabularySummary): SessionCard {
     meanings: word.meanings,
     // `GET /api/vocabularies`는 예문을 포함하지 않는다 — 뒷면에는 뜻까지만 표시된다.
     examples: [],
+    intervalStage: word.intervalStage,
   };
 }
 

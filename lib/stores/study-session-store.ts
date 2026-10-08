@@ -28,7 +28,11 @@ interface StudySessionState {
   startSession: (mode: StudySessionMode, queue: SessionCard[], tagName?: string) => void;
   flip: () => void;
   setSubmitting: (value: boolean) => void;
-  recordGrade: (grade: ReviewGrade) => void;
+  /**
+   * `nextIntervalStage`는 서버가 채점 후 돌려준 새 SRS 단계 — 같은 세션에서 다시 나오는 카드
+   * (모르겠음/헷갈림 재출제)의 "다음 복습" 미리보기가 채점 전 단계를 기준으로 하지 않게 한다.
+   */
+  recordGrade: (grade: ReviewGrade, nextIntervalStage?: number) => void;
   /** 저장해 둔 진행 상황으로 세션을 되살린다(이어서 하기). */
   restoreSession: (snapshot: FlashcardSnapshot) => void;
 }
@@ -74,7 +78,7 @@ export const useStudySessionStore = create<StudySessionState>()((set) => ({
     }),
   flip: () => set((state) => ({ isFlipped: !state.isFlipped })),
   setSubmitting: (value) => set({ isSubmitting: value }),
-  recordGrade: (grade) =>
+  recordGrade: (grade, nextIntervalStage) =>
     set((state) => {
       const card = state.queue[state.currentIndex];
       const isMissed = grade === "UNKNOWN" || grade === "HARD";
@@ -90,7 +94,10 @@ export const useStudySessionStore = create<StudySessionState>()((set) => ({
 
         const requeueCount = state.requeueCounts[card.vocabularyId] ?? 0;
         if (requeueCount < MAX_SESSION_REQUEUE_PER_CARD) {
-          queue = [...state.queue, card];
+          queue = [
+            ...state.queue,
+            nextIntervalStage === undefined ? card : { ...card, intervalStage: nextIntervalStage },
+          ];
           requeueCounts = { ...state.requeueCounts, [card.vocabularyId]: requeueCount + 1 };
         }
       }

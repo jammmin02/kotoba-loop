@@ -29,6 +29,11 @@ export interface SessionCard {
   reading: string;
   meanings: string[];
   examples: { japanese: string; korean: string }[];
+  /**
+   * 현재 SRS 단계(`UserVocabulary.interval_stage`) — 채점 버튼에 "다음 복습" 간격을 미리 보여주는
+   * 데 쓴다. 이어하기 저장본처럼 값이 없는 카드는 미리보기를 생략한다.
+   */
+  intervalStage?: number;
 }
 
 export interface StudyQueueItem extends SessionCard {

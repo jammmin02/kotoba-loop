@@ -22,6 +22,32 @@ export function isCorrectGrade(grade: ReviewGrade): boolean {
   return grade === "GOOD" || grade === "EASY";
 }
 
+/**
+ * 평가 결과로 정해지는 다음 간격(일)과 단계. `applyReview`와 UI의 "다음 복습" 미리보기가 같은
+ * 규칙을 쓰도록 한 곳에 둔다 — 간격 테이블을 바꾸면 두 곳이 함께 바뀐다.
+ */
+export function getNextInterval(
+  intervalStage: number,
+  grade: ReviewGrade,
+): { intervalStage: number; intervalDays: number } {
+  switch (grade) {
+    case "UNKNOWN":
+      return { intervalStage: 0, intervalDays: UNKNOWN_INTERVAL_DAYS };
+    case "HARD":
+      return { intervalStage, intervalDays: HARD_INTERVAL_DAYS };
+    case "GOOD":
+      return {
+        intervalStage: Math.min(intervalStage + 1, MAX_STAGE),
+        intervalDays: REVIEW_INTERVALS_DAYS[Math.min(intervalStage, MAX_STAGE)],
+      };
+    case "EASY":
+      return {
+        intervalStage: Math.min(intervalStage + EASY_STAGE_SKIP, MAX_STAGE),
+        intervalDays: REVIEW_INTERVALS_DAYS[Math.min(intervalStage + 1, MAX_STAGE)],
+      };
+  }
+}
+
 export function applyReview(state: SrsState, grade: ReviewGrade, now: Date): SrsUpdate {
   const isCorrect = isCorrectGrade(grade);
   const correctCount = state.correctCount + (isCorrect ? 1 : 0);
@@ -31,27 +57,7 @@ export function applyReview(state: SrsState, grade: ReviewGrade, now: Date): Srs
   // 단계까지 올라와 있었고(=90일 간격이 배정된 상태), 이번에도 정답을 맞혔다는 뜻.
   const wasAtMaxStage = state.intervalStage >= MAX_STAGE;
 
-  let intervalStage: number;
-  let intervalDays: number;
-
-  switch (grade) {
-    case "UNKNOWN":
-      intervalStage = 0;
-      intervalDays = UNKNOWN_INTERVAL_DAYS;
-      break;
-    case "HARD":
-      intervalStage = state.intervalStage;
-      intervalDays = HARD_INTERVAL_DAYS;
-      break;
-    case "GOOD":
-      intervalDays = REVIEW_INTERVALS_DAYS[Math.min(state.intervalStage, MAX_STAGE)];
-      intervalStage = Math.min(state.intervalStage + 1, MAX_STAGE);
-      break;
-    case "EASY":
-      intervalDays = REVIEW_INTERVALS_DAYS[Math.min(state.intervalStage + 1, MAX_STAGE)];
-      intervalStage = Math.min(state.intervalStage + EASY_STAGE_SKIP, MAX_STAGE);
-      break;
-  }
+  const { intervalStage, intervalDays } = getNextInterval(state.intervalStage, grade);
 
   const nextReviewAt = addKstDays(now, intervalDays);
 

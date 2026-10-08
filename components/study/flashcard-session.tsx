@@ -13,19 +13,37 @@ import { SpeakButton } from "@/components/ui/speak-button";
 import { toast } from "@/components/ui/toast";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
 import { notifyGameProfileGain } from "@/lib/game/notify";
+import { getNextInterval } from "@/lib/srs/engine";
+import { formatNextReviewLabel } from "@/lib/srs/interval-label";
 import type { ReviewGrade } from "@/lib/srs/types";
 import { useStudySessionStore, type StudySessionMode } from "@/lib/stores/study-session-store";
+import { FLASHCARD_GRADE_ORDER, resolveFlashcardShortcut } from "@/lib/study/flashcard-shortcuts";
 import { clearSavedSession, loadSavedSession, saveSession } from "@/lib/study/saved-session";
 import type { FlashcardSnapshot, SavedSession } from "@/lib/study/saved-session";
 import { cn } from "@/lib/utils";
 import type { SessionCard } from "@/types/study";
 
-const GRADE_OPTIONS: { grade: ReviewGrade; label: string }[] = [
-  { grade: "UNKNOWN", label: "모르겠음" },
-  { grade: "HARD", label: "헷갈림" },
-  { grade: "GOOD", label: "기억남" },
-  { grade: "EASY", label: "쉬움" },
-];
+const GRADE_LABELS: Record<ReviewGrade, string> = {
+  UNKNOWN: "모르겠음",
+  HARD: "헷갈림",
+  GOOD: "기억남",
+  EASY: "쉬움",
+};
+
+/** 입력 요소 위에서 누른 키는 타이핑이므로 단축키로 가로채지 않는다. */
+function isEditableTarget(target: EventTarget | null): boolean {
+  return (
+    target instanceof HTMLElement &&
+    (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))
+  );
+}
+
+/** 버튼/링크 위에서 누른 Space/Enter는 브라우저가 클릭으로 처리하므로 중복 실행하지 않는다. */
+function isInteractiveTarget(target: EventTarget | null): boolean {
+  return (
+    target instanceof HTMLElement && target.closest("button, a[href], [role='button']") !== null
+  );
+}
 
 export interface FlashcardSessionProps {
   mode: StudySessionMode;
@@ -180,13 +198,48 @@ export function FlashcardSession({
       );
       pendingRequestIdRef.current = null;
       notifyGameProfileGain(queryClient, response.gameProfile);
-      recordGrade(grade);
+      recordGrade(grade, response.intervalStage);
     } catch (err) {
       const message = err instanceof ApiClientError ? err.message : "채점 처리에 실패했습니다.";
       toast.error(message);
       setSubmitting(false);
     }
   }
+
+  // 최신 handleGrade를 이벤트 리스너가 부르도록 ref에 담아 둔다(리스너를 렌더마다 다시 달지 않으려고).
+  const handleGradeRef = useRef(handleGrade);
+  useEffect(() => {
+    handleGradeRef.current = handleGrade;
+  });
+
+  const isRunning = phase === "running" && !isComplete;
+  useEffect(() => {
+    if (!isRunning) return;
+
+    function handleKeyDown(event: KeyboardEvent) {
+      const action = resolveFlashcardShortcut({
+        key: event.key,
+        repeat: event.repeat,
+        isComposing: event.isComposing,
+        ctrlKey: event.ctrlKey,
+        metaKey: event.metaKey,
+        altKey: event.altKey,
+        targetIsEditable: isEditableTarget(event.target),
+        targetIsInteractive: isInteractiveTarget(event.target),
+        modalOpen: document.querySelector('[aria-modal="true"]') !== null,
+        isFlipped: useStudySessionStore.getState().isFlipped,
+        isSubmitting: useStudySessionStore.getState().isSubmitting,
+      });
+      if (!action) return;
+
+      event.preventDefault();
+      if (action.type === "flip") useStudySessionStore.getState().flip();
+      else void handleGradeRef.current(action.grade);
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isRunning]);
 
   function retryMissed() {
     // 이어서 한 세션에서는 부모가 넘긴 `queue`가 비어 있을 수 있어 스토어의 큐에서 고른다
@@ -322,7 +375,16 @@ export function FlashcardSession({
                 <SpeakButton text={currentCard.reading || currentCard.word} size="md" />
               )}
             </div>
-            <Button type="button" variant="outline" onClick={flip}>
+            <Button
+              type="button"
+              variant="outline"
+              aria-keyshortcuts="Space"
+              onClick={(event) => {
+                // 뒤집은 뒤에도 이 버튼에 포커스가 남아 있으면 Space가 다시 눌러 앞면으로 되돌린다.
+                event.currentTarget.blur();
+                flip();
+              }}
+            >
               뜻 보기
             </Button>
           </div>
@@ -366,20 +428,53 @@ export function FlashcardSession({
 
       {isFlipped && (
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {GRADE_OPTIONS.map(({ grade, label }) => (
-            <Button
-              key={grade}
-              type="button"
-              variant={grade === "UNKNOWN" ? "danger" : grade === "EASY" ? "primary" : "outline"}
-              disabled={isSubmitting}
-              loading={isSubmitting}
-              onClick={() => handleGrade(grade)}
-            >
-              {label}
-            </Button>
-          ))}
+          {FLASHCARD_GRADE_ORDER.map((grade, index) => {
+            const nextLabel =
+              currentCard?.intervalStage === undefined
+                ? null
+                : formatNextReviewLabel(
+                    getNextInterval(currentCard.intervalStage, grade).intervalDays,
+                  );
+            return (
+              <Button
+                key={grade}
+                type="button"
+                variant={grade === "UNKNOWN" ? "danger" : grade === "EASY" ? "primary" : "outline"}
+                disabled={isSubmitting}
+                loading={isSubmitting}
+                aria-keyshortcuts={String(index + 1)}
+                className="h-auto min-h-12 px-1.5 py-1.5 text-sm whitespace-nowrap"
+                onClick={() => handleGrade(grade)}
+              >
+                <span className="flex flex-col items-center leading-tight">
+                  <span className="flex items-center gap-1.5">
+                    <kbd
+                      aria-hidden="true"
+                      className="hidden border border-current px-1 text-[10px] font-bold leading-4 [@media(pointer:fine)]:inline-block"
+                    >
+                      {index + 1}
+                    </kbd>
+                    {GRADE_LABELS[grade]}
+                  </span>
+                  {nextLabel && (
+                    <span className="text-xs font-normal">
+                      <span className="sr-only">다음 복습 </span>
+                      {nextLabel}
+                    </span>
+                  )}
+                </span>
+              </Button>
+            );
+          })}
         </div>
       )}
+
+      <p
+        aria-hidden="true"
+        className="hidden text-center text-xs text-muted [@media(pointer:fine)]:block"
+      >
+        {isFlipped ? "1~4 키로 바로 채점할 수 있어요" : "Space 또는 Enter로 뜻 보기"}
+      </p>
     </div>
   );
 }

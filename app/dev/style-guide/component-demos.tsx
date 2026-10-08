@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { PixelBookOpen, PixelSearch } from "@/components/icons/pixel-icons";
+import { FlashcardSession } from "@/components/study/flashcard-session";
 import { JlptBadge, StatusBadge, type JlptLevel, type WordStatus } from "@/components/ui/badge";
 import { Button, type ButtonProps } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -275,6 +276,53 @@ export function StateDemo() {
           </Button>
         </EmptyState>
       </div>
+    </div>
+  );
+}
+
+// 학습 단계(intervalStage)가 서로 다른 샘플 카드 — 채점 버튼의 "다음 복습" 미리보기를 단계별로 본다.
+const FLASHCARD_DEMO_QUEUE = [
+  {
+    vocabularyId: "demo-new",
+    word: "勉強",
+    reading: "べんきょう",
+    meanings: ["공부"],
+    examples: [{ japanese: "毎日勉強します。", korean: "매일 공부합니다." }],
+    intervalStage: 0,
+  },
+  {
+    vocabularyId: "demo-mid",
+    word: "図書館",
+    reading: "としょかん",
+    meanings: ["도서관"],
+    examples: [],
+    intervalStage: 3,
+  },
+  {
+    vocabularyId: "demo-max",
+    word: "先生",
+    reading: "せんせい",
+    meanings: ["선생님"],
+    examples: [],
+    intervalStage: 6,
+  },
+];
+
+export function FlashcardDemo() {
+  const [runKey, setRunKey] = useState(0);
+
+  return (
+    <div className="flex flex-col items-center gap-3">
+      <p className="text-sm text-muted">
+        단계 0 / 3 / 6의 샘플 카드입니다. 채점은 실제 API를 호출하므로 개발 계정이 아니면 오류
+        토스트가 뜰 수 있습니다.
+      </p>
+      <FlashcardSession
+        key={runKey}
+        mode="custom"
+        queue={FLASHCARD_DEMO_QUEUE}
+        onExit={() => setRunKey((key) => key + 1)}
+      />
     </div>
   );
 }

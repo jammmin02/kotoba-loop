@@ -129,9 +129,7 @@ export function TodaySummaryView() {
               <span>총 학습</span>
               <span>{summary.totalCount}개</span>
             </div>
-            <p className="text-xs text-muted">
-              예상 소요 시간 {summary.estimatedTimeLabel}
-            </p>
+            <p className="text-xs text-muted">예상 소요 시간 {summary.estimatedTimeLabel}</p>
           </div>
 
           <Link

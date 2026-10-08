@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { MAX_STAGE } from "@/lib/srs/constants";
-import { applyReview } from "@/lib/srs/engine";
+import { applyReview, getNextInterval } from "@/lib/srs/engine";
+import { REVIEW_GRADES } from "@/lib/srs/types";
 import type { SrsState } from "@/lib/srs/types";
 
 const NOW = new Date("2026-08-24T00:00:00+09:00");
@@ -113,4 +114,19 @@ test("동일 상태에 동일 평가를 반복 적용해도 항상 같은 결과
   const first = applyReview(state, "GOOD", NOW);
   const second = applyReview(state, "GOOD", NOW);
   assert.deepEqual(first, second);
+});
+
+test("getNextInterval은 모든 단계·평가에서 applyReview와 같은 간격/단계를 돌려준다", () => {
+  for (let stage = 0; stage <= MAX_STAGE; stage++) {
+    for (const grade of REVIEW_GRADES) {
+      const preview = getNextInterval(stage, grade);
+      const applied = applyReview({ ...NEW_STATE, intervalStage: stage }, grade, NOW);
+      assert.equal(preview.intervalStage, applied.intervalStage, `stage ${stage} ${grade}`);
+      assert.equal(
+        preview.intervalDays,
+        daysBetween(NOW, applied.nextReviewAt),
+        `stage ${stage} ${grade}`,
+      );
+    }
+  }
 });

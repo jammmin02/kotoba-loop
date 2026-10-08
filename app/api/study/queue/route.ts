@@ -43,6 +43,13 @@ export const GET = withApiHandler(async (req: NextRequest): Promise<StudyQueueRe
     },
   });
   const vocabularyById = new Map(vocabularies.map((vocabulary) => [vocabulary.id, vocabulary]));
+  const userVocabularies = await db.userVocabulary.findMany({
+    where: { user_id: userId, vocabulary_id: { in: orderedIds.map((item) => item.id) } },
+    select: { vocabulary_id: true, interval_stage: true },
+  });
+  const intervalStageById = new Map(
+    userVocabularies.map((row) => [row.vocabulary_id, row.interval_stage]),
+  );
 
   const items: StudyQueueItem[] = orderedIds.flatMap(({ id, category }) => {
     const vocabulary = vocabularyById.get(id);
@@ -57,6 +64,7 @@ export const GET = withApiHandler(async (req: NextRequest): Promise<StudyQueueRe
           japanese: example.japanese,
           korean: example.korean,
         })),
+        intervalStage: intervalStageById.get(vocabulary.id),
         category,
       },
     ];
