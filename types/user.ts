@@ -6,6 +6,8 @@ export interface UserProfileResponse {
   jlptLevel: string | null;
   targetJlpt: string | null;
   dailyWordTarget: number | null;
+  /** 하루 복습 상한. null이면 제한 없음. */
+  dailyReviewLimit: number | null;
   dailyStudyTime: number | null;
   purpose: string[];
 }

@@ -19,6 +19,11 @@ export const WORD_TARGET_PRESETS = [5, 10, 15, 20] as const;
 export const CUSTOM_WORD_TARGET_MIN = 1;
 export const CUSTOM_WORD_TARGET_MAX = 100;
 
+/** 하루 복습 상한 프리셋. 상한을 두지 않는 "제한 없음"은 null로 표현한다. */
+export const REVIEW_LIMIT_PRESETS = [50, 100, 200] as const;
+export const CUSTOM_REVIEW_LIMIT_MIN = 10;
+export const CUSTOM_REVIEW_LIMIT_MAX = 1000;
+
 export const STUDY_TIME_PRESETS = [
   { value: 10, label: "10분" },
   { value: 20, label: "20분" },
@@ -43,6 +48,7 @@ export const ONBOARDING_DEFAULTS = {
   jlptLevel: null as JlptLevelValue | null,
   targetJlpt: null as JlptLevelValue | null,
   dailyWordTarget: 10,
+  dailyReviewLimit: null as number | null,
   dailyStudyTime: 20,
   purpose: [] as string[],
 };
@@ -62,6 +68,14 @@ export const onboardingSchema = z.object({
     .int()
     .min(CUSTOM_WORD_TARGET_MIN, "1 이상이어야 합니다.")
     .max(CUSTOM_WORD_TARGET_MAX, "100 이하로 입력해주세요.")
+    .optional(),
+  /** null이면 복습 수에 제한이 없다. */
+  dailyReviewLimit: z
+    .number()
+    .int()
+    .min(CUSTOM_REVIEW_LIMIT_MIN, `${CUSTOM_REVIEW_LIMIT_MIN} 이상이어야 합니다.`)
+    .max(CUSTOM_REVIEW_LIMIT_MAX, `${CUSTOM_REVIEW_LIMIT_MAX} 이하로 입력해주세요.`)
+    .nullable()
     .optional(),
   dailyStudyTime: z
     .number()

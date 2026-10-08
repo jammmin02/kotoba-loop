@@ -19,6 +19,16 @@ export interface TodaySummaryResponse {
   /** "오늘의 한자"(PROMPT 36) 개수 — 신규/복습/취약 한자 합. 단어 큐(`categories`/`totalCount`)와
    * 별개로 관리한다 — 일일 완료 보너스 판정은 계속 단어 큐 기준으로만 이루어진다. */
   todayKanjiCount: number;
+  /** 하루 학습량 상한과 오늘 진행 현황. */
+  limits: {
+    newTarget: number;
+    newIntroducedToday: number;
+    /** null이면 복습 수에 제한이 없다. */
+    reviewLimit: number | null;
+    reviewedToday: number;
+    /** 상한 때문에 오늘 큐에서 빠진 학습할 거리가 더 남아 있는지 — "더 학습하기"를 보여줄 근거. */
+    hasMore: boolean;
+  };
 }
 
 /** 플래시카드 세션(PROMPT 18)이 필요로 하는 최소 단어 정보. 태그 학습 큐는 `examples`가 항상 빈 배열이다

@@ -10,6 +10,7 @@ interface OnboardingData {
   jlptLevel: string | null;
   targetJlpt: string | null;
   dailyWordTarget: number | null;
+  dailyReviewLimit: number | null;
   dailyStudyTime: number | null;
   purpose: string[];
 }
@@ -21,7 +22,7 @@ export const PATCH = withApiHandler(async (req: NextRequest): Promise<Onboarding
   }
 
   const body = await req.json();
-  const { jlptLevel, targetJlpt, dailyWordTarget, dailyStudyTime, purpose } =
+  const { jlptLevel, targetJlpt, dailyWordTarget, dailyReviewLimit, dailyStudyTime, purpose } =
     onboardingSchema.parse(body);
 
   const user = await db.user.update({
@@ -30,6 +31,7 @@ export const PATCH = withApiHandler(async (req: NextRequest): Promise<Onboarding
       ...(jlptLevel !== undefined && { jlpt_level: jlptLevel }),
       ...(targetJlpt !== undefined && { target_jlpt: targetJlpt }),
       ...(dailyWordTarget !== undefined && { daily_word_target: dailyWordTarget }),
+      ...(dailyReviewLimit !== undefined && { daily_review_limit: dailyReviewLimit }),
       ...(dailyStudyTime !== undefined && { daily_study_time: dailyStudyTime }),
       ...(purpose !== undefined && { purpose }),
     },
@@ -39,6 +41,7 @@ export const PATCH = withApiHandler(async (req: NextRequest): Promise<Onboarding
     jlptLevel: user.jlpt_level,
     targetJlpt: user.target_jlpt,
     dailyWordTarget: user.daily_word_target,
+    dailyReviewLimit: user.daily_review_limit,
     dailyStudyTime: user.daily_study_time,
     purpose: user.purpose,
   };

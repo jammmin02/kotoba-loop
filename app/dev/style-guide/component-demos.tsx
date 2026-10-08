@@ -1,9 +1,12 @@
 "use client";
 
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 
 import { PixelBookOpen, PixelSearch } from "@/components/icons/pixel-icons";
+import { OnboardingSettingsForm } from "@/components/my/onboarding-settings-form";
 import { FlashcardSession } from "@/components/study/flashcard-session";
+import { TodaySummaryView } from "@/components/study/today-summary-view";
 import { JlptBadge, StatusBadge, type JlptLevel, type WordStatus } from "@/components/ui/badge";
 import { Button, type ButtonProps } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -18,6 +21,7 @@ import { SkeletonList } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/toast";
 import { Tooltip } from "@/components/ui/tooltip";
+import type { TodaySummaryResponse } from "@/types/study";
 
 const buttonVariants: NonNullable<ButtonProps["variant"]>[] = [
   "primary",
@@ -322,6 +326,106 @@ export function FlashcardDemo() {
         mode="custom"
         queue={FLASHCARD_DEMO_QUEUE}
         onExit={() => setRunKey((key) => key + 1)}
+      />
+    </div>
+  );
+}
+
+type TodaySummaryData = TodaySummaryResponse;
+
+const SUMMARY_BASE: TodaySummaryData = {
+  categories: [
+    { key: "newWords", label: "새 단어", count: 7 },
+    { key: "yesterday", label: "어제 복습", count: 12 },
+    { key: "weak", label: "오답 복습", count: 2 },
+  ],
+  totalCount: 21,
+  estimatedMinutes: 12,
+  estimatedTimeLabel: "약 12분",
+  completedToday: 3,
+  hasAnyVocabulary: true,
+  todayKanjiCount: 0,
+  limits: {
+    newTarget: 10,
+    newIntroducedToday: 3,
+    reviewLimit: 50,
+    reviewedToday: 20,
+    hasMore: true,
+  },
+};
+
+const SUMMARY_DEMOS: { title: string; data: TodaySummaryData }[] = [
+  { title: "진행 중 (복습 상한 50)", data: SUMMARY_BASE },
+  {
+    title: "목표 달성 + 더 학습하기",
+    data: {
+      ...SUMMARY_BASE,
+      categories: [],
+      totalCount: 0,
+      completedToday: 30,
+      limits: { ...SUMMARY_BASE.limits, newIntroducedToday: 10, reviewedToday: 50 },
+    },
+  },
+  {
+    title: "복습 상한 없음 + 더 할 게 없음",
+    data: {
+      ...SUMMARY_BASE,
+      categories: [],
+      totalCount: 0,
+      completedToday: 14,
+      limits: {
+        newTarget: 10,
+        newIntroducedToday: 10,
+        reviewLimit: null,
+        reviewedToday: 4,
+        hasMore: false,
+      },
+    },
+  },
+];
+
+// 요약 API 응답을 미리 채운 별도 QueryClient로 감싸 로그인/DB 없이 상태별 화면을 본다.
+function TodaySummaryPreview({ data }: { data: TodaySummaryData }) {
+  const [client] = useState(() => {
+    const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: Infinity } } });
+    queryClient.setQueryData(["study", "today-summary", {}], data);
+    return queryClient;
+  });
+  return (
+    <QueryClientProvider client={client}>
+      <TodaySummaryView />
+    </QueryClientProvider>
+  );
+}
+
+export function TodaySummaryDemo() {
+  return (
+    <div className="flex flex-col items-center gap-6">
+      {SUMMARY_DEMOS.map(({ title, data }) => (
+        <div key={title} className="flex w-full flex-col items-center gap-2">
+          <h3 className="text-sm font-semibold text-muted">{title}</h3>
+          <TodaySummaryPreview data={data} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function StudySettingsDemo() {
+  return (
+    <div className="max-w-2xl">
+      <OnboardingSettingsForm
+        profile={{
+          nickname: "demo",
+          email: "demo@example.invalid",
+          createdAt: "2026-01-01T00:00:00.000Z",
+          jlptLevel: "N4",
+          targetJlpt: "N3",
+          dailyWordTarget: 10,
+          dailyReviewLimit: 100,
+          dailyStudyTime: 20,
+          purpose: ["JLPT"],
+        }}
       />
     </div>
   );

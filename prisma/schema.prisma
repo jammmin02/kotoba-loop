@@ -133,16 +133,18 @@ enum AchievementCategory {
 }
 
 model User {
-  id                String     @id @default(uuid())
-  email             String     @unique
-  password_hash     String?
-  nickname          String
-  jlpt_level        JlptLevel?
-  target_jlpt       JlptLevel?
-  daily_word_target Int?
-  daily_study_time  Int?
-  purpose           String[]   @default([])
-  created_at        DateTime   @default(now())
+  id                 String     @id @default(uuid())
+  email              String     @unique
+  password_hash      String?
+  nickname           String
+  jlpt_level         JlptLevel?
+  target_jlpt        JlptLevel?
+  daily_word_target  Int?
+  // 하루 복습 카드 상한(오답 복습 제외). null이면 제한 없음.
+  daily_review_limit Int?
+  daily_study_time   Int?
+  purpose            String[]   @default([])
+  created_at         DateTime   @default(now())
 
   status         UserStatus @default(PENDING)
   role           UserRole   @default(USER)

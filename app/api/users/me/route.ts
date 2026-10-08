@@ -19,6 +19,7 @@ export const GET = withApiHandler(async (): Promise<UserProfileResponse> => {
     jlptLevel: user.jlpt_level,
     targetJlpt: user.target_jlpt,
     dailyWordTarget: user.daily_word_target,
+    dailyReviewLimit: user.daily_review_limit,
     dailyStudyTime: user.daily_study_time,
     purpose: user.purpose,
   };

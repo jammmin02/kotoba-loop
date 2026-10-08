@@ -2,7 +2,7 @@ import { ApiError } from "@/lib/api/error";
 import { withApiHandler } from "@/lib/api/handler";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { parseTodayTargetOverrides } from "@/lib/study/plan-overrides";
+import { parseIgnoreDailyLimits, parseTodayTargetOverrides } from "@/lib/study/plan-overrides";
 import { getTodayQueueBuckets } from "@/lib/study/queries";
 import { REVIEW_CATEGORY_KEYS } from "@/lib/study/today-summary";
 import type { StudyQueueItem, StudyQueueResponse } from "@/types/study";
@@ -23,6 +23,7 @@ export const GET = withApiHandler(async (req: NextRequest): Promise<StudyQueueRe
     now,
     db,
     newWordTarget,
+    { ignoreDailyLimits: parseIgnoreDailyLimits(req.nextUrl.searchParams) },
   );
 
   // 계획서 3.1 "기본 일일 학습 루틴" 순서: 새 단어 → 어제 복습 → 3/7/14일 복습 → 오답 재시험.

@@ -10,6 +10,8 @@ import {
   NavigationDemo,
   ProgressBarDemo,
   StateDemo,
+  StudySettingsDemo,
+  TodaySummaryDemo,
   TooltipDemo,
   ToastDemo,
 } from "@/app/dev/style-guide/component-demos";
@@ -293,6 +295,14 @@ export default function StyleGuidePage() {
           플래시카드 (단축키 · 다음 복습 간격)
         </h2>
         <FlashcardDemo />
+      </section>
+
+      <section aria-labelledby="limits-heading" className="flex flex-col gap-4">
+        <h2 id="limits-heading" className="text-xl font-semibold">
+          하루 학습량 (오늘 요약 · 설정)
+        </h2>
+        <TodaySummaryDemo />
+        <StudySettingsDemo />
       </section>
 
       <section aria-labelledby="state-heading" className="flex flex-col gap-4">

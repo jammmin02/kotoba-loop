@@ -18,6 +18,16 @@ import { buildTodayOverrideQueryString, useTodayPlanOverride } from "@/lib/store
 import { cn } from "@/lib/utils";
 import type { TodaySummaryResponse } from "@/types/study";
 
+/** 오늘 진행 현황 한 줄 — 복습 상한이 없으면(제한 없음) 신규만 보여준다. */
+function TodayLimitsLine({ limits }: { limits: TodaySummaryResponse["limits"] }) {
+  return (
+    <p className="text-xs text-muted">
+      오늘 신규 {limits.newIntroducedToday}/{limits.newTarget}개
+      {limits.reviewLimit !== null && ` · 복습 ${limits.reviewedToday}/${limits.reviewLimit}개`}
+    </p>
+  );
+}
+
 export function TodaySummaryView() {
   const override = useTodayPlanOverride(toKstDateKey(new Date()));
   const {
@@ -84,8 +94,16 @@ export function TodaySummaryView() {
           <PixelCheck className="size-12 text-success" aria-hidden="true" />
           <p className="text-lg font-bold text-foreground">오늘 학습을 모두 마쳤어요!</p>
           <p className="text-sm font-content text-muted">
-            내일 또 새로운 단어와 복습이 기다리고 있어요. 잠시 쉬어가세요.
+            {summary.limits.hasMore
+              ? "오늘 목표를 모두 채웠어요. 더 하고 싶다면 이어서 학습할 수 있어요."
+              : "내일 또 새로운 단어와 복습이 기다리고 있어요. 잠시 쉬어가세요."}
           </p>
+          <TodayLimitsLine limits={summary.limits} />
+          {summary.limits.hasMore && (
+            <Link href="/study/session?extra=1" className={buttonVariants({ variant: "outline" })}>
+              더 학습하기
+            </Link>
+          )}
         </div>
       ) : (
         <>
@@ -130,6 +148,7 @@ export function TodaySummaryView() {
               <span>{summary.totalCount}개</span>
             </div>
             <p className="text-xs text-muted">예상 소요 시간 {summary.estimatedTimeLabel}</p>
+            <TodayLimitsLine limits={summary.limits} />
           </div>
 
           <Link

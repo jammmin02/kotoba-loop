@@ -3,7 +3,7 @@ import { withApiHandler } from "@/lib/api/handler";
 import { auth } from "@/lib/auth";
 import { addKstDays, startOfKstDay } from "@/lib/datetime";
 import { db } from "@/lib/db";
-import { parseTodayTargetOverrides } from "@/lib/study/plan-overrides";
+import { parseIgnoreDailyLimits, parseTodayTargetOverrides } from "@/lib/study/plan-overrides";
 import { getTodayKanjiQueue, getTodayQueueBuckets } from "@/lib/study/queries";
 import {
   estimateStudyMinutes,
@@ -28,12 +28,14 @@ export const GET = withApiHandler(async (req: NextRequest): Promise<TodaySummary
   const { newWordTarget, kanjiTarget } = parseTodayTargetOverrides(req.nextUrl.searchParams);
 
   const [
-    { newWordIds, reviewIdsByCategory, weakIds },
+    { newWordIds, reviewIdsByCategory, weakIds, limits },
     completedToday,
     totalVocabularyCount,
     kanjiQueue,
   ] = await Promise.all([
-    getTodayQueueBuckets(userId, now, db, newWordTarget),
+    getTodayQueueBuckets(userId, now, db, newWordTarget, {
+      ignoreDailyLimits: parseIgnoreDailyLimits(req.nextUrl.searchParams),
+    }),
     db.userVocabulary.count({
       where: {
         user_id: userId,
@@ -71,5 +73,12 @@ export const GET = withApiHandler(async (req: NextRequest): Promise<TodaySummary
     completedToday,
     hasAnyVocabulary: totalVocabularyCount > 0,
     todayKanjiCount,
+    limits: {
+      newTarget: limits.newTarget,
+      newIntroducedToday: limits.newIntroducedToday,
+      reviewLimit: limits.reviewLimit,
+      reviewedToday: limits.reviewedToday,
+      hasMore: limits.hiddenNewCount > 0 || limits.hiddenReviewCount > 0,
+    },
   };
 });

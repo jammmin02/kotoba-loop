@@ -16,6 +16,14 @@ export function parseTodayTargetOverrides(searchParams: URLSearchParams): {
   };
 }
 
+/**
+ * "더 학습하기"가 보내는 `extra=1` — 오늘의 신규/복습 상한을 넘겨 한 번 더 학습하겠다는 뜻이다.
+ * 이 값은 해당 요청의 큐 계산에만 쓰이고 사용자 설정은 건드리지 않는다.
+ */
+export function parseIgnoreDailyLimits(searchParams: URLSearchParams): boolean {
+  return searchParams.get("extra") === "1";
+}
+
 function parsePositiveIntParam(value: string | null, max: number): number | undefined {
   if (value === null) return undefined;
   const parsed = Number(value);

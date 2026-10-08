@@ -2,13 +2,82 @@ import { addKstDays, startOfKstDay } from "@/lib/datetime";
 import { db } from "@/lib/db";
 import type { Prisma } from "@/lib/generated/prisma/client";
 import { DAILY_KANJI_TARGET } from "@/lib/study/constants";
+import { computeDailyAllowance, takeWithinAllowance } from "@/lib/study/daily-limits";
 import { categorizeReviewStage, type ReviewCategoryKey } from "@/lib/study/today-summary";
 import { ONBOARDING_DEFAULTS } from "@/lib/validations/onboarding";
+
+/** 오늘의 학습량 상한과 진행 현황 — 홈 요약이 "신규 3/10 · 복습 20/50"을 보여주는 데 쓴다. */
+export interface TodayLimitState {
+  newTarget: number;
+  /** null이면 복습 수에 제한이 없다. */
+  reviewLimit: number | null;
+  newIntroducedToday: number;
+  reviewedToday: number;
+  /** 상한 때문에 큐에서 빠진(= "더 학습하기"로 이어서 할 수 있는) 신규/복습 개수. */
+  hiddenNewCount: number;
+  hiddenReviewCount: number;
+}
 
 export interface TodayQueueBuckets {
   newWordIds: string[];
   reviewIdsByCategory: Record<ReviewCategoryKey, string[]>;
   weakIds: string[];
+  limits: TodayLimitState;
+}
+
+export interface TodayQueueOptions {
+  /** true면 오늘의 신규/복습 상한을 무시한다("더 학습하기"). 신규는 목표 개수만큼 한 번 더 뽑는다. */
+  ignoreDailyLimits?: boolean;
+}
+
+/**
+ * 오늘(KST) 학습 현황을 기존 `ReviewHistory`에서 구한다 — 별도 컬럼 없이도 "오늘 처음 시작한
+ * 단어"와 "오늘 복습한 단어"를 나눌 수 있다. 오늘 기록이 있는 단어 중 그 이전 기록이 없으면
+ * 오늘 처음 학습한 단어, 있으면 복습한 단어다. 오답 복습(현재 WEAK)은 복습 상한 대상이 아니므로
+ * 복습 수에서 뺀다(채점 직후 WEAK가 된 단어는 이 집계에서 빠져 상한이 약간 넉넉해질 수 있다).
+ */
+async function getTodayStudyCounts(
+  userId: string,
+  startOfToday: Date,
+  startOfTomorrow: Date,
+  client: typeof db | Prisma.TransactionClient,
+): Promise<{ newIntroducedToday: number; reviewedToday: number }> {
+  const today = await client.reviewHistory.findMany({
+    where: {
+      user_id: userId,
+      target_type: "vocab",
+      reviewed_at: { gte: startOfToday, lt: startOfTomorrow },
+    },
+    select: { target_id: true },
+    distinct: ["target_id"],
+  });
+  if (today.length === 0) return { newIntroducedToday: 0, reviewedToday: 0 };
+
+  const todayIds = today.map((row) => row.target_id);
+  const earlier = await client.reviewHistory.findMany({
+    where: {
+      user_id: userId,
+      target_type: "vocab",
+      target_id: { in: todayIds },
+      reviewed_at: { lt: startOfToday },
+    },
+    select: { target_id: true },
+    distinct: ["target_id"],
+  });
+  const earlierIds = earlier.map((row) => row.target_id);
+
+  const reviewedToday =
+    earlierIds.length === 0
+      ? 0
+      : await client.userVocabulary.count({
+          where: {
+            user_id: userId,
+            vocabulary_id: { in: earlierIds },
+            learning_status: { not: "WEAK" },
+          },
+        });
+
+  return { newIntroducedToday: todayIds.length - earlierIds.length, reviewedToday };
 }
 
 /**
@@ -26,12 +95,16 @@ export async function getTodayQueueBuckets(
   /** AI 추천 학습량(PROMPT 43)을 "오늘만" 적용할 때 `daily_word_target` 대신 쓰는 값.
    * 온보딩 설정 자체는 건드리지 않는 임시 조정이라 DB에 쓰지 않고 매 요청마다 전달받는다. */
   dailyWordTargetOverride?: number,
+  options: TodayQueueOptions = {},
 ): Promise<TodayQueueBuckets> {
   const startOfToday = startOfKstDay(now);
   const startOfTomorrow = addKstDays(startOfToday, 1);
 
-  const [user, newWords, dueReviews, weakWords] = await Promise.all([
-    client.user.findUniqueOrThrow({ where: { id: userId }, select: { daily_word_target: true } }),
+  const [user, newWords, dueReviews, weakWords, todayCounts] = await Promise.all([
+    client.user.findUniqueOrThrow({
+      where: { id: userId },
+      select: { daily_word_target: true, daily_review_limit: true },
+    }),
     client.userVocabulary.findMany({
       where: { user_id: userId, learning_status: "NEW" },
       select: { vocabulary_id: true },
@@ -52,11 +125,26 @@ export async function getTodayQueueBuckets(
       // 가장 많이 틀린 단어부터 재시험하도록 우선순위를 둔다.
       orderBy: { wrong_count: "desc" },
     }),
+    getTodayStudyCounts(userId, startOfToday, startOfTomorrow, client),
   ]);
 
   const dailyWordTarget =
     dailyWordTargetOverride ?? user.daily_word_target ?? ONBOARDING_DEFAULTS.dailyWordTarget;
-  const newWordIds = newWords.slice(0, dailyWordTarget).map((row) => row.vocabulary_id);
+  const reviewLimit = user.daily_review_limit;
+
+  // 신규는 "오늘 이미 시작한 만큼"을 뺀 몫만, 복습은 상한이 있으면 그 몫만 큐에 넣는다.
+  // "더 학습하기"(ignoreDailyLimits)는 신규를 목표 개수만큼 한 번 더 뽑고 복습은 전부 넣는다.
+  const allowance = options.ignoreDailyLimits
+    ? { newRemaining: dailyWordTarget, reviewRemaining: null }
+    : computeDailyAllowance({
+        newTarget: dailyWordTarget,
+        reviewLimit,
+        newIntroducedToday: todayCounts.newIntroducedToday,
+        reviewedToday: todayCounts.reviewedToday,
+      });
+  const cappedNew = takeWithinAllowance(newWords, allowance.newRemaining);
+  const cappedReviews = takeWithinAllowance(dueReviews, allowance.reviewRemaining);
+  const newWordIds = cappedNew.map((row) => row.vocabulary_id);
 
   const reviewIdsByCategory: Record<ReviewCategoryKey, string[]> = {
     yesterday: [],
@@ -64,11 +152,24 @@ export async function getTodayQueueBuckets(
     day7: [],
     day14Plus: [],
   };
-  for (const row of dueReviews) {
+  for (const row of cappedReviews) {
     reviewIdsByCategory[categorizeReviewStage(row.interval_stage)].push(row.vocabulary_id);
   }
 
-  return { newWordIds, reviewIdsByCategory, weakIds: weakWords.map((row) => row.vocabulary_id) };
+  return {
+    newWordIds,
+    reviewIdsByCategory,
+    weakIds: weakWords.map((row) => row.vocabulary_id),
+    limits: {
+      newTarget: dailyWordTarget,
+      reviewLimit,
+      newIntroducedToday: todayCounts.newIntroducedToday,
+      reviewedToday: todayCounts.reviewedToday,
+      // 신규는 한 번에 목표 개수까지만 보여주므로, 남은 NEW 단어 중 "다음 묶음"이 있는지로 판단한다.
+      hiddenNewCount: Math.min(newWords.length - cappedNew.length, dailyWordTarget),
+      hiddenReviewCount: dueReviews.length - cappedReviews.length,
+    },
+  };
 }
 
 export interface TodayKanjiQueue {

@@ -30,9 +30,11 @@ function toSessionCard(word: VocabularySummary): SessionCard {
 export interface StudySessionViewProps {
   tagId?: string;
   tagName?: string;
+  /** true면 오늘의 신규/복습 상한을 넘겨 학습한다("더 학습하기"). 태그 학습에는 영향이 없다. */
+  extra?: boolean;
 }
 
-export function StudySessionView({ tagId, tagName }: StudySessionViewProps) {
+export function StudySessionView({ tagId, tagName, extra = false }: StudySessionViewProps) {
   const isTagMode = !!tagId;
   // 오늘의 학습은 날짜가 바뀌면 큐도 바뀌므로, 저장본이 그날 것일 때만 이어하도록 날짜를 키에 넣는다.
   const todayKey = toKstDateKey(new Date());
@@ -42,9 +44,13 @@ export function StudySessionView({ tagId, tagName }: StudySessionViewProps) {
 
   const override = useTodayPlanOverride(toKstDateKey(new Date()));
   const todayQuery = useQuery({
-    queryKey: ["study", "queue", override],
-    queryFn: () =>
-      apiFetch<StudyQueueResponse>(`/api/study/queue${buildTodayOverrideQueryString(override)}`),
+    queryKey: ["study", "queue", override, extra],
+    queryFn: () => {
+      const params = new URLSearchParams(buildTodayOverrideQueryString(override).slice(1));
+      if (extra) params.set("extra", "1");
+      const query = params.toString();
+      return apiFetch<StudyQueueResponse>(`/api/study/queue${query ? `?${query}` : ""}`);
+    },
     enabled: !isTagMode,
   });
 
@@ -136,8 +142,8 @@ export function StudySessionView({ tagId, tagName }: StudySessionViewProps) {
         key="today-flashcards"
         mode="today"
         queue={flashcardItems}
-        resumeKey={`today-flashcards:${todayKey}`}
-        resumeLabel="오늘의 학습 · 새 단어"
+        resumeKey={`today-flashcards:${todayKey}${extra ? ":extra" : ""}`}
+        resumeLabel={extra ? "더 학습하기 · 새 단어" : "오늘의 학습 · 새 단어"}
         onComplete={quizVocabularyIds.length > 0 ? () => setPhase("quiz") : undefined}
       />
     );
@@ -147,8 +153,8 @@ export function StudySessionView({ tagId, tagName }: StudySessionViewProps) {
     <QuizSession
       key="today-quiz"
       targetIds={quizVocabularyIds}
-      resumeKey={`today-quiz:${todayKey}`}
-      resumeLabel="오늘의 학습 · 복습 퀴즈"
+      resumeKey={`today-quiz:${todayKey}${extra ? ":extra" : ""}`}
+      resumeLabel={extra ? "더 학습하기 · 복습 퀴즈" : "오늘의 학습 · 복습 퀴즈"}
     />
   );
 }
