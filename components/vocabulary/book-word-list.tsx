@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
+import type { RemoveWordsResponse } from "@/app/api/vocabulary-books/[id]/remove-words/route";
 import { PixelBookOpen } from "@/components/icons/pixel-icons";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -51,14 +52,18 @@ export function BookWordList({ bookId, words }: BookWordListProps) {
 
   const deleteMutation = useMutation({
     mutationFn: (ids: string[]) =>
-      apiFetch<{ deletedCount: number }>("/api/vocabularies/bulk-delete", {
+      apiFetch<RemoveWordsResponse>(`/api/vocabulary-books/${bookId}/remove-words`, {
         method: "POST",
         body: { ids },
       }),
-    onSuccess: ({ deletedCount }) => {
+    onSuccess: ({ removedCount, deletedCount }) => {
       queryClient.invalidateQueries({ queryKey: ["vocabularies"] });
       queryClient.invalidateQueries({ queryKey: ["vocabulary-books"] });
-      toast.success(`${deletedCount}개 단어를 삭제했습니다.`);
+      toast.success(
+        deletedCount === removedCount
+          ? `${removedCount}개 단어를 삭제했습니다.`
+          : `${removedCount}개 단어를 이 단어장에서 뺐습니다. (다른 단어장에 없던 ${deletedCount}개는 완전히 삭제)`,
+      );
       setConfirmOpen(false);
       exitSelecting();
       router.refresh();
@@ -156,9 +161,9 @@ export function BookWordList({ bookId, words }: BookWordListProps) {
         <Modal open onClose={() => setConfirmOpen(false)} title="단어 삭제">
           <div className="flex flex-col gap-4">
             <p className="text-sm text-foreground">
-              선택한 <span className="font-bold">{visibleSelectedIds.length}개</span> 단어를
-              삭제할까요? 등록된 뜻과 예문, 학습 기록도 함께 삭제되고, 다른 단어장에 있는 같은
-              단어도 사라집니다. 되돌릴 수 없어요.
+              선택한 <span className="font-bold">{visibleSelectedIds.length}개</span> 단어를 이
+              단어장에서 삭제할까요? 다른 단어장에도 있는 단어는 그쪽에 그대로 남고, 어느 단어장에도
+              없게 되는 단어는 뜻·예문·학습 기록까지 완전히 삭제돼요.
             </p>
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => setConfirmOpen(false)}>

@@ -118,7 +118,11 @@ export default async function WordDetailPage(props: PageProps<"/words/[id]">) {
               수정
             </Button>
           </Link>
-          <DeleteWordButton id={id} word={vocabulary.word} />
+          <DeleteWordButton
+            id={id}
+            word={vocabulary.word}
+            bookId={currentIndex >= 0 ? bookId : undefined}
+          />
         </div>
       </div>
 
