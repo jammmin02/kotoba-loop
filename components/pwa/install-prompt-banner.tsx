@@ -87,7 +87,7 @@ export function InstallPromptBanner() {
   }
 
   return (
-    <div className="fixed inset-x-0 bottom-16 z-40 flex justify-center px-4 lg:bottom-4 lg:justify-end lg:pr-6">
+    <div className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-40 flex justify-center px-4 lg:bottom-4 lg:justify-end lg:pr-6">
       <Card
         variant="elevated"
         title="INSTALL.EXE"

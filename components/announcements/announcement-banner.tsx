@@ -85,7 +85,7 @@ export function AnnouncementBanner() {
             type="button"
             onClick={() => dismiss(a.id, dismissed)}
             aria-label="공지 닫기"
-            className="flex size-6 shrink-0 items-center justify-center border-2 border-pixel-ink bg-surface text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            className="touch-target flex size-6 shrink-0 items-center justify-center border-2 border-pixel-ink bg-surface text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
             <PixelX className="size-3.5" aria-hidden="true" />
           </button>

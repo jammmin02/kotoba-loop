@@ -56,9 +56,7 @@ export function VocabularyBookCard({ book, index, onEdit, onDelete }: Vocabulary
               {book.name}
             </Link>
             {book.description && (
-              <p className="line-clamp-2 text-sm font-content text-muted">
-                {book.description}
-              </p>
+              <p className="line-clamp-2 text-sm font-content text-muted">{book.description}</p>
             )}
           </div>
         </div>
@@ -88,7 +86,7 @@ export function VocabularyBookCard({ book, index, onEdit, onDelete }: Vocabulary
             type="button"
             onClick={onEdit}
             aria-label="수정"
-            className="flex size-8 shrink-0 items-center justify-center border-2 border-pixel-ink bg-surface shadow-bevel-raised transition hover:bg-background active:shadow-none"
+            className="touch-target flex size-8 shrink-0 items-center justify-center border-2 border-pixel-ink bg-surface shadow-bevel-raised transition hover:bg-background active:shadow-none"
           >
             <PixelPenTool className="size-3.5" aria-hidden="true" />
           </button>
@@ -96,7 +94,7 @@ export function VocabularyBookCard({ book, index, onEdit, onDelete }: Vocabulary
             type="button"
             onClick={onDelete}
             aria-label="삭제"
-            className="flex size-8 shrink-0 items-center justify-center border-2 border-pixel-ink bg-surface text-error shadow-bevel-raised transition hover:bg-background active:shadow-none"
+            className="touch-target flex size-8 shrink-0 items-center justify-center border-2 border-pixel-ink bg-surface text-error shadow-bevel-raised transition hover:bg-background active:shadow-none"
           >
             <PixelTrash className="size-3.5" aria-hidden="true" />
           </button>

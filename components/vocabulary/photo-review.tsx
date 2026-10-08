@@ -448,11 +448,7 @@ export function PhotoReview({ photoId }: PhotoReviewProps) {
               <button type="button" onClick={selectAll} className="text-primary hover:underline">
                 전체 선택
               </button>
-              <button
-                type="button"
-                onClick={deselectAll}
-                className="text-muted hover:underline"
-              >
+              <button type="button" onClick={deselectAll} className="text-muted hover:underline">
                 선택 해제
               </button>
             </div>
@@ -494,9 +490,7 @@ export function PhotoReview({ photoId }: PhotoReviewProps) {
                           {candidate.result?.word ?? candidate.corrected}
                         </span>
                         {candidate.result?.reading && (
-                          <span className="text-sm text-muted">
-                            ({candidate.result.reading})
-                          </span>
+                          <span className="text-sm text-muted">({candidate.result.reading})</span>
                         )}
                         {candidate.result?.jlptLevel && (
                           <JlptBadge level={candidate.result.jlptLevel} />
@@ -535,7 +529,7 @@ export function PhotoReview({ photoId }: PhotoReviewProps) {
                         onClick={() => setEditingIndex(index)}
                         disabled={!!saved || candidate.status === "pending"}
                         aria-label="수정"
-                        className="flex size-8 items-center justify-center border-2 border-pixel-ink bg-surface text-muted shadow-bevel-raised transition hover:bg-background disabled:pointer-events-none disabled:opacity-40"
+                        className="touch-target flex size-8 items-center justify-center border-2 border-pixel-ink bg-surface text-muted shadow-bevel-raised transition hover:bg-background disabled:pointer-events-none disabled:opacity-40"
                       >
                         <PixelPenTool className="size-3.5" aria-hidden="true" />
                       </button>
@@ -543,7 +537,7 @@ export function PhotoReview({ photoId }: PhotoReviewProps) {
                         type="button"
                         onClick={() => removeItem(index)}
                         aria-label="삭제"
-                        className="flex size-8 items-center justify-center border-2 border-pixel-ink bg-surface text-muted shadow-bevel-raised transition hover:bg-background"
+                        className="touch-target flex size-8 items-center justify-center border-2 border-pixel-ink bg-surface text-muted shadow-bevel-raised transition hover:bg-background"
                       >
                         <PixelTrash className="size-3.5" aria-hidden="true" />
                       </button>

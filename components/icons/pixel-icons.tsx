@@ -398,3 +398,15 @@ export const PixelGraduationCap: PixelIconComponent = (props) => (
 export const PixelMinus: PixelIconComponent = (props) => (
   <PixelGlyph blocks={[[1, 6, 14, 4]]} {...props} />
 );
+
+/** 모바일 하단 탭바 '더보기' 버튼 아이콘 — 가로 막대 세 줄. */
+export const PixelMenu: PixelIconComponent = (props) => (
+  <PixelGlyph
+    blocks={[
+      [1, 2, 14, 2],
+      [1, 7, 14, 2],
+      [1, 12, 14, 2],
+    ]}
+    {...props}
+  />
+);

@@ -59,7 +59,7 @@ export function Modal({ open, onClose, title, children, className }: ModalProps)
         aria-label={title ?? "대화상자"}
         tabIndex={-1}
         className={cn(
-          "relative z-10 max-h-[85vh] w-full overflow-y-auto rounded-none border-2 border-pixel-ink bg-surface shadow-pixel-lg outline-none sm:max-w-md",
+          "relative z-10 max-h-[85dvh] w-full overflow-y-auto rounded-none border-2 border-pixel-ink bg-surface shadow-pixel-lg outline-none sm:max-w-md",
           className,
         )}
       >
@@ -69,7 +69,7 @@ export function Modal({ open, onClose, title, children, className }: ModalProps)
             type="button"
             onClick={onClose}
             aria-label="닫기"
-            className="flex size-5 shrink-0 items-center justify-center border-2 border-pixel-ink bg-surface text-foreground shadow-bevel-raised transition active:shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-foreground"
+            className="touch-target flex size-5 shrink-0 items-center justify-center border-2 border-pixel-ink bg-surface text-foreground shadow-bevel-raised transition active:shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-foreground"
           >
             <PixelX className="size-3.5" aria-hidden="true" />
           </button>

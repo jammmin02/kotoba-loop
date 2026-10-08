@@ -19,6 +19,8 @@ export const metadata: Metadata = {
 // D.2 Primary — tints the OS status bar/toolbar once installed (Android/Chrome).
 export const viewport: Viewport = {
   themeColor: "#5b5fef",
+  // 노치/홈 인디케이터 영역까지 그린 뒤 safe-area-inset로 콘텐츠를 비운다(하단 탭바 등).
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

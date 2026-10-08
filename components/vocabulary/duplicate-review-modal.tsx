@@ -68,7 +68,7 @@ export function DuplicateReviewModal({
           이미 등록된 단어 {duplicateCount}개를 찾았어요. 각 단어를 어떻게 처리할지 골라주세요.
         </p>
 
-        <div className="flex max-h-[50vh] flex-col gap-2 overflow-y-auto">
+        <div className="flex max-h-[50dvh] flex-col gap-2 overflow-y-auto">
           {items.map((item) => (
             <Card
               key={item.index}

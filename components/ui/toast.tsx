@@ -72,7 +72,7 @@ export function Toaster() {
   if (!mounted) return null;
 
   return createPortal(
-    <div className="pointer-events-none fixed inset-x-0 bottom-4 z-50 flex flex-col items-center gap-2 px-4 sm:inset-x-auto sm:right-6 sm:bottom-6 sm:items-end">
+    <div className="pointer-events-none fixed inset-x-0 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-50 flex flex-col items-center gap-2 px-4 sm:inset-x-auto sm:right-6 sm:items-end lg:bottom-6">
       {toasts.map((item) => {
         const Icon = variantIcons[item.variant];
         return (
@@ -95,7 +95,7 @@ export function Toaster() {
               type="button"
               onClick={() => dismiss(item.id)}
               aria-label="알림 닫기"
-              className="px-2.5 text-muted transition hover:text-foreground"
+              className="flex min-w-11 items-center justify-center text-muted transition hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary"
             >
               <PixelX className="size-4" aria-hidden="true" />
             </button>

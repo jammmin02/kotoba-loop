@@ -3,59 +3,22 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
 
-import {
-  PixelBarChart,
-  PixelBookOpen,
-  PixelChevronDown,
-  PixelGlobe,
-  PixelHome,
-  PixelLock,
-  PixelPenTool,
-  PixelSparkles,
-  PixelStar,
-  PixelUser,
-} from "@/components/icons/pixel-icons";
-import type { PixelIconComponent } from "@/components/icons/pixel-icons";
+import { PixelChevronDown } from "@/components/icons/pixel-icons";
 import { NavSearchBox } from "@/components/search/nav-search-box";
+import { Modal } from "@/components/ui/modal";
+import {
+  MORE_NAV_ITEMS,
+  MORE_TAB_LABEL,
+  MoreTabIcon,
+  SIDEBAR_NAV_ITEMS,
+  TAB_NAV_ITEMS,
+  isNavItemActive,
+  visibleNavItems,
+} from "@/components/ui/nav-config";
 import { isAdminRole } from "@/lib/auth-admin";
 import { cn } from "@/lib/utils";
-
-interface NavItem {
-  href: string;
-  label: string;
-  icon: PixelIconComponent;
-}
-
-// Desktop sidebar: 7 top-level sections.
-const desktopNavItems: NavItem[] = [
-  { href: "/", label: "HOME", icon: PixelHome },
-  { href: "/study", label: "단어 학습", icon: PixelStar },
-  { href: "/vocabulary", label: "단어장", icon: PixelBookOpen },
-  { href: "/kanji", label: "한자", icon: PixelPenTool },
-  { href: "/ai", label: "AI학습", icon: PixelSparkles },
-  { href: "/community", label: "커뮤니티", icon: PixelGlobe },
-  { href: "/stats", label: "통계", icon: PixelBarChart },
-  { href: "/my", label: "MY", icon: PixelUser },
-];
-
-// 관리자에게만 보이는 항목(가입 승인 등). 모바일은 MY 화면의 메뉴 카드로 들어간다.
-const adminNavItem: NavItem = { href: "/admin", label: "ADMIN", icon: PixelLock };
-
-// Mobile bottom tab bar: AI학습 lives inside the home screen, 통계 moves under MY.
-const mobileNavItems: NavItem[] = [
-  { href: "/", label: "홈", icon: PixelHome },
-  { href: "/study", label: "학습", icon: PixelStar },
-  { href: "/vocabulary", label: "단어장", icon: PixelBookOpen },
-  { href: "/kanji", label: "한자", icon: PixelPenTool },
-  { href: "/my", label: "MY", icon: PixelUser },
-];
-
-function isActivePath(pathname: string, href: string) {
-  if (href === "/") return pathname === "/";
-  return pathname.startsWith(href);
-}
 
 const SIDEBAR_COLLAPSED_KEY = "kotoba-loop:sidebar-collapsed";
 // 같은 탭에서는 storage 이벤트가 발생하지 않아, 토글 때 직접 알려 구독자를 갱신한다.
@@ -81,9 +44,7 @@ function getSidebarCollapsedSnapshot() {
 export function Sidebar({ className }: { className?: string }) {
   const pathname = usePathname();
   const { data: session } = useSession();
-  const navItems = isAdminRole(session?.user?.role)
-    ? [...desktopNavItems, adminNavItem]
-    : desktopNavItems;
+  const navItems = visibleNavItems(SIDEBAR_NAV_ITEMS, isAdminRole(session?.user?.role));
   // 서버에서는 항상 펼친 상태로 그리고, 하이드레이션 뒤 저장된 값으로 바뀐다.
   const collapsed = useSyncExternalStore(
     subscribeSidebarCollapsed,
@@ -124,7 +85,7 @@ export function Sidebar({ className }: { className?: string }) {
 
       {!collapsed && <NavSearchBox className="mb-2" />}
       {navItems.map((item) => {
-        const active = isActivePath(pathname, item.href);
+        const active = isNavItemActive(pathname, item);
         const Icon = item.icon;
         return (
           <Link
@@ -149,38 +110,88 @@ export function Sidebar({ className }: { className?: string }) {
   );
 }
 
+const tabItemClassName =
+  "-mt-0.5 flex min-h-14 flex-1 flex-col items-center justify-center gap-1 border-t-2 py-2 text-xs font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
+
+function tabItemStateClassName(active: boolean) {
+  return active
+    ? "border-primary text-primary"
+    : "border-transparent text-muted hover:text-foreground";
+}
+
 export function BottomTabBar({ className }: { className?: string }) {
   const pathname = usePathname();
+  const { data: session } = useSession();
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreItems = visibleNavItems(MORE_NAV_ITEMS, isAdminRole(session?.user?.role));
+  // 더보기 안의 화면에 있으면 더보기 칸을 활성으로 표시해 현재 위치를 잃지 않게 한다.
+  const moreActive = moreItems.some((item) => isNavItemActive(pathname, item));
 
   return (
-    <nav
-      aria-label="하단 메뉴"
-      className={cn(
-        "fixed inset-x-0 bottom-0 z-40 flex border-t-2 border-pixel-ink bg-surface lg:hidden",
-        className,
-      )}
-    >
-      {mobileNavItems.map((item) => {
-        const active = isActivePath(pathname, item.href);
-        const Icon = item.icon;
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            aria-current={active ? "page" : undefined}
-            className={cn(
-              "flex flex-1 flex-col items-center gap-1 border-t-2 py-2 text-xs font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
-              active
-                ? "-mt-0.5 border-primary text-primary"
-                : "-mt-0.5 border-transparent text-muted hover:text-foreground",
-            )}
-          >
-            <Icon className="size-5" aria-hidden="true" />
-            {item.label}
-          </Link>
-        );
-      })}
-    </nav>
+    <>
+      <nav
+        aria-label="하단 메뉴"
+        className={cn(
+          "fixed inset-x-0 bottom-0 z-40 flex border-t-2 border-pixel-ink bg-surface pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] lg:hidden",
+          className,
+        )}
+      >
+        {TAB_NAV_ITEMS.map((item) => {
+          const active = isNavItemActive(pathname, item);
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              aria-current={active ? "page" : undefined}
+              className={cn(tabItemClassName, tabItemStateClassName(active))}
+            >
+              <Icon className="size-5" aria-hidden="true" />
+              {item.label}
+            </Link>
+          );
+        })}
+        <button
+          type="button"
+          onClick={() => setMoreOpen(true)}
+          aria-haspopup="dialog"
+          aria-expanded={moreOpen}
+          className={cn(tabItemClassName, tabItemStateClassName(moreActive))}
+        >
+          <MoreTabIcon className="size-5" aria-hidden="true" />
+          {MORE_TAB_LABEL}
+        </button>
+      </nav>
+
+      <Modal open={moreOpen} onClose={() => setMoreOpen(false)} title="메뉴">
+        <nav aria-label="더보기 메뉴">
+          <ul className="flex flex-col gap-2">
+            {moreItems.map((item) => {
+              const active = isNavItemActive(pathname, item);
+              const Icon = item.icon;
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    aria-current={active ? "page" : undefined}
+                    onClick={() => setMoreOpen(false)}
+                    className={cn(
+                      "flex min-h-12 items-center gap-3 border-2 border-pixel-ink px-3 py-2 text-sm font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+                      active
+                        ? "bg-primary text-primary-foreground shadow-bevel-sunken"
+                        : "bg-surface text-foreground shadow-bevel-raised hover:bg-background",
+                    )}
+                  >
+                    <Icon className="size-5 shrink-0" aria-hidden="true" />
+                    {item.label}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+      </Modal>
+    </>
   );
 }
 
@@ -201,9 +212,9 @@ export function MobileTopBar({ className }: { className?: string }) {
 /** Full app shell: desktop sidebar + mobile top search bar/bottom tabs around page content. */
 export function Navigation({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen w-full">
+    <div className="flex min-h-dvh w-full">
       <Sidebar />
-      <div className="flex min-w-0 flex-1 flex-col pb-16 lg:pb-0">
+      <div className="flex min-w-0 flex-1 flex-col pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0">
         <MobileTopBar />
         <div className="flex-1">{children}</div>
         <BottomTabBar />

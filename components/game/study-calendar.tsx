@@ -67,7 +67,7 @@ export function StudyCalendar({
           type="button"
           onClick={onPrevMonth}
           aria-label="이전 달"
-          className={cn(cardVariants(), "flex size-8 items-center justify-center")}
+          className={cn(cardVariants(), "touch-target flex size-8 items-center justify-center")}
         >
           <PixelChevronDown className="size-4 rotate-90" aria-hidden="true" />
         </button>
@@ -78,7 +78,7 @@ export function StudyCalendar({
           type="button"
           onClick={onNextMonth}
           aria-label="다음 달"
-          className={cn(cardVariants(), "flex size-8 items-center justify-center")}
+          className={cn(cardVariants(), "touch-target flex size-8 items-center justify-center")}
         >
           <PixelChevronDown className="size-4 -rotate-90" aria-hidden="true" />
         </button>

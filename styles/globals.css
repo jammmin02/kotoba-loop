@@ -249,7 +249,27 @@
  * Tailwind v4 defaults, so they aren't redeclared here — see /dev/style-guide.
  */
 
+/**
+ * 시각 크기는 그대로 두고 터치(클릭) 영역만 44x44px 이상으로 넓힌다(WCAG 2.5.8 / iOS HIG).
+ * 가상 요소가 부모 버튼의 일부로 클릭되므로 마크업을 바꾸지 않아도 된다. 부모를 position 기준으로
+ * 쓰므로 `absolute`/`fixed` 같은 다른 위치 클래스와 함께 쓰면 그 클래스가 우선한다.
+ */
+@utility touch-target {
+  position: relative;
+  &::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    transform: translate(-50%, -50%);
+  }
+}
+
 body {
+  /* viewport-fit=cover(app/layout.tsx)를 쓰므로 가로 모드 노치/둥근 모서리 영역을 비워 둔다. */
+  padding-inline: env(safe-area-inset-left) env(safe-area-inset-right);
   @apply bg-background text-foreground antialiased;
   background-image: radial-gradient(
     color-mix(in srgb, var(--foreground) 14%, transparent) 1px,

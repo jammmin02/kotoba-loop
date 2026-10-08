@@ -13,7 +13,7 @@ export function ChipButton({ selected, className, children, ...props }: ChipButt
       type="button"
       aria-pressed={selected}
       className={cn(
-        "border-2 border-pixel-ink px-3 py-2 text-sm font-bold transition",
+        "touch-target border-2 border-pixel-ink px-3 py-2 text-sm font-bold transition",
         selected
           ? "bg-primary text-primary-foreground shadow-bevel-sunken"
           : "bg-surface text-foreground shadow-bevel-raised hover:bg-background",

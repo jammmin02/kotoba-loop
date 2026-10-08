@@ -894,7 +894,7 @@ export function VocabularyForm({
       <div
         className={cn(
           showContinue
-            ? "sticky bottom-16 z-30 -mx-4 flex flex-col gap-2 border-t-2 border-pixel-ink bg-background px-4 py-3 sm:-mx-6 sm:flex-row sm:justify-end sm:px-6 lg:bottom-0 lg:-mx-8 lg:px-8"
+            ? "sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] z-30 -mx-4 flex flex-col gap-2 border-t-2 border-pixel-ink bg-background px-4 py-3 sm:-mx-6 sm:flex-row sm:justify-end sm:px-6 lg:bottom-0 lg:-mx-8 lg:px-8"
             : "flex justify-end gap-2",
         )}
       >

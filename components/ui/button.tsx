@@ -21,8 +21,8 @@ export const buttonVariants = cva(
         quest: "bg-accent text-accent-foreground shadow-glow hover:brightness-110",
       },
       size: {
-        sm: "h-8 px-3 text-sm",
-        md: "h-10 px-4 text-base",
+        sm: "touch-target h-8 px-3 text-sm",
+        md: "touch-target h-10 px-4 text-base",
         lg: "h-12 px-6 text-lg",
       },
     },
