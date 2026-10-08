@@ -1,4 +1,4 @@
-import { generateCompositionPrompt } from "@/lib/ai/composition";
+import { generateCompositionPrompt, type CompositionHint } from "@/lib/ai/composition";
 import { runWithAiUser } from "@/lib/ai/usage-context";
 import { ApiError } from "@/lib/api/error";
 import { withApiHandler } from "@/lib/api/handler";
@@ -10,6 +10,7 @@ import type { NextRequest } from "next/server";
 
 export interface CompositionPromptResponse {
   korean: string;
+  hints: CompositionHint[];
 }
 
 /**

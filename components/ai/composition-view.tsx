@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/toast";
+import type { CompositionHint } from "@/lib/ai/composition";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
 import {
   COMPOSITION_ANSWER_MAX,
@@ -166,6 +167,9 @@ export function CompositionView() {
   const [graded, setGraded] = useState<CompositionGradeResponse | null>(null);
   // 지금까지 채점한 문제 수 — 다음 문제를 받으며 graded를 비워도 진행 표시가 유지되도록 따로 둔다.
   const [answered, setAnswered] = useState(0);
+  // 출제와 함께 내려온 힌트 — 열어 보면 hintUsed가 되어 EXP가 줄고 기록에 남는다.
+  const [hints, setHints] = useState<CompositionHint[]>([]);
+  const [hintOpen, setHintOpen] = useState(false);
   const [detail, setDetail] = useState<CompositionSessionDetail | null>(null);
   // 이미 낸 문제(건너뛴 것 포함) — 출제 AI가 겹치지 않게 최근 것만 넘긴다.
   const askedRef = useRef<string[]>([]);
@@ -182,9 +186,11 @@ export function CompositionView() {
         body: { sessionId, exclude: askedRef.current.slice(-COMPOSITION_EXCLUDE_MAX) },
         timeoutMs: 30_000,
       }),
-    onSuccess: ({ korean }) => {
+    onSuccess: ({ korean, hints: nextHints }) => {
       askedRef.current.push(korean);
       setPromptKorean(korean);
+      setHints(nextHints);
+      setHintOpen(false);
       setAnswer("");
       setGraded(null);
       setPhase("writing");
@@ -216,7 +222,12 @@ export function CompositionView() {
   });
 
   const gradeMutation = useMutation({
-    mutationFn: (input: { sessionId: string; promptKorean: string; answer: string }) =>
+    mutationFn: (input: {
+      sessionId: string;
+      promptKorean: string;
+      answer: string;
+      hintUsed: boolean;
+    }) =>
       apiFetch<CompositionGradeResponse>("/api/ai/composition/grade", {
         method: "POST",
         body: input,
@@ -422,7 +433,14 @@ export function CompositionView() {
                 <p className="text-sm font-content text-foreground">
                   {a.order}. {a.promptKorean}
                 </p>
-                <span className="shrink-0 font-bold text-foreground">{a.score}점</span>
+                <span className="shrink-0 font-bold text-foreground">
+                  {a.hintUsed && (
+                    <span className="mr-2 border-2 border-pixel-ink bg-warning px-1 py-0.5 text-xs text-warning-foreground">
+                      힌트
+                    </span>
+                  )}
+                  {a.score}점
+                </span>
               </div>
               <p className="font-japanese text-foreground">{a.answerJapanese}</p>
               <details>
@@ -487,6 +505,36 @@ export function CompositionView() {
               helperText={`${answer.length}/${COMPOSITION_ANSWER_MAX}`}
               disabled={grading}
             />
+            {hints.length > 0 &&
+              (hintOpen ? (
+                <div className="border-2 border-pixel-ink bg-warning/15 p-3" aria-live="polite">
+                  <span className="border-2 border-pixel-ink bg-warning px-1.5 py-0.5 text-xs font-bold text-warning-foreground">
+                    힌트
+                  </span>
+                  <ul className="mt-2 flex flex-col gap-1">
+                    {hints.map((hint) => (
+                      <li key={hint.word} className="text-sm text-foreground">
+                        <span className="font-japanese font-bold">{hint.word}</span>
+                        <span className="font-japanese text-muted"> ({hint.reading})</span>
+                        <span className="font-content"> — {hint.meaning}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-2 text-xs font-content text-muted">
+                    힌트를 봐서 정답 EXP가 줄어들어요.
+                  </p>
+                </div>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="self-start"
+                  disabled={grading || loadingNext}
+                  onClick={() => setHintOpen(true)}
+                >
+                  힌트 보기 (EXP 감소)
+                </Button>
+              ))}
             <div className="flex flex-wrap gap-2">
               <Button
                 variant="outline"
@@ -516,6 +564,7 @@ export function CompositionView() {
                     sessionId: session.id,
                     promptKorean,
                     answer: answer.trim(),
+                    hintUsed: hintOpen,
                   })
                 }
               >
@@ -557,6 +606,7 @@ export function CompositionView() {
               vocab={graded.result.vocabularyScore}
               natural={graded.result.naturalnessScore}
             />
+            {hintOpen && <p className="text-xs font-content text-muted">힌트를 사용했어요.</p>}
             <p className="text-sm font-content text-foreground">{graded.result.comment}</p>
 
             <FeedbackCards

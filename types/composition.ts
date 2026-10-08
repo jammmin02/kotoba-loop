@@ -10,6 +10,7 @@ export interface CompositionAttemptView {
   vocabularyScore: number;
   naturalnessScore: number;
   isAccepted: boolean;
+  hintUsed: boolean;
   feedback: {
     items: CompositionFeedbackItem[];
     modelAnswers: string[];

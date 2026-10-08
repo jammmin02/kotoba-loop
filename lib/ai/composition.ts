@@ -22,8 +22,17 @@ export interface CompositionSettings {
 
 // ---- 출제 ------------------------------------------------------------------
 
+const hintSchema = z.object({
+  word: z.string().min(1).max(20),
+  reading: z.string().min(1).max(30),
+  meaning: z.string().min(1).max(30),
+});
+
+export type CompositionHint = z.infer<typeof hintSchema>;
+
 const promptSchema = z.object({
   korean: z.string().min(1).max(COMPOSITION_PROMPT_MAX),
+  hints: z.array(hintSchema).min(1).max(3),
 });
 
 const LEVEL_GUIDE: Record<string, string> = {
@@ -40,12 +49,14 @@ const PROMPT_SYSTEM = `당신은 일본어 학습 앱 kotoba-loop의 "작문 퀘
 - 지정된 상황, 단어 수준(JLPT), 작문 수준(문장 구조), 말투에 맞출 것. 단어 수준보다 어려운 어휘가 필요한 문장은 피할 것.
 - 말투가 정중체면 한국어도 존댓말, 반말이면 반말로 쓸 것.
 - 이전에 낸 문장과 주제·문형이 겹치지 않게 새로운 내용으로 낼 것.
-- 번역 외의 설명, 일본어 번역, 힌트를 절대 포함하지 말 것.`;
+- korean에는 번역 외의 설명이나 일본어 번역을 절대 포함하지 말 것.
+- hints: 이 문장을 일본어로 쓸 때 핵심이 되는 어휘 1~3개(단어 수준에 맞는 일반적인 표기). 학습자가 막혔을 때 보는 힌트이므로
+  word는 단어(또는 짧은 표현) 하나, reading은 히라가나 읽기, meaning은 한국어 뜻(30자 이내)으로 쓰고, 문장 전체나 조사·활용형까지 완성해 주지 말 것.`;
 
 export async function generateCompositionPrompt(
   settings: CompositionSettings,
   exclude: string[],
-): Promise<{ korean: string }> {
+): Promise<{ korean: string; hints: CompositionHint[] }> {
   const lines = [
     `상황: ${settings.situation}`,
     `단어 수준: JLPT ${settings.vocabLevel}`,

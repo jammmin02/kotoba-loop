@@ -648,6 +648,8 @@ model CompositionAttempt {
   naturalness_score Int
   // 의미가 원문과 맞아 정답으로 인정됐는지(표현이 달라도 인정될 수 있다).
   is_accepted       Boolean
+  // 출제 힌트를 열어 본 뒤 작성했는지 — 힌트를 쓰면 EXP가 줄어든다.
+  hint_used         Boolean  @default(false)
   // 피드백 카드 목록(종류/원문/수정/이유) + 모범 답안 — AI 결과를 그대로 보존한다.
   feedback          Json
   created_at        DateTime @default(now())

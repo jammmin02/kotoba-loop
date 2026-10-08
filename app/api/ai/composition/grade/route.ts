@@ -3,7 +3,7 @@ import { runWithAiUser } from "@/lib/ai/usage-context";
 import { ApiError } from "@/lib/api/error";
 import { withApiHandler } from "@/lib/api/handler";
 import { auth } from "@/lib/auth";
-import { isSessionComplete } from "@/lib/composition/config";
+import { COMPOSITION_HINT_EXP, isSessionComplete } from "@/lib/composition/config";
 import { requireOwnedCompositionSession } from "@/lib/composition/session";
 import { startOfKstDay } from "@/lib/datetime";
 import { db } from "@/lib/db";
@@ -35,7 +35,12 @@ export const POST = withApiHandler(async (req: NextRequest): Promise<Composition
   if (!session?.user) throw new ApiError("UNAUTHORIZED", "로그인이 필요합니다.");
   const userId = session.user.id;
 
-  const { sessionId, promptKorean, answer } = compositionGradeRequestSchema.parse(await req.json());
+  const {
+    sessionId,
+    promptKorean,
+    answer,
+    hintUsed = false,
+  } = compositionGradeRequestSchema.parse(await req.json());
   const row = await requireOwnedCompositionSession(sessionId, userId);
   if (row.finished_at) throw new ApiError("CONFLICT", "이미 끝난 작문 세션이에요.");
 
@@ -75,6 +80,7 @@ export const POST = withApiHandler(async (req: NextRequest): Promise<Composition
         vocabulary_score: result.vocabularyScore,
         naturalness_score: result.naturalnessScore,
         is_accepted: result.isAccepted,
+        hint_used: hintUsed,
         feedback: {
           items: result.feedback,
           modelAnswers: result.modelAnswers,
@@ -94,9 +100,15 @@ export const POST = withApiHandler(async (req: NextRequest): Promise<Composition
       });
       // 방금 만든 시도가 이미 포함돼 있으므로 "한도 이하"일 때만 지급한다.
       if (acceptedToday <= DAILY_EXP_ATTEMPT_CAP) {
-        gameProfile = await grantActionExp(tx, userId, EXP_REWARDS.SENTENCE_MAKING, now, {
-          [QUEST_CODES.SENTENCE_MAKING]: 1,
-        });
+        gameProfile = await grantActionExp(
+          tx,
+          userId,
+          hintUsed ? COMPOSITION_HINT_EXP : EXP_REWARDS.SENTENCE_MAKING,
+          now,
+          {
+            [QUEST_CODES.SENTENCE_MAKING]: 1,
+          },
+        );
       }
     }
 

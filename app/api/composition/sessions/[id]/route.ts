@@ -44,6 +44,7 @@ async function loadDetail(sessionId: string, userId: string): Promise<Compositio
       vocabularyScore: a.vocabulary_score,
       naturalnessScore: a.naturalness_score,
       isAccepted: a.is_accepted,
+      hintUsed: a.hint_used,
       feedback: a.feedback as unknown as CompositionAttemptView["feedback"],
     })),
     summary: summarizeAttempts(attempts),

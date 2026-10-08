@@ -47,6 +47,7 @@ export const compositionPromptRequestSchema = z.object({
 export const compositionGradeRequestSchema = z.object({
   sessionId: z.string().min(1),
   promptKorean: z.string().trim().min(1).max(COMPOSITION_PROMPT_MAX),
+  hintUsed: z.boolean().optional(),
   answer: z
     .string()
     .trim()

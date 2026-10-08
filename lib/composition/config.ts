@@ -17,6 +17,9 @@ export const COMPOSITION_ANSWER_MAX = 200;
 /** 출제 중복 방지를 위해 AI에게 넘기는 직전 문제 개수 상한. */
 export const COMPOSITION_EXCLUDE_MAX = 20;
 
+/** 힌트를 열어 본 뒤 정답을 맞혔을 때 지급하는 EXP(기본 EXP보다 적다). */
+export const COMPOSITION_HINT_EXP = 1;
+
 /** 이 점수 이상이면 "정답으로 인정"과 EXP 지급 기준을 함께 만족한다고 본다. */
 export const COMPOSITION_ACCEPT_SCORE = 60;
 
