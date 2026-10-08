@@ -4,12 +4,18 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
-import { PixelBookOpen, PixelCamera, PixelPlus } from "@/components/icons/pixel-icons";
+import {
+  PixelBookOpen,
+  PixelCamera,
+  PixelDownload,
+  PixelPlus,
+} from "@/components/icons/pixel-icons";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { SkeletonList } from "@/components/ui/skeleton";
 import { DeleteVocabularyBookModal } from "@/components/vocabulary/delete-vocabulary-book-modal";
+import { ExportDialog } from "@/components/vocabulary/export-dialog";
 import { VocabularyBookCard } from "@/components/vocabulary/vocabulary-book-card";
 import { VocabularyBookFormModal } from "@/components/vocabulary/vocabulary-book-form-modal";
 import { apiFetch } from "@/lib/api/client";
@@ -34,6 +40,7 @@ const FILTER_EMPTY_MESSAGE: Record<Exclude<FilterKey, "all">, string> = {
 export function VocabularyBooksView() {
   const [filter, setFilter] = useState<FilterKey>("all");
   const [createOpen, setCreateOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
   const [editingBook, setEditingBook] = useState<VocabularyBookSummary | null>(null);
   const [deletingBook, setDeletingBook] = useState<VocabularyBookSummary | null>(null);
 
@@ -70,7 +77,16 @@ export function VocabularyBooksView() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-xl font-bold text-foreground">내 단어장</h1>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap justify-end gap-2">
+          <Link href="/vocabulary/import">
+            <Button type="button" variant="outline">
+              <PixelDownload className="size-4" aria-hidden="true" />
+              가져오기
+            </Button>
+          </Link>
+          <Button type="button" variant="outline" onClick={() => setExportOpen(true)}>
+            내보내기
+          </Button>
           <Link href="/vocabulary/photos/new">
             <Button type="button" variant="outline">
               <PixelCamera className="size-4" aria-hidden="true" />
@@ -162,6 +178,7 @@ export function VocabularyBooksView() {
       )}
 
       {createOpen && <VocabularyBookFormModal onClose={() => setCreateOpen(false)} />}
+      {exportOpen && <ExportDialog open onClose={() => setExportOpen(false)} />}
       {editingBook && (
         <VocabularyBookFormModal
           key={editingBook.id}

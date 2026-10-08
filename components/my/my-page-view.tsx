@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { useState } from "react";
 
 import { LogoutButton } from "@/components/auth/logout-button";
 import { GameProfileHeader } from "@/components/game/game-profile-header";
@@ -18,8 +19,10 @@ import {
 import type { PixelIconComponent } from "@/components/icons/pixel-icons";
 import { ExamGoalSettings } from "@/components/my/exam-goal-settings";
 import { OnboardingSettingsForm } from "@/components/my/onboarding-settings-form";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, cardVariants } from "@/components/ui/card";
 import { ThemeSelector } from "@/components/ui/theme-selector";
+import { ExportDialog } from "@/components/vocabulary/export-dialog";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
 import { isAdminRole } from "@/lib/auth-admin";
 import { cn } from "@/lib/utils";
@@ -64,6 +67,7 @@ function MenuCard({
 
 export function MyPageView() {
   const { data: session } = useSession();
+  const [exportOpen, setExportOpen] = useState(false);
   const {
     data: profile,
     isLoading,
@@ -120,6 +124,24 @@ export function MyPageView() {
         </div>
         <ThemeSelector />
       </Card>
+
+      <Card title="DATA.EXE" titleColor="pink" className="flex flex-col gap-3">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-sm font-extrabold text-foreground">내 단어 데이터</h2>
+          <p className="text-xs text-muted">
+            단어를 CSV·JSON 파일로 내려받아 백업하거나, 파일에서 한꺼번에 가져올 수 있어요.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" variant="outline" onClick={() => setExportOpen(true)}>
+            내보내기
+          </Button>
+          <Link href="/vocabulary/import" className={buttonVariants({ variant: "outline" })}>
+            가져오기
+          </Link>
+        </div>
+      </Card>
+      {exportOpen && <ExportDialog open onClose={() => setExportOpen(false)} />}
 
       <OnboardingSettingsForm profile={profile} />
 

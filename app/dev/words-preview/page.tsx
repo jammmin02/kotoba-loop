@@ -23,10 +23,12 @@ export default async function WordsPreviewPage(props: PageProps<"/dev/words-prev
   const baseline = searchParams.mode === "baseline";
   // `?mode=undo`: 삭제 실행 취소 흐름(단어/단어장에서 빼기/단어장 삭제)을 가짜 API로 확인한다.
   const undo = searchParams.mode === "undo";
+  // `?mode=import`: 가져오기 화면(미리보기·진행·결과)과 내보내기 대화상자를 가짜 API로 확인한다.
+  const importMode = searchParams.mode === "import";
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-4 py-8 sm:px-6 lg:px-8">
-      <WordsPreview count={count} baseline={baseline} undo={undo} />
+      <WordsPreview count={count} baseline={baseline} undo={undo} importMode={importMode} />
     </main>
   );
 }

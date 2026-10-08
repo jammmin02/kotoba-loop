@@ -5,6 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { BookWordList } from "@/components/vocabulary/book-word-list";
+import { ExportDialog } from "@/components/vocabulary/export-dialog";
+import { ImportWizard } from "@/components/vocabulary/import/import-wizard";
 import { VocabularyBooksView } from "@/components/vocabulary/vocabulary-books-view";
 import { WordListItem } from "@/components/vocabulary/word-list-item";
 import { WordsView } from "@/components/vocabulary/words-view";
@@ -186,6 +188,130 @@ function useListReadyMetric(expectedItems: number) {
   }, [expectedItems]);
 }
 
+function errorEnvelope(message: string, status = 500): Response {
+  return new Response(
+    JSON.stringify({ success: false, error: { code: "INTERNAL_ERROR", message } }),
+    { status, headers: { "content-type": "application/json" } },
+  );
+}
+
+/**
+ * 가져오기/내보내기 화면용 가짜 API. 기존에 "犬/いぬ" 한 단어가 있다고 가정하고, 중복 처리 정책에
+ * 따라 서버와 같은 모양의 응답을 돌려준다. 단어에 FAIL이 들어 있으면 그 항목만 실패로, CHUNKFAIL이
+ * 들어 있으면 그 묶음 전체를 500으로 응답해 부분 실패 흐름을 볼 수 있다.
+ */
+function installImportMockApi() {
+  const realFetch = window.fetch;
+  const calls: RecordedCall[] = [];
+  window.__mockCalls = calls;
+  const books = [{ id: "book-existing", name: "기존 단어장" }];
+  const existing = new Set(["犬::いぬ"]);
+
+  window.fetch = async (input, init) => {
+    const url = new URL(typeof input === "string" ? input : (input as Request).url, location.href);
+    const method = (init?.method ?? "GET").toUpperCase();
+    const body = init?.body ? JSON.parse(String(init.body)) : undefined;
+    if (method !== "GET" && url.pathname.startsWith("/api/")) {
+      calls.push({ method, path: url.pathname, body, at: performance.now() });
+    }
+
+    if (url.pathname === "/api/vocabulary-books" && method === "GET") {
+      return envelope(
+        books.map((b) => ({
+          ...b,
+          description: null,
+          isPublic: false,
+          createdAt: "",
+          wordCount: 0,
+          masteredCount: 0,
+        })),
+      );
+    }
+    if (url.pathname === "/api/vocabulary-books" && method === "POST") {
+      const book = { id: `book-${books.length}`, name: body.name as string };
+      books.push(book);
+      return envelope({
+        ...book,
+        description: null,
+        isPublic: false,
+        createdAt: "",
+        wordCount: 0,
+        masteredCount: 0,
+      });
+    }
+    if (url.pathname === "/api/vocabularies/check-duplicates") {
+      return envelope(
+        (body.items as { word: string; reading: string }[]).map((item) =>
+          existing.has(`${item.word}::${item.reading}`)
+            ? { isDuplicate: true, existing: { id: "x", word: item.word, reading: item.reading } }
+            : { isDuplicate: false },
+        ),
+      );
+    }
+    if (url.pathname === "/api/vocabularies/import") {
+      const items = body.items as { word: string; reading: string }[];
+      if (items.some((item) => item.word.includes("CHUNKFAIL"))) return errorEnvelope("서버 오류");
+      const counts = { created: 0, overwritten: 0, "kept-both": 0, skipped: 0, failed: 0 };
+      const results = items.map((item) => {
+        const key = `${item.word}::${item.reading}`;
+        let result: { status: keyof typeof counts; reason?: string };
+        if (item.word.includes("FAIL"))
+          result = { status: "failed", reason: "저장 중 오류가 났어요." };
+        else if (existing.has(key)) {
+          result =
+            body.duplicatePolicy === "skip"
+              ? { status: "skipped", reason: "이미 있는 단어예요." }
+              : body.duplicatePolicy === "overwrite"
+                ? { status: "overwritten" }
+                : { status: "kept-both" };
+        } else {
+          existing.add(key);
+          result = { status: "created" };
+        }
+        counts[result.status] += 1;
+        return result;
+      });
+      // 느린 네트워크처럼 진행률이 보이도록 잠깐 기다린다.
+      await new Promise((resolve) => setTimeout(resolve, 250));
+      return envelope({
+        results,
+        counts,
+        unlockedAchievements:
+          calls.filter((c) => c.path === "/api/vocabularies/import").length === 1
+            ? [{ title: "첫 단어 등록" }]
+            : [],
+      });
+    }
+    if (url.pathname === "/api/vocabularies/export") {
+      return new Response("\uFEFF단어,읽기\n犬,いぬ\n", {
+        headers: {
+          "content-type": "text/csv; charset=utf-8",
+          "content-disposition": 'attachment; filename="kotoba-loop-words-2026-10-08.csv"',
+        },
+      });
+    }
+    return realFetch(input, init);
+  };
+  return () => {
+    window.fetch = realFetch;
+  };
+}
+
+function ImportPanel() {
+  const [exportOpen, setExportOpen] = useState(false);
+  return (
+    <div className="flex flex-col gap-6">
+      <div>
+        <Button variant="outline" size="sm" onClick={() => setExportOpen(true)}>
+          내보내기 대화상자 열기
+        </Button>
+      </div>
+      <ImportWizard />
+      {exportOpen && <ExportDialog open onClose={() => setExportOpen(false)} />}
+    </div>
+  );
+}
+
 function UndoPanel({ words }: { words: ReturnType<typeof generateWords> }) {
   const queryClient = useQueryClient();
   // 서버 컴포넌트가 내려주는 목록처럼, 삭제해도 바뀌지 않는 스냅샷을 쓴다(묘비 동작 확인용).
@@ -224,10 +350,12 @@ export function WordsPreview({
   count,
   baseline,
   undo = false,
+  importMode = false,
 }: {
   count: number;
   baseline: boolean;
   undo?: boolean;
+  importMode?: boolean;
 }) {
   const words = useMemo(() => generateWords(count), [count]);
   const [ready, setReady] = useState(false);
@@ -242,11 +370,11 @@ export function WordsPreview({
       setBaselineReady(true);
       return;
     }
-    const uninstall = installMockApi(words);
+    const uninstall = importMode ? installImportMockApi() : installMockApi(words);
 
     setReady(true);
     return uninstall;
-  }, [baseline, words]);
+  }, [baseline, words, importMode]);
 
   if (baseline) {
     // 점진 렌더링 도입 전과 같은 방식 — 전부 한 번에 마운트한다(성능 비교용). 실제 목록은 데이터가
@@ -263,5 +391,6 @@ export function WordsPreview({
   }
 
   if (!ready) return null;
+  if (importMode) return <ImportPanel />;
   return undo ? <UndoPanel words={words} /> : <WordsView />;
 }
