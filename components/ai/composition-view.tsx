@@ -25,6 +25,7 @@ import {
   COMPOSITION_DEFAULT_COUNT,
   COMPOSITION_EXCLUDE_MAX,
   COMPOSITION_LEVELS,
+  COMPOSITION_BUSINESS_SITUATION,
   COMPOSITION_SITUATIONS,
   COMPOSITION_TONES,
   COMPOSITION_VOCAB_LEVELS,
@@ -42,20 +43,23 @@ const MODE_OPTIONS: { value: CompositionModeValue; label: string; hint: string }
   { value: "ENDLESS", label: "무한", hint: "그만할 때까지" },
 ];
 
-const KIND_STYLES: Record<string, string> = {
+export const KIND_STYLES: Record<string, string> = {
   문법: "bg-error text-error-foreground",
   어휘: "bg-warning text-warning-foreground",
   조사: "bg-warning text-warning-foreground",
   말투: "bg-warning text-warning-foreground",
+  경어: "bg-error text-error-foreground",
   표기: "bg-warning text-warning-foreground",
   "실제 표현": "bg-secondary text-secondary-foreground",
 };
 
-function errorMessage(err: unknown, fallback: string): string {
+const BUSINESS_TONES: readonly (typeof COMPOSITION_TONES)[number][] = ["정중체"];
+
+export function errorMessage(err: unknown, fallback: string): string {
   return err instanceof ApiClientError ? err.message : fallback;
 }
 
-function OptionChips<T extends string>({
+export function OptionChips<T extends string>({
   label,
   options,
   value,
@@ -91,7 +95,7 @@ function OptionChips<T extends string>({
   );
 }
 
-function ScoreLine({
+export function ScoreLine({
   grammar,
   vocab,
   natural,
@@ -109,7 +113,7 @@ function ScoreLine({
   );
 }
 
-function FeedbackCards({ attempt }: { attempt: CompositionAttemptView["feedback"] }) {
+export function FeedbackCards({ attempt }: { attempt: CompositionAttemptView["feedback"] }) {
   return (
     <div className="flex flex-col gap-3">
       {attempt.items.map((item, i) => (
@@ -157,6 +161,7 @@ export function CompositionView() {
   const [compositionLevel, setCompositionLevel] =
     useState<(typeof COMPOSITION_LEVELS)[number]>("단문");
   const [tone, setTone] = useState<(typeof COMPOSITION_TONES)[number]>("정중체");
+  const isBusiness = situation === COMPOSITION_BUSINESS_SITUATION;
   const [mode, setMode] = useState<CompositionModeValue>("DEFAULT");
   const [customCount, setCustomCount] = useState("10");
 
@@ -290,7 +295,10 @@ export function CompositionView() {
             label="상황"
             options={COMPOSITION_SITUATIONS}
             value={situation}
-            onChange={setSituation}
+            onChange={(next) => {
+              setSituation(next);
+              if (next === COMPOSITION_BUSINESS_SITUATION) setTone("정중체");
+            }}
           />
           <OptionChips
             label="단어 수준"
@@ -304,7 +312,17 @@ export function CompositionView() {
             value={compositionLevel}
             onChange={setCompositionLevel}
           />
-          <OptionChips label="말투" options={COMPOSITION_TONES} value={tone} onChange={setTone} />
+          <OptionChips
+            label="말투"
+            options={isBusiness ? BUSINESS_TONES : COMPOSITION_TONES}
+            value={tone}
+            onChange={setTone}
+          />
+          {isBusiness && (
+            <p className="-mt-2 text-xs font-content text-muted">
+              비즈니스 상황은 경어(존경어·겸양어·정중어) 중심의 정중체로 출제돼요.
+            </p>
+          )}
 
           <div>
             <p className="mb-1.5 text-sm font-bold text-muted">문제 수</p>
@@ -370,7 +388,7 @@ export function CompositionView() {
               최근 작문 기록
             </h2>
             <Link
-              href="/ai/composition/stats"
+              href="/stats?tab=composition"
               className="text-sm font-bold text-primary underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             >
               통계 보기

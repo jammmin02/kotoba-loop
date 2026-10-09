@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { PixelPenTool, PixelSparkles } from "@/components/icons/pixel-icons";
+import { PixelPenTool, PixelSparkles, PixelUsers } from "@/components/icons/pixel-icons";
 import { QuestLinkCard } from "@/components/ui/quest-link-card";
 import { auth } from "@/lib/auth";
 
@@ -61,6 +61,17 @@ export default async function AiHomePage() {
           iconColor="bg-secondary text-secondary-foreground"
           title="작문 퀘스트"
           description="한국어 문장을 일본어로 써보면 AI가 채점하고 더 자연스러운 표현을 알려줘요."
+          badge={{ label: "NEW", className: "bg-success text-success-foreground" }}
+        />
+
+        <QuestLinkCard
+          href="/ai/conversation"
+          fileName="QUEST_04.EXE"
+          titleColor="mint"
+          icon={PixelUsers}
+          iconColor="bg-accent text-accent-foreground"
+          title="회화 퀘스트"
+          description="친구·상사·점원 등 상황극으로 AI와 일본어를 주고받고, 말할 때마다 채점과 첨삭을 받아요."
           badge={{ label: "NEW", className: "bg-success text-success-foreground" }}
         />
       </div>

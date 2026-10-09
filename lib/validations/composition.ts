@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import {
   COMPOSITION_ANSWER_MAX,
+  COMPOSITION_BUSINESS_SITUATION,
   COMPOSITION_CUSTOM_MAX,
   COMPOSITION_CUSTOM_MIN,
   COMPOSITION_EXCLUDE_MAX,
@@ -21,6 +22,10 @@ export const createCompositionSessionSchema = z
     tone: z.enum(COMPOSITION_TONES, { message: "말투를 선택해주세요." }),
     mode: z.enum(COMPOSITION_MODES, { message: "문제 수 방식을 선택해주세요." }),
     customCount: z.number().int().optional(),
+  })
+  .refine((v) => v.situation !== COMPOSITION_BUSINESS_SITUATION || v.tone === "정중체", {
+    message: "비즈니스 상황에서는 정중체만 선택할 수 있어요.",
+    path: ["tone"],
   })
   .refine(
     (v) =>
