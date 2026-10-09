@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect } from "react";
+
 import { PixelSpeaker } from "@/components/icons/pixel-icons";
 import { Button } from "@/components/ui/button";
-import { useSpeechSynthesis } from "@/lib/hooks/use-speech-synthesis";
+import { useSpeechSynthesis, type SpeechProblem } from "@/lib/hooks/use-speech-synthesis";
 import { cn } from "@/lib/utils";
 
 export interface SpeakButtonProps {
@@ -15,9 +17,10 @@ export interface SpeakButtonProps {
 }
 
 /** 기기(OS)별로 일본어 음성 설치 방법을 안내하는 문구. */
-function voiceInstallGuide(): string {
+function voiceInstallGuide(
+  head = "이 기기에 일본어 음성이 설치되어 있지 않아 발음을 들을 수 없습니다.\n\n",
+): string {
   const ua = navigator.userAgent;
-  const head = "이 기기에 일본어 음성이 설치되어 있지 않아 발음을 들을 수 없습니다.\n\n";
   const tail = "\n\n설치 후 브라우저를 완전히 종료했다가 다시 열어 주세요.";
 
   // iPadOS는 Mac처럼 보이므로 터치 지원 여부로 구분한다.
@@ -33,6 +36,22 @@ function voiceInstallGuide(): string {
   return `${head}[Windows]\n설정 → 시간 및 언어 → 언어 및 지역 → 언어 추가 → "일본어" 선택 후 '텍스트 음성 변환' 옵션을 체크하고 설치${tail}`;
 }
 
+/** 재생 실패 원인별 안내. 모바일에는 툴팁이 없어서 alert로 바로 보여 준다. */
+function problemMessage(problem: SpeechProblem): string {
+  switch (problem) {
+    case "blocked":
+      return "브라우저가 음성 재생을 막았습니다. 화면을 한 번 터치한 뒤 다시 눌러 주세요.";
+    case "no-voice":
+      return voiceInstallGuide();
+    case "no-sound":
+      return voiceInstallGuide(
+        "소리가 재생되지 않았습니다. 아래를 확인해 주세요.\n\n1. 미디어 볼륨이 켜져 있고 무음/진동 모드가 아닌지\n2. 카카오톡·인스타그램 등 앱 안의 브라우저가 아니라 Chrome/Safari로 열었는지\n3. 일본어 음성이 설치되어 있는지\n\n",
+      );
+    default:
+      return "음성을 재생하지 못했습니다. 잠시 후 다시 시도해 주세요.";
+  }
+}
+
 /**
  * 브라우저 내장 TTS로 일본어를 읽어주는 작은 아이콘 버튼. speechSynthesis를 지원하지 않는
  * 브라우저에서는 아무것도 렌더링하지 않는다.
@@ -45,11 +64,16 @@ export function SpeakButton({
 }: SpeakButtonProps) {
   const { isSupported, isSpeaking, isVoiceMissing, error, speak } = useSpeechSynthesis("ja-JP");
 
+  // 모바일에는 툴팁이 없으므로 실패 원인을 alert로 바로 알린다.
+  useEffect(() => {
+    if (error) window.alert(problemMessage(error));
+  }, [error]);
+
   if (!isSupported || !text.trim()) return null;
 
   const hint = isVoiceMissing
     ? "일본어 음성이 설치되어 있지 않습니다. 눌러서 설치 방법 보기"
-    : error;
+    : undefined;
 
   return (
     <Button
@@ -73,7 +97,7 @@ export function SpeakButton({
       }}
       aria-label={label}
       aria-pressed={isSpeaking}
-      title={hint ?? undefined}
+      title={hint}
     >
       <PixelSpeaker
         className={cn("size-4", isSpeaking && "animate-pulse text-primary")}
